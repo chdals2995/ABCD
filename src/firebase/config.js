@@ -23,7 +23,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 // 각 서비스 인스턴스 export
 export const db = getFirestore(app); // Firestore
