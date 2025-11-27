@@ -3,13 +3,46 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "chart.js/auto";
 import { Line, Bar } from "react-chartjs-2";
 import { rtdb } from "../firebase/config";
-import { ref, query, orderByChild, startAt, onValue } from "firebase/database";
+import {
+  ref,
+  query,
+  orderByChild,
+  startAt,
+  onValue,
+  get,
+  set,
+} from "firebase/database";
 import { deleteRealtimeRoot } from "../services/deleteRealtimeRoot";
+import FakeRealtimeGenerator from "../components/FakeRealtimeGenerator";
 
-// 🔧 RTDB 경로 기본값
+// 🔧 RTDB 경로 기본값 (층 기준)
 const DEFAULT_FLOOR = "1F";
-const DEFAULT_ROOM = "101";
-const RTDB_PATH = (floor, room) => `realtime/${floor}/${room}`;
+// 초단위 raw RTDB 경로 (층 단위)
+const RTDB_SECONDS_PATH = (floor) => `realtime/${floor}`;
+
+// 🔧 시뮬레이션 설정이 저장될 RTDB 경로
+const SIM_CONFIG_PATH = "simConfig/default";
+
+// 🔧 전체층수 + 지하층수 → ["B2", "B1", "1F", "2F", ...] 생성
+function buildFloorIds(totalFloors, basementFloors) {
+  const t = Number(totalFloors) || 0;
+  const b = Number(basementFloors) || 0;
+  if (t <= 0) return [];
+  const above = Math.max(0, t - b);
+  const ids = [];
+
+  // 지하: B2, B1 순서로
+  for (let i = b; i >= 1; i--) {
+    ids.push(`B${i}`);
+  }
+
+  // 지상: 1F, 2F, ...
+  for (let f = 1; f <= above; f++) {
+    ids.push(`${f}F`);
+  }
+
+  return ids;
+}
 
 // 🔹 초단위 raw 를 subscribe 할 때 가져올 최대 히스토리 (초 단위)
 //   실시간 뷰에서 최대 10분까지만 초단위로 쓰니까, 20분 정도만 들고 있으면 충분
@@ -209,8 +242,14 @@ function buildWeeklyStats(dailyStats) {
 
 export default function RealtimeEnergyDashboard() {
   const [floor, setFloor] = useState(DEFAULT_FLOOR);
-  const [room, setRoom] = useState(DEFAULT_ROOM);
   const [tab, setTab] = useState("realtime"); // realtime | daily | weekly | monthly
+
+  // 🔧 시뮬레이션 설정
+  const [simSpeed, setSimSpeed] = useState(1);
+  const [totalFloors, setTotalFloors] = useState(10);
+  const [basementFloors, setBasementFloors] = useState(0);
+  const [roomsPerFloor, setRoomsPerFloor] = useState(7);
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   // ✅ 실시간 구간 선택 (초 단위) – 기본 60초
   const [realtimeWindowSeconds, setRealtimeWindowSeconds] = useState(60);
@@ -234,14 +273,103 @@ export default function RealtimeEnergyDashboard() {
     [realtimeWindowSeconds]
   );
 
-  // 1) 초단위 raw 구독 (realtime/{floor}/{room})
+  // 🔧 RTDB에서 시뮬레이션 설정 불러오기
+  useEffect(() => {
+    async function loadConfig() {
+      try {
+        const cfgRef = ref(rtdb, SIM_CONFIG_PATH);
+        const snap = await get(cfgRef);
+        if (snap.exists()) {
+          const cfg = snap.val();
+          if (typeof cfg.speed === "number") setSimSpeed(cfg.speed);
+          if (typeof cfg.totalFloors === "number")
+            setTotalFloors(cfg.totalFloors);
+          if (typeof cfg.basementFloors === "number")
+            setBasementFloors(cfg.basementFloors);
+          if (typeof cfg.roomsPerFloor === "number")
+            setRoomsPerFloor(cfg.roomsPerFloor);
+          if (typeof cfg.defaultFloorId === "string")
+            setFloor(cfg.defaultFloorId);
+        }
+      } catch (err) {
+        console.error("시뮬레이션 설정 불러오기 실패:", err);
+      } finally {
+        setConfigLoaded(true);
+      }
+    }
+    loadConfig();
+  }, []);
+
+  const floorIds = useMemo(
+    () => buildFloorIds(totalFloors, basementFloors),
+    [totalFloors, basementFloors]
+  );
+
+  // 설정 로드 후 현재 floor가 리스트에 없으면 첫 층으로 맞추기
+  useEffect(() => {
+    if (!configLoaded) return;
+    if (!floorIds.length) return;
+    if (!floorIds.includes(floor)) {
+      setFloor(floorIds[0]);
+    }
+  }, [configLoaded, floorIds, floor]);
+
+  async function handleSaveSimConfig() {
+    const t = Number(totalFloors) || 0;
+    const b = Number(basementFloors) || 0;
+    const r = Number(roomsPerFloor) || 0;
+    const s = Number(simSpeed) || 1;
+
+    if (t <= 0) {
+      alert("전체 층수는 1 이상이어야 합니다.");
+      return;
+    }
+    if (b < 0) {
+      alert("지하 층수는 0 이상이어야 합니다.");
+      return;
+    }
+    if (b > t) {
+      alert("지하 층수가 전체 층수보다 클 수 없습니다.");
+      return;
+    }
+    if (r <= 0) {
+      alert("층당 방 개수는 1 이상이어야 합니다.");
+      return;
+    }
+    if (s <= 0) {
+      alert("배속은 1 이상이어야 합니다.");
+      return;
+    }
+
+    try {
+      const cfgRef = ref(rtdb, SIM_CONFIG_PATH);
+      await set(cfgRef, {
+        speed: s,
+        totalFloors: t,
+        basementFloors: b,
+        roomsPerFloor: r,
+        defaultFloorId: floor,
+        updatedAt: Date.now(),
+      });
+      alert("시뮬레이션 설정을 저장했습니다.");
+    } catch (err) {
+      console.error("시뮬레이션 설정 저장 실패:", err);
+      alert("설정 저장에 실패했습니다. 콘솔을 확인해주세요.");
+    }
+  }
+
+  // 1) 초단위 raw 구독 (realtime/{floor})
   useEffect(() => {
     const fromTimestamp = mountedAtRef.current - RAW_HISTORY_SECONDS * 1000;
 
-    const path = RTDB_PATH(floor, room);
-    const roomRef = ref(rtdb, path);
+    const path = RTDB_SECONDS_PATH(floor);
+    const floorRef = ref(rtdb, path);
 
-    const q = query(roomRef, orderByChild("createdAt"), startAt(fromTimestamp));
+    const q = query(
+      floorRef,
+      orderByChild("createdAt"),
+      startAt(fromTimestamp)
+    );
 
     const unsubscribe = onValue(
       q,
@@ -279,14 +407,14 @@ export default function RealtimeEnergyDashboard() {
     );
 
     return () => unsubscribe();
-  }, [floor, room]);
+  }, [floor]);
 
-  // 2) 분/시/일/월 집계 구독 (aggMinute, aggHour, aggDay, aggMonth)
+  // 2) 분/시/일/월 집계 구독 (aggMinute, aggHour, aggDay, aggMonth) — 층 기준
   useEffect(() => {
-    const minuteRef = ref(rtdb, `aggMinute/${floor}/${room}`);
-    const hourRef = ref(rtdb, `aggHour/${floor}/${room}`);
-    const dayRef = ref(rtdb, `aggDay/${floor}/${room}`);
-    const monthRef = ref(rtdb, `aggMonth/${floor}/${room}`);
+    const minuteRef = ref(rtdb, `aggMinute/${floor}`);
+    const hourRef = ref(rtdb, `aggHour/${floor}`);
+    const dayRef = ref(rtdb, `aggDay/${floor}`);
+    const monthRef = ref(rtdb, `aggMonth/${floor}`);
 
     // 분단위 집계
     const unsubMinute = onValue(
@@ -460,7 +588,7 @@ export default function RealtimeEnergyDashboard() {
       unsubDay();
       unsubMonth();
     };
-  }, [floor, room]);
+  }, [floor]);
 
   // ✅ 초단위 raw 데이터를 기준으로, "최대 10분" 구간만 잘라낸 것
   const realtimeSecondWindow = useMemo(() => {
@@ -788,7 +916,7 @@ export default function RealtimeEnergyDashboard() {
     return (
       <div className="chart-grid">
         <div className="chart-card">
-          <h3>전력 사용량 (실시간)</h3>
+          <h3>층 전력 사용량 (실시간)</h3>
           <div className="chart-inner">
             <Line
               data={buildLineData(labels, elecValues, "kWh")}
@@ -797,7 +925,7 @@ export default function RealtimeEnergyDashboard() {
           </div>
         </div>
         <div className="chart-card">
-          <h3>수도 사용량 (실시간)</h3>
+          <h3>층 수도 사용량 (실시간)</h3>
           <div className="chart-inner">
             <Line
               data={buildLineData(labels, waterValues, "m³")}
@@ -806,7 +934,7 @@ export default function RealtimeEnergyDashboard() {
           </div>
         </div>
         <div className="chart-card">
-          <h3>도시가스 사용량 (실시간)</h3>
+          <h3>층 도시가스 사용량 (실시간)</h3>
           <div className="chart-inner">
             <Line
               data={buildLineData(labels, gasValues, "m³")}
@@ -815,7 +943,7 @@ export default function RealtimeEnergyDashboard() {
           </div>
         </div>
         <div className="chart-card">
-          <h3>실내 온도 (실시간)</h3>
+          <h3>층 평균 온도 (실시간)</h3>
           <div className="chart-inner">
             <Line
               data={buildLineData(labels, tempValues, "℃")}
@@ -978,26 +1106,154 @@ export default function RealtimeEnergyDashboard() {
   return (
     <div style={{ padding: 24 }}>
       <h2 style={{ marginBottom: 16 }}>
-        실시간 에너지 모니터링 ({floor} {room})
+        실시간 층별 에너지 모니터링 ({floor})
       </h2>
 
-      {/* 층/호 선택 */}
+      {/* 🔧 시뮬레이션 설정 (전체층수 / 지하층수 / 방 개수 / 배속) */}
+      <div
+        style={{
+          marginBottom: 16,
+          padding: "12px 16px",
+          borderRadius: 12,
+          border: "1px solid #e5e7eb",
+          background: "#f9fafb",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 12,
+          alignItems: "flex-end",
+        }}
+      >
+        <div>
+          <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+            전체 층수
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={totalFloors}
+            onChange={(e) => setTotalFloors(Number(e.target.value) || 0)}
+            style={{
+              width: 80,
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: "1px solid #d1d5db",
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+            지하 층수
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={basementFloors}
+            onChange={(e) => setBasementFloors(Number(e.target.value) || 0)}
+            style={{
+              width: 80,
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: "1px solid #d1d5db",
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+            층당 방 개수
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={roomsPerFloor}
+            onChange={(e) => setRoomsPerFloor(Number(e.target.value) || 0)}
+            style={{
+              width: 80,
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: "1px solid #d1d5db",
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>
+            시뮬레이션 배속
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={simSpeed}
+            onChange={(e) => setSimSpeed(Number(e.target.value) || 1)}
+            style={{
+              width: 80,
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: "1px solid #d1d5db",
+            }}
+          />
+        </div>
+
+        <div style={{ marginLeft: "auto" }}>
+          <button
+            type="button"
+            onClick={handleSaveSimConfig}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 8,
+              border: "none",
+              backgroundColor: "#2563eb",
+              color: "#fff",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            설정 저장
+          </button>
+          {floorIds.length > 0 && (
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "#4b5563",
+                maxWidth: 400,
+              }}
+            >
+              생성 층: {floorIds.join(", ")}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 층 선택 */}
       <div style={{ marginBottom: 12, display: "flex", gap: 8 }}>
         <label>
           층 :{" "}
-          <input
-            value={floor}
-            onChange={(e) => setFloor(e.target.value)}
-            style={{ width: 60 }}
-          />
-        </label>
-        <label>
-          호실 :{" "}
-          <input
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-            style={{ width: 80 }}
-          />
+          {floorIds.length > 0 ? (
+            <select
+              value={floor}
+              onChange={(e) => setFloor(e.target.value)}
+              style={{
+                minWidth: 80,
+                padding: "4px 8px",
+                borderRadius: 6,
+                border: "1px solid #d1d5db",
+              }}
+            >
+              {floorIds.map((id) => (
+                <option key={id} value={id}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={floor}
+              onChange={(e) => setFloor(e.target.value)}
+              style={{ width: 60 }}
+            />
+          )}
         </label>
       </div>
 
@@ -1071,6 +1327,17 @@ export default function RealtimeEnergyDashboard() {
           월별
         </button>
       </div>
+
+      {/* 🔄 층별 더미 데이터 생성기 (관리용) */}
+      {floorIds.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <FakeRealtimeGenerator
+            floorIds={floorIds}
+            roomsPerFloor={roomsPerFloor}
+            speed={simSpeed}
+          />
+        </div>
+      )}
 
       {/* ✅ 실시간 탭일 때만 실시간 구간 버튼 + 이벤트 요약 보여주기 */}
       {tab === "realtime" && (
@@ -1179,7 +1446,7 @@ export default function RealtimeEnergyDashboard() {
           padding: 12px 16px;
           background: #ffffff;
           box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-          min-height: 220px;
+          min-height: 500px;
           display: flex;
           flex-direction: column;
         }
