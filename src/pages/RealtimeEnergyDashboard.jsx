@@ -48,6 +48,11 @@ function buildFloorIds(totalFloors, basementFloors) {
 //   실시간 뷰에서 최대 10분까지만 초단위로 쓰니까, 20분 정도만 들고 있으면 충분
 const RAW_HISTORY_SECONDS = 20 * 60;
 
+// 🔹 집계 차트에서 화면에 보여줄 최대 막대 개수
+const MAX_DAILY_BARS = 7; // 최근 7일
+const MAX_WEEKLY_BARS = 12; // 최근 12주
+const MAX_MONTHLY_BARS = 12; // 최근 12개월
+
 // 실시간 구간 프리셋 (초 단위)
 const REALTIME_WINDOW_PRESETS = [
   { id: "60s", label: "60초", seconds: 60 },
@@ -57,12 +62,13 @@ const REALTIME_WINDOW_PRESETS = [
   { id: "1h", label: "1시간", seconds: 60 * 60 },
   { id: "6h", label: "6시간", seconds: 6 * 60 * 60 },
   { id: "12h", label: "12시간", seconds: 12 * 60 * 60 },
+  { id: "24h", label: "24시간", seconds: 24 * 60 * 60 },
 ];
 
 // 🔹 초단위/분단위/시간단위 구분 함수
-//  - 60초 / 5분 / 10분  → "second"
-//  - 30분 / 1시간      → "minute"
-//  - 6시간 / 12시간    → "hour"
+//  - 60초 / 5분 / 10분             → "second"
+//  - 30분 / 1시간                  → "minute"
+//  - 6시간 / 12시간 / 24시간 이상  → "hour"
 function getRealtimeSourceType(windowSeconds) {
   if (windowSeconds <= 10 * 60) return "second";
   if (windowSeconds <= 60 * 60) return "minute";
@@ -531,7 +537,7 @@ export default function RealtimeEnergyDashboard() {
         });
         list.sort((a, b) => (a.dateKey < b.dateKey ? -1 : 1));
 
-        // 예: 최근 365일만 사용
+        // 예: 최근 365일만 사용 (데이터는 저장, 화면은 따로 잘라서 보여줌)
         const MAX_DAYS = 365;
         const trimmed =
           list.length > MAX_DAYS ? list.slice(list.length - MAX_DAYS) : list;
@@ -567,7 +573,7 @@ export default function RealtimeEnergyDashboard() {
         });
         list.sort((a, b) => (a.monthKey < b.monthKey ? -1 : 1));
 
-        // 예: 최근 36개월까지만 사용
+        // 예: 최근 36개월까지만 사용 (데이터), 화면은 따로 잘라서 보여줌
         const MAX_MONTHS = 36;
         const trimmed =
           list.length > MAX_MONTHS
@@ -611,7 +617,7 @@ export default function RealtimeEnergyDashboard() {
     return minuteAgg.filter((row) => row.ts >= fromTs);
   }, [minuteAgg, realtimeWindowSeconds]);
 
-  // ✅ 시단위 집계 기준으로, (6시간~12시간) 구간 잘라낸 것
+  // ✅ 시단위 집계 기준으로, (6시간~24시간) 구간 잘라낸 것
   const realtimeHourWindow = useMemo(() => {
     if (!hourAgg.length) return [];
     const lastTs = hourAgg[hourAgg.length - 1].ts;
@@ -919,7 +925,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>층 전력 사용량 (실시간)</h3>
           <div className="chart-inner">
             <Line
-              data={buildLineData(labels, elecValues, "kWh")}
+              data={buildLineData(labels, elecValues, "kW")}
               options={elecOptions}
             />
           </div>
@@ -928,7 +934,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>층 수도 사용량 (실시간)</h3>
           <div className="chart-inner">
             <Line
-              data={buildLineData(labels, waterValues, "m³")}
+              data={buildLineData(labels, waterValues, "ℓ/h")}
               options={waterOptions}
             />
           </div>
@@ -937,7 +943,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>층 도시가스 사용량 (실시간)</h3>
           <div className="chart-inner">
             <Line
-              data={buildLineData(labels, gasValues, "m³")}
+              data={buildLineData(labels, gasValues, "m³/h")}
               options={gasOptions}
             />
           </div>
@@ -957,11 +963,14 @@ export default function RealtimeEnergyDashboard() {
 
   // -------------------- 일별 / 주별 / 월별 (막대 그래프) --------------------
   const renderDailyCharts = () => {
-    const labels = dailyStats.map((d) => formatDayLabel(d.dateKey));
-    const elecValues = dailyStats.map((d) => d.elec);
-    const waterValues = dailyStats.map((d) => d.water);
-    const gasValues = dailyStats.map((d) => d.gas);
-    const tempValues = dailyStats.map((d) => d.temp);
+    // 🔹 최근 30일만 사용
+    const visibleDaily = dailyStats.slice(-MAX_DAILY_BARS);
+
+    const labels = visibleDaily.map((d) => formatDayLabel(d.dateKey));
+    const elecValues = visibleDaily.map((d) => d.elec);
+    const waterValues = visibleDaily.map((d) => d.water);
+    const gasValues = visibleDaily.map((d) => d.gas);
+    const tempValues = visibleDaily.map((d) => d.temp);
 
     return (
       <div className="chart-grid">
@@ -969,7 +978,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>전력 사용량 (일별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, elecValues, "kWh / day")}
+              data={buildBarData(labels, elecValues, "kWh (일 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -978,7 +987,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>수도 사용량 (일별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, waterValues, "m³ / day")}
+              data={buildBarData(labels, waterValues, "m³ (일 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -987,7 +996,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>도시가스 사용량 (일별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, gasValues, "m³ / day")}
+              data={buildBarData(labels, gasValues, "m³ (일 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -996,7 +1005,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>평균 온도 (일별 평균)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, tempValues, "℃ (avg)")}
+              data={buildBarData(labels, tempValues, "℃ (일 평균)")}
               options={commonBarOptions}
             />
           </div>
@@ -1006,11 +1015,14 @@ export default function RealtimeEnergyDashboard() {
   };
 
   const renderWeeklyCharts = () => {
-    const labels = weeklyStats.map((w) => formatWeekLabel(w.weekKey));
-    const elecValues = weeklyStats.map((w) => w.elec);
-    const waterValues = weeklyStats.map((w) => w.water);
-    const gasValues = weeklyStats.map((w) => w.gas);
-    const tempValues = weeklyStats.map((w) => w.temp);
+    // 🔹 최근 12주만 사용
+    const visibleWeekly = weeklyStats.slice(-MAX_WEEKLY_BARS);
+
+    const labels = visibleWeekly.map((w) => formatWeekLabel(w.weekKey));
+    const elecValues = visibleWeekly.map((w) => w.elec);
+    const waterValues = visibleWeekly.map((w) => w.water);
+    const gasValues = visibleWeekly.map((w) => w.gas);
+    const tempValues = visibleWeekly.map((w) => w.temp);
 
     return (
       <div className="chart-grid">
@@ -1018,7 +1030,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>전력 사용량 (주별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, elecValues, "kWh / week")}
+              data={buildBarData(labels, elecValues, "kWh (주 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -1027,7 +1039,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>수도 사용량 (주별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, waterValues, "m³ / week")}
+              data={buildBarData(labels, waterValues, "m³ (주 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -1036,7 +1048,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>도시가스 사용량 (주별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, gasValues, "m³ / week")}
+              data={buildBarData(labels, gasValues, "m³ (주 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -1045,7 +1057,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>평균 온도 (주별 평균)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, tempValues, "℃ (avg)")}
+              data={buildBarData(labels, tempValues, "℃ (주 평균)")}
               options={commonBarOptions}
             />
           </div>
@@ -1055,11 +1067,14 @@ export default function RealtimeEnergyDashboard() {
   };
 
   const renderMonthlyCharts = () => {
-    const labels = monthlyStats.map((m) => formatMonthLabel(m.monthKey));
-    const elecValues = monthlyStats.map((m) => m.elec);
-    const waterValues = monthlyStats.map((m) => m.water);
-    const gasValues = monthlyStats.map((m) => m.gas);
-    const tempValues = monthlyStats.map((m) => m.temp);
+    // 🔹 최근 12개월만 사용
+    const visibleMonthly = monthlyStats.slice(-MAX_MONTHLY_BARS);
+
+    const labels = visibleMonthly.map((m) => formatMonthLabel(m.monthKey));
+    const elecValues = visibleMonthly.map((m) => m.elec);
+    const waterValues = visibleMonthly.map((m) => m.water);
+    const gasValues = visibleMonthly.map((m) => m.gas);
+    const tempValues = visibleMonthly.map((m) => m.temp);
 
     return (
       <div className="chart-grid">
@@ -1067,7 +1082,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>전력 사용량 (월별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, elecValues, "kWh / month")}
+              data={buildBarData(labels, elecValues, "kWh (월 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -1076,7 +1091,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>수도 사용량 (월별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, waterValues, "m³ / month")}
+              data={buildBarData(labels, waterValues, "m³ (월 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -1085,7 +1100,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>도시가스 사용량 (월별 합계)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, gasValues, "m³ / month")}
+              data={buildBarData(labels, gasValues, "m³ (월 합계)")}
               options={commonBarOptions}
             />
           </div>
@@ -1094,7 +1109,7 @@ export default function RealtimeEnergyDashboard() {
           <h3>평균 온도 (월별 평균)</h3>
           <div className="chart-inner">
             <Bar
-              data={buildBarData(labels, tempValues, "℃ (avg)")}
+              data={buildBarData(labels, tempValues, "℃ (월 평균)")}
               options={commonBarOptions}
             />
           </div>
