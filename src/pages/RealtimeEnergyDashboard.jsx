@@ -12,7 +12,11 @@ import {
   get,
   set,
 } from "firebase/database";
-import { deleteRealtimeRoot } from "../services/deleteRealtimeRoot";
+
+import {
+  deleteRealtimeRoot,
+  deleteAllEnergyData,
+} from "../services/DeleteRealtimeRoot";
 import FakeRealtimeGenerator from "../components/FakeRealtimeGenerator";
 
 // 🔧 RTDB 경로 기본값 (층 기준)
@@ -45,11 +49,10 @@ function buildFloorIds(totalFloors, basementFloors) {
 }
 
 // 🔹 초단위 raw 를 subscribe 할 때 가져올 최대 히스토리 (초 단위)
-//   실시간 뷰에서 최대 10분까지만 초단위로 쓰니까, 20분 정도만 들고 있으면 충분
-const RAW_HISTORY_SECONDS = 20 * 60;
+const RAW_HISTORY_SECONDS = 20 * 60; // 최대 20분치
 
 // 🔹 집계 차트에서 화면에 보여줄 최대 막대 개수
-const MAX_DAILY_BARS = 7; // 최근 7일
+const MAX_DAILY_BARS = 7; // 최근 7일 (또는 슬라이더로 이동)
 const MAX_WEEKLY_BARS = 12; // 최근 12주
 const MAX_MONTHLY_BARS = 12; // 최근 12개월
 
@@ -169,11 +172,27 @@ function getWeekStartDate(date) {
 // HH:MM:SS
 function formatTimeLabel(ts) {
   const d = new Date(ts);
-  return d.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+// HH:MM (분 단위 축용)
+function formatTimeLabelMinute(ts) {
+  const d = new Date(ts);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+// MM/DD HH시 (시간 단위 축용)
+function formatTimeLabelHour(ts) {
+  const d = new Date(ts);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  return `${month}/${day} ${hh}시`;
 }
 
 // MM/DD
@@ -246,6 +265,47 @@ function buildWeeklyStats(dailyStats) {
     }));
 }
 
+// 🔹 타임스탬프 기반 히스토리 정보
+function buildHistoryInfo(list, tsKey) {
+  const withTs = list.filter((item) => Number.isFinite(item[tsKey]));
+  if (!withTs.length) return null;
+  const firstTs = withTs[0][tsKey];
+  const lastTs = withTs[withTs.length - 1][tsKey];
+  const totalSec = (lastTs - firstTs) / 1000;
+  return { firstTs, lastTs, totalSec };
+}
+
+// 🔹 히스토리에서 windowSeconds 만큼, pos(0~1)에 해당하는 구간만 슬라이싱
+function buildTimeWindow(list, historyInfo, windowSeconds, pos, tsKey) {
+  if (!historyInfo) return [];
+  const withTs = list.filter((item) => Number.isFinite(item[tsKey]));
+  if (!withTs.length) return [];
+
+  const { firstTs, lastTs, totalSec } = historyInfo;
+
+  // 히스토리가 윈도우 길이보다 짧으면 전체 사용
+  if (totalSec <= windowSeconds) {
+    return withTs;
+  }
+
+  const maxStartTs = lastTs - windowSeconds * 1000;
+  const clampedPos = Math.min(1, Math.max(0, pos ?? 1)); // 0=과거, 1=최근
+  const startTs = firstTs + (maxStartTs - firstTs) * clampedPos;
+  const endTs = startTs + windowSeconds * 1000;
+
+  return withTs.filter((row) => row[tsKey] >= startTs && row[tsKey] <= endTs);
+}
+
+// 🔹 일/주/월 배열에서 windowSize 개를 pos(0~1)에 맞춰 잘라내기
+function sliceWindowByPos(list, windowSize, pos) {
+  if (!list.length) return [];
+  if (list.length <= windowSize) return list;
+  const maxStart = list.length - windowSize;
+  const clampedPos = Math.min(1, Math.max(0, pos ?? 1));
+  const startIndex = Math.round(maxStart * clampedPos);
+  return list.slice(startIndex, startIndex + windowSize);
+}
+
 export default function RealtimeEnergyDashboard() {
   const [floor, setFloor] = useState(DEFAULT_FLOOR);
   const [tab, setTab] = useState("realtime"); // realtime | daily | weekly | monthly
@@ -259,6 +319,14 @@ export default function RealtimeEnergyDashboard() {
 
   // ✅ 실시간 구간 선택 (초 단위) – 기본 60초
   const [realtimeWindowSeconds, setRealtimeWindowSeconds] = useState(60);
+
+  // 🔹 실시간 타임 슬라이더 위치 (0=가장 과거, 1=가장 최근)
+  const [realtimeWindowPos, setRealtimeWindowPos] = useState(1);
+
+  // 🔹 일/주/월 집계용 슬라이더 위치
+  const [dailyWindowPos, setDailyWindowPos] = useState(1);
+  const [weeklyWindowPos, setWeeklyWindowPos] = useState(1);
+  const [monthlyWindowPos, setMonthlyWindowPos] = useState(1);
 
   // 🔹 초단위 raw 데이터
   const [rawData, setRawData] = useState([]);
@@ -320,6 +388,24 @@ export default function RealtimeEnergyDashboard() {
     }
   }, [configLoaded, floorIds, floor]);
 
+  // 실시간 구간/층/단위(sourceType)가 바뀔 때마다 실시간 슬라이더는 "최근"으로 리셋
+  useEffect(() => {
+    setRealtimeWindowPos(1);
+  }, [realtimeWindowSeconds, floor, realtimeSourceType]);
+
+  // 일/주/월 데이터 길이가 바뀌면 각각 최신으로 리셋
+  useEffect(() => {
+    setDailyWindowPos(1);
+  }, [dailyStats.length]);
+
+  useEffect(() => {
+    setWeeklyWindowPos(1);
+  }, [weeklyStats.length]);
+
+  useEffect(() => {
+    setMonthlyWindowPos(1);
+  }, [monthlyStats.length]);
+
   async function handleSaveSimConfig() {
     const t = Number(totalFloors) || 0;
     const b = Number(basementFloors) || 0;
@@ -364,6 +450,54 @@ export default function RealtimeEnergyDashboard() {
     }
   }
 
+  // 🔥 realtime 전체 삭제 버튼 핸들러
+  async function handleDeleteRealtime() {
+    const ok = window.confirm(
+      "모든 층의 realtime 데이터(realtime/*)를 삭제합니다. 계속할까요?"
+    );
+    if (!ok) return;
+
+    try {
+      await deleteRealtimeRoot();
+
+      // 바로 화면에서도 비워주기
+      setRawData([]);
+      setMinuteAgg([]);
+      setHourAgg([]);
+      setDailyStats([]);
+      setMonthlyStats([]);
+
+      alert("realtime 데이터가 삭제되었습니다.");
+    } catch (err) {
+      console.error("realtime 삭제 중 오류:", err);
+      alert("삭제 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
+    }
+  }
+
+  // 🔥 realtime + 집계 전체 삭제 버튼 핸들러
+  async function handleDeleteAll() {
+    const ok = window.confirm(
+      "realtime + 집계(분/시/일/월) 데이터를 모두 삭제합니다. 계속할까요?"
+    );
+    if (!ok) return;
+
+    try {
+      await deleteAllEnergyData();
+
+      // 구독이 있어서 곧 비워지긴 하지만, 바로 UI 비워주면 더 좋음
+      setRawData([]);
+      setMinuteAgg([]);
+      setHourAgg([]);
+      setDailyStats([]);
+      setMonthlyStats([]);
+
+      alert("에너지 관련 전체 데이터가 삭제되었습니다.");
+    } catch (err) {
+      console.error("전체 데이터 삭제 중 오류:", err);
+      alert("삭제 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
+    }
+  }
+
   // 1) 초단위 raw 구독 (realtime/{floor})
   useEffect(() => {
     const fromTimestamp = mountedAtRef.current - RAW_HISTORY_SECONDS * 1000;
@@ -398,7 +532,7 @@ export default function RealtimeEnergyDashboard() {
           return a.createdAt - b.createdAt;
         });
 
-        // 초단위는 어차피 최근 10분만 쓸 거라 최대 1200개 정도만 유지
+        // 초단위는 어차피 최근 20분만 쓸 거라 최대 1200개 정도만 유지
         const MAX_RAW_POINTS = 1200;
         const trimmed =
           list.length > MAX_RAW_POINTS
@@ -453,7 +587,6 @@ export default function RealtimeEnergyDashboard() {
         });
         list.sort((a, b) => a.ts - b.ts);
 
-        // 너무 오래된 분단위까지 다 들고 있을 필요는 없어서 뒤쪽 일부만 유지
         const MAX_MINUTE_POINTS = 4000;
         const trimmed =
           list.length > MAX_MINUTE_POINTS
@@ -499,7 +632,6 @@ export default function RealtimeEnergyDashboard() {
         });
         list.sort((a, b) => a.ts - b.ts);
 
-        // 시단위는 길게 가져가도 부담이 적지만, 그래도 너무 많으면 잘라내기
         const MAX_HOUR_POINTS = 2000;
         const trimmed =
           list.length > MAX_HOUR_POINTS
@@ -537,7 +669,6 @@ export default function RealtimeEnergyDashboard() {
         });
         list.sort((a, b) => (a.dateKey < b.dateKey ? -1 : 1));
 
-        // 예: 최근 365일만 사용 (데이터는 저장, 화면은 따로 잘라서 보여줌)
         const MAX_DAYS = 365;
         const trimmed =
           list.length > MAX_DAYS ? list.slice(list.length - MAX_DAYS) : list;
@@ -573,7 +704,6 @@ export default function RealtimeEnergyDashboard() {
         });
         list.sort((a, b) => (a.monthKey < b.monthKey ? -1 : 1));
 
-        // 예: 최근 36개월까지만 사용 (데이터), 화면은 따로 잘라서 보여줌
         const MAX_MONTHS = 36;
         const trimmed =
           list.length > MAX_MONTHS
@@ -596,34 +726,56 @@ export default function RealtimeEnergyDashboard() {
     };
   }, [floor]);
 
-  // ✅ 초단위 raw 데이터를 기준으로, "최대 10분" 구간만 잘라낸 것
-  const realtimeSecondWindow = useMemo(() => {
-    if (!rawData.length) return [];
-    const lastTs = rawData[rawData.length - 1].createdAt;
-    if (!lastTs) return rawData.slice(-600);
+  // 🔹 히스토리 정보
+  const secondHistoryInfo = useMemo(
+    () => buildHistoryInfo(rawData, "createdAt"),
+    [rawData]
+  );
+  const minuteHistoryInfo = useMemo(
+    () => buildHistoryInfo(minuteAgg, "ts"),
+    [minuteAgg]
+  );
+  const hourHistoryInfo = useMemo(
+    () => buildHistoryInfo(hourAgg, "ts"),
+    [hourAgg]
+  );
 
-    const maxWindow = 10 * 60; // 10분
-    const effectiveWindow = Math.min(realtimeWindowSeconds, maxWindow);
-    const fromTs = lastTs - effectiveWindow * 1000;
+  // ✅ 각 단위별로, 슬라이더 위치(realtimeWindowPos)에 맞는 구간을 잘라낸 것
+  const secondChartWindow = useMemo(
+    () =>
+      buildTimeWindow(
+        rawData,
+        secondHistoryInfo,
+        realtimeWindowSeconds,
+        realtimeWindowPos,
+        "createdAt"
+      ),
+    [rawData, secondHistoryInfo, realtimeWindowSeconds, realtimeWindowPos]
+  );
 
-    return rawData.filter((row) => row.createdAt && row.createdAt >= fromTs);
-  }, [rawData, realtimeWindowSeconds]);
+  const minuteChartWindow = useMemo(
+    () =>
+      buildTimeWindow(
+        minuteAgg,
+        minuteHistoryInfo,
+        realtimeWindowSeconds,
+        realtimeWindowPos,
+        "ts"
+      ),
+    [minuteAgg, minuteHistoryInfo, realtimeWindowSeconds, realtimeWindowPos]
+  );
 
-  // ✅ 분단위 집계 기준으로, (30분~1시간) 구간 잘라낸 것
-  const realtimeMinuteWindow = useMemo(() => {
-    if (!minuteAgg.length) return [];
-    const lastTs = minuteAgg[minuteAgg.length - 1].ts;
-    const fromTs = lastTs - realtimeWindowSeconds * 1000;
-    return minuteAgg.filter((row) => row.ts >= fromTs);
-  }, [minuteAgg, realtimeWindowSeconds]);
-
-  // ✅ 시단위 집계 기준으로, (6시간~24시간) 구간 잘라낸 것
-  const realtimeHourWindow = useMemo(() => {
-    if (!hourAgg.length) return [];
-    const lastTs = hourAgg[hourAgg.length - 1].ts;
-    const fromTs = lastTs - realtimeWindowSeconds * 1000;
-    return hourAgg.filter((row) => row.ts >= fromTs);
-  }, [hourAgg, realtimeWindowSeconds]);
+  const hourChartWindow = useMemo(
+    () =>
+      buildTimeWindow(
+        hourAgg,
+        hourHistoryInfo,
+        realtimeWindowSeconds,
+        realtimeWindowPos,
+        "ts"
+      ),
+    [hourAgg, hourHistoryInfo, realtimeWindowSeconds, realtimeWindowPos]
+  );
 
   // ✅ 선택된 구간 전체에 대한 "이벤트 요약" 계산
   const realtimeEventSummary = useMemo(() => {
@@ -631,11 +783,11 @@ export default function RealtimeEnergyDashboard() {
 
     let src = [];
     if (realtimeSourceType === "second") {
-      src = realtimeSecondWindow;
+      src = secondChartWindow;
     } else if (realtimeSourceType === "minute") {
-      src = realtimeMinuteWindow;
+      src = minuteChartWindow;
     } else {
-      src = realtimeHourWindow;
+      src = hourChartWindow;
     }
 
     if (!src.length) return null;
@@ -682,38 +834,33 @@ export default function RealtimeEnergyDashboard() {
   }, [
     tab,
     realtimeSourceType,
-    realtimeSecondWindow,
-    realtimeMinuteWindow,
-    realtimeHourWindow,
+    secondChartWindow,
+    minuteChartWindow,
+    hourChartWindow,
   ]);
 
   // -------------------- 실시간 차트 렌더 --------------------
   const renderRealtimeCharts = () => {
     let src = [];
     if (realtimeSourceType === "second") {
-      src = realtimeSecondWindow;
+      src = secondChartWindow;
     } else if (realtimeSourceType === "minute") {
-      src = realtimeMinuteWindow;
+      src = minuteChartWindow;
     } else {
-      src = realtimeHourWindow;
+      src = hourChartWindow;
     }
 
     const labels = src.map((r) => {
       if (realtimeSourceType === "second") {
+        // 예: 10:34:10
         return r.createdAt ? formatTimeLabel(r.createdAt) : "";
       }
       if (realtimeSourceType === "minute") {
-        return new Date(r.ts).toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        // 예: 10:34
+        return formatTimeLabelMinute(r.ts);
       }
-      // hour 단위일 때: 날짜 + 시
-      return new Date(r.ts).toLocaleString("ko-KR", {
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-      });
+      // hour 단위일 때: 예) 11/28 10시
+      return formatTimeLabelHour(r.ts);
     });
 
     const elecValues = src.map((r) => Number(r.elec) || 0);
@@ -728,8 +875,8 @@ export default function RealtimeEnergyDashboard() {
       const valid = values.filter((v) => Number.isFinite(v));
       if (valid.length === 0) {
         return {
-          min: Math.floor(fallbackMin),
-          max: Math.ceil(fallbackMax),
+          min: fallbackMin,
+          max: fallbackMax,
         };
       }
 
@@ -737,21 +884,22 @@ export default function RealtimeEnergyDashboard() {
       let max = Math.max(...valid);
 
       if (min === max) {
+        // 변화 거의 없을 때: 값 기준 ±5%
         const base = Math.abs(min) || 1;
-        const pad = base * 0.2;
+        const pad = base * 0.05;
         min = min - pad;
         max = max + pad;
       } else {
+        // 값 차이 기준 ±10%
         const diff = max - min;
-        const pad = diff * 0.2;
+        const pad = diff * 0.1;
         min = min - pad;
         max = max + pad;
       }
 
-      if (!allowNegative && min < 0) min = 0;
-
-      min = Math.floor(min);
-      max = Math.ceil(max);
+      if (!allowNegative && min < 0) {
+        min = 0;
+      }
 
       if (min === max) {
         max = min + 1;
@@ -963,8 +1111,11 @@ export default function RealtimeEnergyDashboard() {
 
   // -------------------- 일별 / 주별 / 월별 (막대 그래프) --------------------
   const renderDailyCharts = () => {
-    // 🔹 최근 30일만 사용
-    const visibleDaily = dailyStats.slice(-MAX_DAILY_BARS);
+    const visibleDaily = sliceWindowByPos(
+      dailyStats,
+      MAX_DAILY_BARS,
+      dailyWindowPos
+    );
 
     const labels = visibleDaily.map((d) => formatDayLabel(d.dateKey));
     const elecValues = visibleDaily.map((d) => d.elec);
@@ -1015,8 +1166,11 @@ export default function RealtimeEnergyDashboard() {
   };
 
   const renderWeeklyCharts = () => {
-    // 🔹 최근 12주만 사용
-    const visibleWeekly = weeklyStats.slice(-MAX_WEEKLY_BARS);
+    const visibleWeekly = sliceWindowByPos(
+      weeklyStats,
+      MAX_WEEKLY_BARS,
+      weeklyWindowPos
+    );
 
     const labels = visibleWeekly.map((w) => formatWeekLabel(w.weekKey));
     const elecValues = visibleWeekly.map((w) => w.elec);
@@ -1067,8 +1221,11 @@ export default function RealtimeEnergyDashboard() {
   };
 
   const renderMonthlyCharts = () => {
-    // 🔹 최근 12개월만 사용
-    const visibleMonthly = monthlyStats.slice(-MAX_MONTHLY_BARS);
+    const visibleMonthly = sliceWindowByPos(
+      monthlyStats,
+      MAX_MONTHLY_BARS,
+      monthlyWindowPos
+    );
 
     const labels = visibleMonthly.map((m) => formatMonthLabel(m.monthKey));
     const elecValues = visibleMonthly.map((m) => m.elec);
@@ -1117,6 +1274,19 @@ export default function RealtimeEnergyDashboard() {
       </div>
     );
   };
+
+  // 🔍 실시간 히스토리 길이에 따라 슬라이더 노출 여부
+  const activeHistoryInfo =
+    realtimeSourceType === "second"
+      ? secondHistoryInfo
+      : realtimeSourceType === "minute"
+      ? minuteHistoryInfo
+      : hourHistoryInfo;
+
+  const showRealtimeSlider =
+    tab === "realtime" &&
+    activeHistoryInfo &&
+    activeHistoryInfo.totalSec > realtimeWindowSeconds;
 
   return (
     <div style={{ padding: 24 }}>
@@ -1354,7 +1524,7 @@ export default function RealtimeEnergyDashboard() {
         </div>
       )}
 
-      {/* ✅ 실시간 탭일 때만 실시간 구간 버튼 + 이벤트 요약 보여주기 */}
+      {/* ✅ 실시간 탭: 구간(초) 선택 버튼 + 타임 슬라이더 */}
       {tab === "realtime" && (
         <>
           <div
@@ -1387,6 +1557,35 @@ export default function RealtimeEnergyDashboard() {
               </button>
             ))}
           </div>
+
+          {/* 실시간 슬라이더 (초/분/시 공통) */}
+          {showRealtimeSlider && (
+            <div
+              style={{
+                marginBottom: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                시간 이동
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round((realtimeWindowPos ?? 1) * 100)}
+                onChange={(e) =>
+                  setRealtimeWindowPos(Number(e.target.value) / 100)
+                }
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                과거 ↔ 현재
+              </span>
+            </div>
+          )}
 
           {realtimeEventSummary && (
             <div
@@ -1441,6 +1640,79 @@ export default function RealtimeEnergyDashboard() {
         </>
       )}
 
+      {/* ✅ 일별/주별/월별 슬라이더 (기간 이동) */}
+      {tab === "daily" && dailyStats.length > MAX_DAILY_BARS && (
+        <div
+          style={{
+            marginBottom: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>기간 이동</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round((dailyWindowPos ?? 1) * 100)}
+            onChange={(e) => setDailyWindowPos(Number(e.target.value) / 100)}
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+            과거 ↔ 최근
+          </span>
+        </div>
+      )}
+
+      {tab === "weekly" && weeklyStats.length > MAX_WEEKLY_BARS && (
+        <div
+          style={{
+            marginBottom: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>기간 이동</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round((weeklyWindowPos ?? 1) * 100)}
+            onChange={(e) => setWeeklyWindowPos(Number(e.target.value) / 100)}
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+            과거 ↔ 최근
+          </span>
+        </div>
+      )}
+
+      {tab === "monthly" && monthlyStats.length > MAX_MONTHLY_BARS && (
+        <div
+          style={{
+            marginBottom: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>기간 이동</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round((monthlyWindowPos ?? 1) * 100)}
+            onChange={(e) => setMonthlyWindowPos(Number(e.target.value) / 100)}
+            style={{ flex: 1 }}
+          />
+          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+            과거 ↔ 최근
+          </span>
+        </div>
+      )}
+
       {/* 차트 영역 */}
       <div>
         {tab === "realtime" && renderRealtimeCharts()}
@@ -1475,7 +1747,38 @@ export default function RealtimeEnergyDashboard() {
         }
       `}</style>
 
-      <button onClick={deleteRealtimeRoot}>realtime 전체 삭제</button>
+      <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+        <button
+          onClick={handleDeleteRealtime}
+          style={{
+            padding: "6px 12px",
+            borderRadius: 8,
+            border: "1px solid #f97316",
+            background: "#fff7ed",
+            color: "#9a3412",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          realtime 전체 삭제
+        </button>
+        <button
+          onClick={handleDeleteAll}
+          style={{
+            padding: "6px 12px",
+            borderRadius: 8,
+            border: "1px solid #dc2626",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          에너지 데이터 전체 초기화
+        </button>
+      </div>
     </div>
   );
 }

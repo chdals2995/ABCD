@@ -7,6 +7,16 @@ import {
   cleanupOldHourAggregates,
 } from "../services/saveRoomRealtimeData";
 
+// 🔹 추가: 마지막 데이터 읽어오기 위해 RTDB 직접 접근
+import { rtdb } from "../firebase/config";
+import {
+  ref as rtdbRef,
+  query as rtdbQuery,
+  orderByChild,
+  limitToLast,
+  get as rtdbGet,
+} from "firebase/database";
+
 /**
  * 시뮬레이션 모드
  * - "demo" : 이벤트 자주 발생, 유지시간 짧음 (테스트용)
@@ -753,6 +763,34 @@ function updateEvents(eventsRef, now) {
 }
 
 /**
+ * 🔹 특정 층의 마지막 raw 데이터 1개 가져오기
+ *    - realtime/{floor} 에서 createdAt 기준으로 가장 최근 기록
+ */
+async function loadLastFloorState(floor) {
+  const baseRef = rtdbRef(rtdb, `realtime/${floor}`);
+  const q = rtdbQuery(baseRef, orderByChild("createdAt"), limitToLast(1));
+  const snap = await rtdbGet(q);
+
+  if (!snap.exists()) return null;
+
+  let last = null;
+  snap.forEach((child) => {
+    last = child.val();
+  });
+  if (!last) return null;
+
+  const ts = typeof last.createdAt === "number" ? last.createdAt : Date.now();
+
+  return {
+    ts,
+    elec: Number(last.elec ?? 2.5),
+    water: Number(last.water ?? 0.5),
+    gas: Number(last.gas ?? 0.8),
+    temp: Number(last.temp ?? 21.0),
+  };
+}
+
+/**
  * 🔹 층별 실시간 더미 데이터 생성기
  * - floorIds: ["B2", "B1", "1F", "2F", ...] 같은 층 ID 배열
  * - roomsPerFloor: 층당 방 개수
@@ -767,6 +805,7 @@ export default function FakeRealtimeGenerator({
   const simTimeRef = useRef(Date.now());
   const simStepRef = useRef(0);
   const tickRef = useRef(0);
+  const timerIdRef = useRef(null);
 
   // 🔹 층별 상태들
   const lastValuesByFloorRef = useRef({});
@@ -778,205 +817,248 @@ export default function FakeRealtimeGenerator({
     const floors =
       Array.isArray(floorIds) && floorIds.length > 0 ? floorIds : ["1F"];
 
-    // 초기화
-    simTimeRef.current = Date.now();
-    simStepRef.current = 0;
-    tickRef.current = 0;
+    let cancelled = false;
 
-    lastValuesByFloorRef.current = {};
-    eventsByFloorRef.current = {};
-    roomStatesByFloorRef.current = {};
-    lastRoomUpdateStepByFloorRef.current = {};
+    async function initAndStart() {
+      // 1) 각 층의 마지막 데이터 읽기
+      const initialLastValues = {};
+      let maxTs = 0;
 
-    floors.forEach((f) => {
-      lastValuesByFloorRef.current[f] = {
-        elec: 2.5,
-        water: 0.5,
-        gas: 0.8,
-        temp: 21.0,
-      };
-      eventsByFloorRef.current[f] = [];
-      roomStatesByFloorRef.current[f] = new Array(roomsPerFloor).fill(false);
-      lastRoomUpdateStepByFloorRef.current[f] = 0;
-    });
+      for (const floor of floors) {
+        try {
+          const state = await loadLastFloorState(floor);
+          if (state) {
+            initialLastValues[floor] = {
+              elec: state.elec,
+              water: state.water,
+              gas: state.gas,
+              temp: state.temp,
+            };
+            if (state.ts > maxTs) maxTs = state.ts;
+          }
+        } catch (err) {
+          console.error(`마지막 데이터 로드 실패 (${floor}):`, err);
+        }
+      }
 
-    const timer = setInterval(() => {
-      tickRef.current += 1;
+      if (cancelled) return;
 
-      // 한 틱(1초)마다 speed번 가상의 1초 진행
-      for (let i = 0; i < speed; i++) {
-        simTimeRef.current += 1000;
-        simStepRef.current += 1;
-        const now = new Date(simTimeRef.current);
+      // 2) 시뮬레이션 시계 초기화
+      //    - maxTs가 있으면 그 시점에서 시작 (다음 틱에서 +1000ms 후부터 생성)
+      //    - 없으면 지금 시각 기준
+      simTimeRef.current = maxTs || Date.now();
+      simStepRef.current = 0;
+      tickRef.current = 0;
 
-        floors.forEach((floor) => {
-          // ---- 이벤트 갱신 ----
-          const eventsRefObj = {
-            current: eventsByFloorRef.current[floor] || [],
-          };
-          updateEvents(eventsRefObj, now);
-          eventsByFloorRef.current[floor] = eventsRefObj.current;
-          const activeEvents = eventsByFloorRef.current[floor];
+      // 3) 층별 상태 초기화 (마지막 값이 있으면 그걸로, 없으면 기본값)
+      lastValuesByFloorRef.current = {};
+      eventsByFloorRef.current = {};
+      roomStatesByFloorRef.current = {};
+      lastRoomUpdateStepByFloorRef.current = {};
 
-          // ---- 방 상태 재판정 (5분마다) ----
-          const lastUpdate = lastRoomUpdateStepByFloorRef.current[floor] ?? 0;
-          if (
-            simStepRef.current === 1 ||
-            simStepRef.current - lastUpdate >=
-              ACTIVE_ROOMS_UPDATE_INTERVAL_SECONDS
-          ) {
-            const targetRatio = getTargetOccupancyRatio(now);
-            const prevStates =
+      floors.forEach((f) => {
+        lastValuesByFloorRef.current[f] = initialLastValues[f] || {
+          elec: 2.5,
+          water: 0.5,
+          gas: 0.8,
+          temp: 21.0,
+        };
+        eventsByFloorRef.current[f] = [];
+        roomStatesByFloorRef.current[f] = new Array(roomsPerFloor).fill(false);
+        lastRoomUpdateStepByFloorRef.current[f] = 0;
+      });
+
+      // 4) 타이머 시작 (기존 시뮬레이션 로직 그대로)
+      const id = setInterval(() => {
+        tickRef.current += 1;
+
+        // 한 틱(1초)마다 speed번 가상의 1초 진행
+        for (let i = 0; i < speed; i++) {
+          simTimeRef.current += 1000;
+          simStepRef.current += 1;
+          const now = new Date(simTimeRef.current);
+
+          floors.forEach((floor) => {
+            // ---- 이벤트 갱신 ----
+            const eventsRefObj = {
+              current: eventsByFloorRef.current[floor] || [],
+            };
+            updateEvents(eventsRefObj, now);
+            eventsByFloorRef.current[floor] = eventsRefObj.current;
+            const activeEvents = eventsByFloorRef.current[floor];
+
+            // ---- 방 상태 재판정 (5분마다) ----
+            const lastUpdate = lastRoomUpdateStepByFloorRef.current[floor] ?? 0;
+            if (
+              simStepRef.current === 1 ||
+              simStepRef.current - lastUpdate >=
+                ACTIVE_ROOMS_UPDATE_INTERVAL_SECONDS
+            ) {
+              const targetRatio = getTargetOccupancyRatio(now);
+              const prevStates =
+                roomStatesByFloorRef.current[floor] &&
+                roomStatesByFloorRef.current[floor].length === roomsPerFloor
+                  ? roomStatesByFloorRef.current[floor]
+                  : new Array(roomsPerFloor).fill(false);
+
+              const nextStates = [...prevStates];
+
+              for (let idx = 0; idx < roomsPerFloor; idx++) {
+                const current = prevStates[idx] === true;
+
+                if (simStepRef.current === 1) {
+                  nextStates[idx] = Math.random() < targetRatio;
+                } else {
+                  if (current) {
+                    const baseStay = 0.7;
+                    const pStay = Math.min(
+                      0.98,
+                      Math.max(0.6, baseStay + targetRatio * 0.2)
+                    );
+                    nextStates[idx] = Math.random() < pStay;
+                  } else {
+                    const baseOn = 0.05;
+                    const pOn = Math.min(
+                      0.9,
+                      Math.max(0.02, baseOn + targetRatio * 0.8)
+                    );
+                    nextStates[idx] = Math.random() < pOn;
+                  }
+                }
+              }
+
+              roomStatesByFloorRef.current[floor] = nextStates;
+              lastRoomUpdateStepByFloorRef.current[floor] = simStepRef.current;
+            }
+
+            const states =
               roomStatesByFloorRef.current[floor] &&
               roomStatesByFloorRef.current[floor].length === roomsPerFloor
                 ? roomStatesByFloorRef.current[floor]
                 : new Array(roomsPerFloor).fill(false);
+            const activeRooms = states.reduce((acc, s) => acc + (s ? 1 : 0), 0);
 
-            const nextStates = [...prevStates];
+            // ---- per-room baseline + 층 전체 베이스 ----
+            const perRoomBase = getBaselines(now);
+            const base = {
+              temp: perRoomBase.temp,
+              elec: perRoomBase.elec * activeRooms,
+              water: perRoomBase.water * activeRooms,
+              gas: perRoomBase.gas * activeRooms,
+            };
 
-            for (let idx = 0; idx < roomsPerFloor; idx++) {
-              const current = prevStates[idx] === true;
+            const prev = lastValuesByFloorRef.current[floor] || {
+              elec: 2.5,
+              water: 0.5,
+              gas: 0.8,
+              temp: 21.0,
+            };
 
-              if (simStepRef.current === 1) {
-                nextStates[idx] = Math.random() < targetRatio;
-              } else {
-                if (current) {
-                  const baseStay = 0.7;
-                  const pStay = Math.min(
-                    0.98,
-                    Math.max(0.6, baseStay + targetRatio * 0.2)
-                  );
-                  nextStates[idx] = Math.random() < pStay;
-                } else {
-                  const baseOn = 0.05;
-                  const pOn = Math.min(
-                    0.9,
-                    Math.max(0.02, baseOn + targetRatio * 0.8)
-                  );
-                  nextStates[idx] = Math.random() < pOn;
-                }
-              }
-            }
+            const target = applyAllEventEffects(base, activeEvents);
 
-            roomStatesByFloorRef.current[floor] = nextStates;
-            lastRoomUpdateStepByFloorRef.current[floor] = simStepRef.current;
-          }
-
-          const states =
-            roomStatesByFloorRef.current[floor] &&
-            roomStatesByFloorRef.current[floor].length === roomsPerFloor
-              ? roomStatesByFloorRef.current[floor]
-              : new Array(roomsPerFloor).fill(false);
-          const activeRooms = states.reduce((acc, s) => acc + (s ? 1 : 0), 0);
-
-          // ---- per-room baseline + 층 전체 베이스 ----
-          const perRoomBase = getBaselines(now);
-          const base = {
-            temp: perRoomBase.temp,
-            elec: perRoomBase.elec * activeRooms,
-            water: perRoomBase.water * activeRooms,
-            gas: perRoomBase.gas * activeRooms,
-          };
-
-          const prev = lastValuesByFloorRef.current[floor] || {
-            elec: 2.5,
-            water: 0.5,
-            gas: 0.8,
-            temp: 21.0,
-          };
-
-          const target = applyAllEventEffects(base, activeEvents);
-
-          const temp = smoothTowards(prev.temp, target.temp, {
-            maxStep: 0.05,
-            jitter: 0.02,
-            digits: 1,
-          });
-          const elec = smoothTowards(prev.elec, target.elec, {
-            maxStep: 0.3,
-            jitter: 0.05,
-            digits: 2,
-          });
-          const water = smoothTowards(prev.water, target.water, {
-            maxStep: 0.1,
-            jitter: 0.02,
-            digits: 2,
-          });
-          const gas = smoothTowards(prev.gas, target.gas, {
-            maxStep: 0.1,
-            jitter: 0.02,
-            digits: 2,
-          });
-
-          lastValuesByFloorRef.current[floor] = { elec, water, gas, temp };
-
-          const mainEventType = getMainEventType(activeEvents);
-          const isAlarm = activeEvents.some((ev) => isAlarmEventType(ev.type));
-          const mainEvent = activeEvents.find(
-            (ev) => ev.type === mainEventType
-          );
-          const mainEventExtendedCount = mainEvent?.extendedCount ?? 0;
-
-          // 🔹 10초(가상)마다 RTDB 저장
-          if (simStepRef.current % SAVE_INTERVAL_SECONDS === 0) {
-            saveRoomRealtimeData({
-              floor,
-              elec,
-              water,
-              gas,
-              temp,
-              mainEventType,
-              eventTypes: activeEvents.map((ev) => ev.type),
-              mainEventExtendedCount,
-              isAlarm,
-              mode: MODE,
-              createdAt: simTimeRef.current,
-              speed,
-              activeRooms,
-              roomsPerFloor,
-            }).catch((err) => {
-              console.error(`실시간 더미 데이터 저장 실패 (${floor}):`, err);
+            const temp = smoothTowards(prev.temp, target.temp, {
+              maxStep: 0.05,
+              jitter: 0.02,
+              digits: 1,
             });
-          }
-        });
-      }
+            const elec = smoothTowards(prev.elec, target.elec, {
+              maxStep: 0.3,
+              jitter: 0.05,
+              digits: 2,
+            });
+            const water = smoothTowards(prev.water, target.water, {
+              maxStep: 0.1,
+              jitter: 0.02,
+              digits: 2,
+            });
+            const gas = smoothTowards(prev.gas, target.gas, {
+              maxStep: 0.1,
+              jitter: 0.02,
+              digits: 2,
+            });
 
-      // 🔹 60초마다 오래된 초단위 데이터 정리 (시뮬레이션 시간 기준)
-      if (tickRef.current % 60 === 0) {
-        floors.forEach((floor) => {
-          cleanupOldRealtimeSeconds({
-            floor,
-            keepSeconds: 60 * 60,
-            nowTs: simTimeRef.current,
-          }).catch((err) => {
-            console.error(`초단위 데이터 정리 실패 (${floor}):`, err);
+            lastValuesByFloorRef.current[floor] = { elec, water, gas, temp };
+
+            const mainEventType = getMainEventType(activeEvents);
+            const isAlarm = activeEvents.some((ev) =>
+              isAlarmEventType(ev.type)
+            );
+            const mainEvent = activeEvents.find(
+              (ev) => ev.type === mainEventType
+            );
+            const mainEventExtendedCount = mainEvent?.extendedCount ?? 0;
+
+            // 🔹 10초(가상)마다 RTDB 저장
+            if (simStepRef.current % SAVE_INTERVAL_SECONDS === 0) {
+              saveRoomRealtimeData({
+                floor,
+                elec,
+                water,
+                gas,
+                temp,
+                mainEventType,
+                eventTypes: activeEvents.map((ev) => ev.type),
+                mainEventExtendedCount,
+                isAlarm,
+                mode: MODE,
+                createdAt: simTimeRef.current,
+                speed,
+                activeRooms,
+                roomsPerFloor,
+              }).catch((err) => {
+                console.error(`실시간 더미 데이터 저장 실패 (${floor}):`, err);
+              });
+            }
           });
-        });
-      }
+        }
 
-      // 🔹 3600초마다 분단위/시단위 집계 정리 (시뮬레이션 시간 기준)
-      if (tickRef.current % 3600 === 0) {
-        floors.forEach((floor) => {
-          cleanupOldMinuteAggregates({
-            floor,
-            keepDays: 30,
-            nowTs: simTimeRef.current,
-          }).catch((err) => {
-            console.error(`분단위 집계 정리 실패 (${floor}):`, err);
+        // 🔹 60초마다 오래된 초단위 데이터 정리 (시뮬레이션 시간 기준)
+        if (tickRef.current % 60 === 0) {
+          floors.forEach((floor) => {
+            cleanupOldRealtimeSeconds({
+              floor,
+              keepSeconds: 60 * 60,
+              nowTs: simTimeRef.current,
+            }).catch((err) => {
+              console.error(`초단위 데이터 정리 실패 (${floor}):`, err);
+            });
           });
+        }
 
-          cleanupOldHourAggregates({
-            floor,
-            keepDays: 365,
-            nowTs: simTimeRef.current,
-          }).catch((err) => {
-            console.error(`시간단위 집계 정리 실패 (${floor}):`, err);
+        // 🔹 3600초마다 분단위/시단위 집계 정리 (시뮬레이션 시간 기준)
+        if (tickRef.current % 3600 === 0) {
+          floors.forEach((floor) => {
+            cleanupOldMinuteAggregates({
+              floor,
+              keepDays: 30,
+              nowTs: simTimeRef.current,
+            }).catch((err) => {
+              console.error(`분단위 집계 정리 실패 (${floor}):`, err);
+            });
+
+            cleanupOldHourAggregates({
+              floor,
+              keepDays: 365,
+              nowTs: simTimeRef.current,
+            }).catch((err) => {
+              console.error(`시간단위 집계 정리 실패 (${floor}):`, err);
+            });
           });
-        });
-      }
-    }, 1000);
+        }
+      }, 1000);
 
-    return () => clearInterval(timer);
+      timerIdRef.current = id;
+    }
+
+    initAndStart();
+
+    return () => {
+      cancelled = true;
+      if (timerIdRef.current) {
+        clearInterval(timerIdRef.current);
+        timerIdRef.current = null;
+      }
+    };
   }, [floorIds, roomsPerFloor, speed]);
 
   return (
@@ -993,6 +1075,8 @@ export default function FakeRealtimeGenerator({
       </div>
       <div style={{ color: "#6b7280", marginTop: 4 }}>
         (10초(가상)마다 층별 전기·수도·가스·온도 데이터를 RTDB에 저장하고,
+        <br />
+        마지막 저장 시점 이후부터 이어서 생성하며,
         <br />
         오래된 초단위/분단위/시단위 데이터는 시뮬레이션 시간 기준으로 주기적으로
         정리합니다.)
