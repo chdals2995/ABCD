@@ -1,14 +1,17 @@
-import Login from "../components/login/Login";
-import LoginPage from "../pages/login/LoginPage";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./App.css";
+import { useState } from "react";
+import Button from "./assets/Button";
 
-export default function App(){
-  return(
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginPage/>}/>
-      </Routes>
-    </Router>
-  )
+import "./App.css";
+const onClick = () => {
+  alert("버튼 클릭됨");
+};
+
+function App() {
+  return (
+    <>
+      <Button onClick={onClick}>qjxms</Button>
+    </>
+  );
 }
+
+export default App;
