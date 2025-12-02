@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "./assets/Button";
+import Admin from "./layout/AdminLayout";
 
 import "./App.css";
 const onClick = () => {
@@ -9,6 +10,7 @@ const onClick = () => {
 function App() {
   return (
     <>
+      <Admin/>
       <Button onClick={onClick}>qjxms</Button>
     </>
   );
