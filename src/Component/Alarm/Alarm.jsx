@@ -11,8 +11,7 @@ export default function Alarm(){
     // 선택 시 RequestArrival 창이 열림
     // null이면 닫힘
 
-
-    
+    <div>
             {/* 상단 아이콘 영역 -> 팝업 열기 */}
             <TopIcons 
                 onUrgent={() => setPopup ("urgent")} // 긴급 팝업 열기
