@@ -9,9 +9,9 @@ export default function Alarm() {
     <div 
       className="
         absolute right-0 top-0 
-        w-[371px] h-[884px]
+        w-[371px] h-[919px]
         bg-[#E6EEF2]
-        pt-[68px]
+        pt-[156px]
       "
     >
        <div className="flex flex-col items-center">

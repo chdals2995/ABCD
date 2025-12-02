@@ -21,7 +21,7 @@ export default function AlarmRequest() {
   };
 
   return (
-    <div className="w-[335px] h-[750px] pt-[79px] px-[15px] bg-white">
+    <div className="w-[335px] h-[698px] pt-[79px] px-[15px] bg-white">
 
       {/* 최신순 버튼 */}
       <div className="flex justify-end mt-[-50px] mb-[50px]">
