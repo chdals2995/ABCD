@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/* 스크롤바 숨기기 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE, Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* 화살표 애니메이션으로 스크롤 예고해주는 역할 */
+
+@keyframes arrowBounce {
+  0%   { transform: translateY(0); opacity: 0.4; }
+  50%  { transform: translateY(6px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.4; }
+}
+
+.arrow-bounce {
+  animation: arrowBounce 1.4s ease-in-out infinite;
+}
