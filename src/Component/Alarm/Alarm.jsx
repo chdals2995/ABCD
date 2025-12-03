@@ -56,7 +56,6 @@ export default function Alarm() {
         {tab === "problem" && <AlarmProblems />}
         
         
-        {tab === "problem" && <AlarmProblems />}
       </div>
 
     </div>

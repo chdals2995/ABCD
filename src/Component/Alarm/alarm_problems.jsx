@@ -5,18 +5,8 @@ import warningIcon from "../../icons/Alert_triangle_red.png";
 
 export default function AlarmProblems() {
     
-  const sections = [
-    {
-      title: "경고",
-      iconSrc: warningIcon,
-     
-    },
-    {
-      title: "주의",
-      iconSrc: cautionIcon,  
-    
-    },
-  ];
+  const sections = [{title: "경고",iconSrc: warningIcon,},
+                    {title: "주의",iconSrc: cautionIcon, },];
 
   // 문제 카테고리
   const problems = {                                  
@@ -104,7 +94,8 @@ export default function AlarmProblems() {
             ))}
 
             {/* 리스트 끝 안내문구 */}
-            <div className="w-full flex flex-col items-center py-3">
+            {idx === 0 && (
+              <div className="w-full flex flex-col items-center py-3">
                 <span className="text-[13px] text-gray-400 mb-1 ">
                     아래로 스크롤하여 주의 문제사항을 확인하세요.
                 </span>
@@ -112,7 +103,7 @@ export default function AlarmProblems() {
                     ↓
                 </span>
             </div>
-
+            )}
           </div>
         </div>
       ))}
