@@ -52,7 +52,7 @@ export default function Alarm() {
       {/* 내용 영역 */}
       <div className="overflow-y-auto h-[calc(100vh-48px)]">
         {tab === "request" && <AlarmRequest />}
-        {/* {tab === "problem" && <AlarmProblems />} */}
+        {tab === "problem" && <AlarmProblems />}
       </div>
 
     </div>
