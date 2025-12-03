@@ -1,5 +1,41 @@
+import { useState } from "react"
+import { useAuth } from "../../components/contexts/AuthContext"
+import { useNavigate } from "react-router-dom"
+
 export default function JoinPage(){
+ const {join} = useAuth();
+ const nav = useNavigate();
+
+ const [id, setId] = useState("");
+ const [name, setName] = useState("");
+ const [number, setNumber] = useState(0);
+
+ const [loading, setLoading] = useState(false);
+
+ async function onSubmit(e){
+  e.preventDefault();
+  if(!id || !name || !number){
+    alert("빈 항목이 있습니다.")
+    return;
+  }
+
+  setLoading(true);
+
+try{
+  await join(id, pass);
+  nav("/join")
+}catch(er){
+  console.error(er);
+  if(er.code === "auth/id-already-in-use"){
+  }else if(er.code === "auth/invalid-id"){
+  }else if(er.code === "auth/weak-number"){
+}else{
+  alert("형식과")
+}
+ }
+
   return(
+    <form>
     <div>
      
        
@@ -22,36 +58,36 @@ export default function JoinPage(){
       </div>
 
       <div>
-       <label style={{fontSize:"24px", fontWeight:"regular", display:"block"}}>아이디</label><form><input style={{
+       <label style={{fontSize:"24px", fontWeight:"regular", display:"block"}}>아이디</label><input style={{
        width:"569px",
        lineHeight:"68px",
        border:"3px solid rgba(0,0,0,0.3)",
        textIndent:"40px",
        borderRadius:"10px"
-       }} type="text" placeholder="아이디 입력(6 ~ 20자)"/></form>
+       }} type="text" placeholder="아이디 입력(6 ~ 20자)"/>
       </div>
 
       <div style={{marginTop:"40px"}}>
-       <label style={{fontSize:"24px", fontWeight:"regular", display:"block"}}>이름</label><form><input style={{
+       <label style={{fontSize:"24px", fontWeight:"regular", display:"block"}}>이름</label><input style={{
        width:"569px",
        lineHeight:"68px",
        border:"3px solid rgba(0,0,0,0.3)",
        textIndent:"40px",
        borderRadius:"10px"
-       }} type="text" placeholder="이름을 입력해주세요"/></form>
+       }} type="text" placeholder="이름을 입력해주세요"/>
       </div>
 
       <div style={{marginTop:"40px"}}>
-       <label style={{fontSize:"24px", fontWeight:"regular", display:"block"}}>전화번호</label><form><input style={{
+       <label style={{fontSize:"24px", fontWeight:"regular", display:"block"}}>전화번호</label><input style={{
        width:"569px",
        lineHeight:"68px",
        border:"3px solid rgba(0,0,0,0.3)",
        textIndent:"40px",
        borderRadius:"10px", 
-       }} type="text"  placeholder="휴대폰 번호 입력('-' 제외 11자리 입력)"/></form>
+       }} type="text"  placeholder="휴대폰 번호 입력('-' 제외 11자리 입력)"/>
       </div>
  
-   <form>
+   
       <button style={{
       width:"120px",
       height:"55px",
@@ -66,7 +102,7 @@ export default function JoinPage(){
       transform:"translateX(-50%)",
       marginTop:"120px"
     }}>보내기</button>
-    </form>
+    
      </div>
     
     
@@ -75,5 +111,6 @@ export default function JoinPage(){
     
 
     </div>
+    </form>
   )
 }
