@@ -1,5 +1,5 @@
-import Menu from '../components/admin/Menu';
-import TopMenu from '../components/admin/TopMenu';
+import Menu from '../components/adminskin/Menu';
+import TopMenu from '../components/adminskin/TopMenu';
 import logo from '../assets/logos/logo.png';
 
 export default function AdminLayout(){

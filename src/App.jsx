@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "./assets/Button";
 import Admin from "./layout/AdminLayout";
+import Master from "./pages/Master";
 
 import "./App.css";
 const onClick = () => {
@@ -10,7 +11,7 @@ const onClick = () => {
 function App() {
   return (
     <>
-      <Admin/>
+      <Master/>
     </>
   );
 }
