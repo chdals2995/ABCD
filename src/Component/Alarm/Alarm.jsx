@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AlarmRequest from "./alarm_request.jsx";
+import AlarmProblems from "./alarm_problems.jsx";
 // import AlarmProblems from "./alarm_problems.jsx";
 
 export default function Alarm() {
@@ -50,9 +51,11 @@ export default function Alarm() {
       </div>
 
       {/* 내용 영역 */}
-      <div className="overflow-y-auto h-[calc(100vh-48px)]">
+      <div className="w-[335px] h-[698px] overflow-y-auto bg-white scrollbar-hide scroll-area">
         {tab === "request" && <AlarmRequest />}
-        {/* {tab === "problem" && <AlarmProblems />} */}
+        {tab === "problem" && <AlarmProblems />}
+        
+        
       </div>
 
     </div>
