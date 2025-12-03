@@ -1,11 +1,11 @@
-import { useState } from "react";
 import Button from "./assets/Button";
 
 import "./App.css";
 // import Select from "./assets/Select";
-import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
-import JoinPage from "./pages/login/JoinPage";
-import LoginPage from "./pages/login/LoginPage";
+import {Routes, Route} from "react-router-dom";
+import Join from "./pages/login/Join";
+import Login from "./pages/login/Login";
+import AuthStatus from "./components/AuthStatus";
 
 //버튼 클릭 테스트 함수
 const onClick = () => {
@@ -20,15 +20,13 @@ const options = [
 ];
 
 function App() {
-  const [number, setNumber] = useState(0);
   return (
     <>
-    <Router>
             <Routes>
-              <Route path="/" element={ <LoginPage/>} />
-              <Route path="/join" element={ <JoinPage/>} />
+              <Route path="/" element={ <Login/>} />
+              <Route path="/userMain" element={<AuthStatus/>} />
+              <Route path="/join" element={ <Join/>} />
             </Routes>
-        </Router>
       <Button onClick={onClick}>qjxms</Button>
     </>
   );

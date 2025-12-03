@@ -1,67 +1,84 @@
 // AuthContext.jsx
-// contexts폴더
-
-// 로그인 여부는 리액트 프로젝트 전체에서 필요로 하기에 state가 아닌
-// 전역으로 관리하기 위해  이 파일이 필요하다.
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../../firebase/config";
-import { onAuthStateChanged, createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword ,signOut
- } from "firebase/auth";
+import { 
+  onAuthStateChanged, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut
+} from "firebase/auth";
 
- // 인증에 필요한 객체 생성
- const AuthContext = createContext(null);
+// Context 생성
+const AuthContext = createContext(null);
 
- //어디서든 가져다 쓰도록 내보내기
- export function useAuth(){
-    return useContext(AuthContext);
- }
+// 훅
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
- // 로그인, 회원 가입을 위한 컴포넌트
- export function AuthProvider({children}){
-    const [user , setUser ] = useState(null); // 로그인한 사용자 넣기
-    const [loading, setLoading] = useState(true); // 인증 상태 확인위한
+// Provider
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect( //onAuthStateChanged - 로그인/ 로그아웃/ 새로고침 변화감지
-        () => {
-            const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-                setUser(firebaseUser); // 로그인하면 user 객체, 로그아웃시 null
-                setLoading(false); 
-            });
-            return() =>unsub();
-        }, [] 
-    );
+  // 로그인 / 로그아웃 / 새로고침 시 사용자 상태 감지
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log("👀 [AuthContext] onAuthStateChanged:", firebaseUser);
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
 
-    // 회원가입
-    async function signup(email, password){
-        const u = await createUserWithEmailAndPassword( auth, email, password);
-        return u.user;
+  // ✅ 회원가입 (이메일 그대로 사용)
+  async function signup(email, password) {
+    console.log("📌 [AuthContext] signup() 호출됨");
+    console.log("이메일:", email);
+
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("✅ [AuthContext] 회원가입 성공:", cred.user);
+      return cred.user;
+    } catch (error) {
+      console.error("❌ [AuthContext] 회원가입 오류:", error.code, error.message);
+      throw error;
     }
+  }
 
-    // 로그인
-    async function signin(email, password){
-        const u = await signInWithEmailAndPassword( auth , email, password);
-        return u.user;
+  // ✅ 로그인 (이메일 그대로 사용)
+  async function login(email, password) {
+    console.log("📌 [AuthContext] login() 호출됨");
+    console.log("이메일:", email);
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      console.log("✅ [AuthContext] 로그인 성공:", cred.user);
+      return cred.user;
+    } catch (error) {
+      console.error("❌ [AuthContext] 로그인 오류:", error.code, error.message);
+      throw error;
     }
+  }
 
+  // ✅ 로그아웃
+  async function logout() {
+    console.log("📌 [AuthContext] logout() 호출됨");
+    await firebaseSignOut(auth);
+    console.log("✅ [AuthContext] 로그아웃 성공");
+  }
 
-    // 로그아웃
-    async function signout(){
-        await signOut(auth);
-    }
+  const value = { user, login, signup, logout };
 
-
-    const value ={  user, loading, signup, signin, signout };
-
-    return (
-        <AuthContext.Provider value={value}>
-            {/* 초기 동작중에  렌더링을 막아  화면 깜빡임 방지 */}
-            {loading ? (
-                <div className="flex items-center justify-center h-screen">
-                    인증 상태 확인중.........</div>
-                ) : (  children )
-            }
-        </AuthContext.Provider>
-    );
- }
+  return (
+    <AuthContext.Provider value={value}>
+      {loading ? (
+        <div className="flex items-center justify-center h-screen">
+          인증 상태 확인중…
+        </div>
+      ) : (
+        children
+      )}
+    </AuthContext.Provider>
+  );
+}
