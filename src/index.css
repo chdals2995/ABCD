@@ -21,3 +21,18 @@
 .arrow-bounce {
   animation: arrowBounce 1.4s ease-in-out infinite;
 }
+
+@keyframes notifyGlow {
+   0% {
+    box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
+    }
+    50% {
+      box-shadow: 0 5px 5px rgba(0, 0, 0, 0.35);
+    }
+    100% {
+      box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
+    }
+}
+.notify-glow {
+  animation: notifyGlow 1.2s ease-in-out infinite;
+}
