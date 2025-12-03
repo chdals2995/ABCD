@@ -11,12 +11,12 @@ export default function Menu(){
 
     return(
         <>
-            <div className='wrap flex'>
+            <div className='wrap flex w-[450px]'>
                 {/* 메뉴박스 */}
-                <div className={`whiteBox w-[372px] h-full bg-white transition-transform duration-300
-                    ${open ? "translate-x-0" : "-translate-x-full"}`}>
+                <div className={`whiteBox w-[372px] h-full bg-white transition-transform duration-500
+                    ${open ? "translate-x-0" : "-translate-x-full"} `}>
                     <img src={logo} alt="메뉴로고" 
-                        className='w-[216px] h-[84px] translate-x-[47px]'/>
+                        className='w-[216px] h-[84px] ml-[47px]'/>
                     <div className='blueBox w-[318px] h-[720px] bg-[#E6EEF2]'>
                         {/* 콘텐츠 */}
                         <div className='content'>
@@ -54,8 +54,8 @@ export default function Menu(){
                     </div>
                 </div>
                 {/* 메뉴태그 */}
-                <div className={`tag w-[78px] h-[51px] bg-[#0888D4] flex justify-end items-center translate-y-[181px]
-                    transition-transform duration-300
+                <div className={`tag w-[78px] h-[51px] bg-[#0888D4] flex justify-end items-center mt-[60px]
+                    transition-transform duration-500
                     ${open ? "translate-x-0" : "-translate-x-[372px]"}`}
                     onClick={show}>
                     <img src={logoW} alt="메뉴태그로고" 

@@ -11,7 +11,6 @@ function App() {
   return (
     <>
       <Admin/>
-      <Button onClick={onClick}>qjxms</Button>
     </>
   );
 }
