@@ -1,18 +1,15 @@
 import Menu from '../components/admin/Menu';
 import TopMenu from '../components/admin/TopMenu';
 import logo from '../assets/logos/logo.png';
-import back from '../assets/imgs/background.png';
 
 export default function AdminLayout(){
     return(
-        <div className='bg-center bg-cover'
-                style={{backgroundImage:`url(${back})`}}>
+        <div>
             <div className='pt-[13px]'>
                 <img src={logo} alt="홈" className='logo w-[216px] h-[84px] ml-[38px]'/>
             </div>
-                <Menu/>
-                <TopMenu/>
-            
+            <Menu/>
+            <TopMenu/>
         </div>
     );
 }
