@@ -31,7 +31,7 @@ export default function Log({item}) {
                           onClick = { () => setSelectedStatus(s)}
                           className={`
                             px-2 py-1 text-[15px]
-                            ${selectedStautus === s
+                            ${selectedStatus === s
                               ? "border-2 border-[#054e76] rounded-md text-[#054e76]"
                               : "text-gray-500"
                             }
