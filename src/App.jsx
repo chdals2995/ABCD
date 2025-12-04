@@ -3,10 +3,6 @@ import { useState } from "react";
 import Master from "./pages/Master";
 import "./App.css";
 
-const onClick = () => {
-  alert("버튼 클릭됨");
-};
-
 function App() {
   return (
     <BrowserRouter>
