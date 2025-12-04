@@ -1,13 +1,11 @@
 import { useState } from "react";
-import Admin from "./layout/AdminLayout";
-
 import "./App.css";
-import AssetEx from "./pages/AseetEx";
+import AdminPage from "./pages/AdminPage";
 
 function App() {
   return (
     <>
-      <Admin/>
+      <AdminPage />
     </>
   );
 }
