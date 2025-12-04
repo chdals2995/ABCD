@@ -2,9 +2,7 @@ import { useState } from "react";
 import Admin from "./layout/AdminLayout";
 
 import "./App.css";
-const onClick = () => {
-  alert("버튼 클릭됨");
-};
+import AssetEx from "./pages/AseetEx";
 
 function App() {
   return (
