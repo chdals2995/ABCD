@@ -35,7 +35,7 @@ export default function AssetEx() {
       <Modal
         isOpen={open}
         onClose={() => setOpen(false)}
-        panelClassName="w-[1000px] h-[900px]" // ✅ Tailwind 유틸로 사이즈 지정
+       
       >
         <div className="border-b px-6 py-3 font-semibold text-sm">
           커스텀 모달

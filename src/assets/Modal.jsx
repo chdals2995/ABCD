@@ -5,8 +5,7 @@ export default function Modal({
   children,
   closeOnBackdrop = true,
 
-  // 🔹 안쪽 박스 사이즈/추가 스타일용
-  panelClassName = "", // ex) "w-[500px] h-[900px]"
+ 
 }) {
   if (!isOpen) return null;
 
@@ -27,12 +26,12 @@ export default function Modal({
         <div
           className={`
             pointer-events-auto
-            rounded-[18px] border-[8px] border-[#0888D4]
-            bg-white
+            rounded-[18px] border-[3px] border-[#054E76]
+            bg-[#e6eef2]
             flex flex-col
             max-w-[calc(100vw-40px)]
             max-h-[calc(100vh-40px)]
-            ${panelClassName}   /* 🔸 여기서 Tailwind 추가 */
+            w-[558px] h-[562px]
           `}
         >
           {children}
