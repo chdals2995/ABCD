@@ -7,7 +7,7 @@ import AssetEx from "./pages/AseetEx";
 function App() {
   return (
     <>
-      <Admin/>
+      <AssetEx />
     </>
   );
 }
