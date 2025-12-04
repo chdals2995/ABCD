@@ -2,14 +2,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import Master from "./pages/Master";
 import "./App.css";
+import JoinRequest from "./components/Master/JoinRequest";
+import AssetEx from "./pages/AseetEx";
 
 function App() {
-  return (
+  return (<>
     <BrowserRouter>
       <Routes>
-        <Route path='/Master' element={<Master/>}/>
+        <Route path='/' element={<JoinRequest/>}/>
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter></>
   );
 }
 

@@ -10,8 +10,9 @@ export default function Management(){
 
     return(
         <>
-            <div>사이트 관리자</div>
+            <div className='text-[28px] text-[#054E76] font-pyeojin w-[195px] m-auto'>사이트 관리자</div>
             <div className="m-auto w-[996px]">
+                {/* 탭메뉴 */}
                 <ul className="flex items-center justify-center">
                     <li className="TabMenu w-[333px] h-[82px] border-3 border-[#054E76]"
                         onClick={()=> setTab('A')}>회원관리</li>
@@ -20,6 +21,7 @@ export default function Management(){
                     <li className="TabMenu w-[333px] h-[82px] border-3 border-[#054E76]"
                         onClick={()=> setTab('C')}>승강기</li>
                 </ul>
+                {/* 탭 내용 */}
                 <div className="TabBox w-[996px] h-[546px] border-2">
                     {tab === "A" && <Member/>}
                     {tab === "B" && <Building/>}

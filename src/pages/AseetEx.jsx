@@ -34,8 +34,7 @@ export default function AssetEx() {
 
       <Modal
         isOpen={open}
-        onClose={() => setOpen(false)}
-       
+        onClose={() => setOpen(false)} 
       >
         <div className="border-b px-6 py-3 font-semibold text-sm">
           커스텀 모달
