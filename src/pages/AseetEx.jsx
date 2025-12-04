@@ -9,7 +9,7 @@ const onClick = () => {
 };
 
 const options = [
-  { value: "1", label: "2층 201호 앞 복도" },
+  { value: "1", label: "2층" },
   { value: "2", label: "2번" },
   { value: "3", label: "3번" },
 ];
@@ -32,11 +32,7 @@ export default function AssetEx() {
 
       <Button onClick={() => setOpen(true)}>모달 열기</Button>
 
-      <Modal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-       
-      >
+      <Modal isOpen={open} onClose={() => setOpen(false)}>
         <div className="border-b px-6 py-3 font-semibold text-sm">
           커스텀 모달
         </div>
