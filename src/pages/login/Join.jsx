@@ -46,15 +46,16 @@ export default function Join() {
     <form onSubmit={onSubmit}>
       <div
         style={{
+          position:"absolute",
           width: "763px",
           height: "865px",
           backgroundColor: "#FFFFFF",
           borderRadius: "10px",
-          marginLeft: "50%",
-          marginTop: "25%",
+          top:"50%",
+          left:"50%",
           transform: "translate(-50%, -50%)",
           boxShadow: "1px 2px 4px 2px rgba(0,0,0,0.25)",
-          padding: "60px 90px",
+          padding: "20px 90px",
         }}
       >
         <h2 style={{ fontSize: "34px", fontWeight: "bold" }}>회원가입</h2>
@@ -74,13 +75,15 @@ export default function Join() {
             border: "3px solid rgba(0,0,0,0.3)",
             textIndent: "40px",
             borderRadius: "10px",
+            marginTop:"10px",
+            fontSize: "24px"
           }}
           placeholder="아이디(이메일) 입력"
         />
 
         {/* 이름 */}
         <label
-          style={{ fontSize: "24px", marginTop: "40px", display: "block" }}
+          style={{ fontSize: "24px", marginTop: "20px", display: "block" }}
         >
           이름
         </label>
@@ -94,33 +97,80 @@ export default function Join() {
             border: "3px solid rgba(0,0,0,0.3)",
             textIndent: "40px",
             borderRadius: "10px",
+            marginTop:"10px",
+            fontSize: "24px"
           }}
           placeholder="이름을 입력해주세요"
         />
 
         {/* 전화번호 */}
+
+        
         <label
-          style={{ fontSize: "24px", marginTop: "40px", display: "block" }}
+          style={{ fontSize: "24px", marginTop: "20px", display: "block" }}
         >
+
           전화번호
         </label>
+        <div style={{height:"68px", display:"flex", marginTop:"10px"}}>
         <input
           type="text"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
           style={{
-            width: "569px",
+            width: "439px",
             lineHeight: "68px",
             border: "3px solid rgba(0,0,0,0.3)",
             textIndent: "40px",
             borderRadius: "10px",
+            fontSize: "24px"
           }}
           placeholder="휴대폰 번호 입력('-' 제외 11자리 입력)"
         />
 
+        <button 
+         style={{
+            width: "120px",
+            height: "68px",
+            lineHeight:"68px",
+            backgroundColor: "#054E76",
+            border: "3px solid #013D5E",
+            borderRadius: "10px",
+            fontSize: "18px",
+            color: "white",
+            cursor: "pointer",
+            marginLeft:"10px"
+          }}>인증번호 받기</button>  
+        </div>
+
+        <div style={{display:"flex", height:"68px", marginTop:"10px"}}>
+        <input type="text" placeholder="인증번호 입력" 
+        style={{
+            width: "274px",
+            height:"68px",
+            lineHeight: "68px",
+            border: "3px solid rgba(0,0,0,0.3)",
+            textIndent: "40px",
+            borderRadius: "10px",
+            fontSize: "24px"}}/>
+        
+        <button
+         style={{
+            width: "90px",
+            height: "68px",
+            lineHeight: "68px",
+            backgroundColor: "#054E76",
+            borderRadius: "10px",
+            fontSize: "18px",
+            color: "white",
+            cursor: "pointer",
+            marginLeft:"10px"
+          }}>확인</button>
+        </div>
+
         {/* 비밀번호 */}
         <label
-          style={{ fontSize: "24px", marginTop: "40px", display: "block" }}
+          style={{ fontSize: "24px", marginTop: "20px", display: "block" }}
         >
           비밀번호
         </label>
@@ -134,6 +184,8 @@ export default function Join() {
             border: "3px solid rgba(0,0,0,0.3)",
             textIndent: "40px",
             borderRadius: "10px",
+            marginTop:"10px",
+            fontSize: "24px"
           }}
           placeholder="비밀번호 입력(6자 이상)"
         />
@@ -152,7 +204,7 @@ export default function Join() {
             cursor: "pointer",
             marginLeft: "50%",
             transform: "translateX(-50%)",
-            marginTop: "50px",
+            marginTop: "30px"
           }}
         >
           보내기

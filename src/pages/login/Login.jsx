@@ -37,7 +37,7 @@ export default function Login() {
       const result = await login(email, pass); // ✅ AuthContext.login(email, pw)
       console.log("✅ [Login] 로그인 성공:", result);
 
-      nav("/"); // 로그인 성공 후 메인으로 이동
+      nav("/userMain"); // 로그인 성공 후 메인으로 이동
     } catch (er) {
       console.error("❌ [Login] 로그인 실패:", er.code, er.message);
       alert("아이디 또는 비밀번호가 잘못되었습니다.");
@@ -52,10 +52,11 @@ export default function Login() {
         style={{
           width: "761px",
           height: "793px",
-          position: "relative",
+          position: "absolute",
           left: "50%",
+          top:"40%",
           marginTop: "100px",
-          transform: "translateX(-50%)",
+          transform: "translate(-50%, -50%)",
           border: "5px solid #0888D4",
           padding: "40px",
           borderRadius: "20px",
