@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Button from "./assets/Button";
 import Admin from "./layout/AdminLayout";
 
 import "./App.css";
