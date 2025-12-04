@@ -10,6 +10,20 @@
   scrollbar-width: none;     /* Firefox */
 }
 
+/* 요청 들어올 시, 새로운 요청인 걸 구분짓기 위한 깜빡임 애니메이션 */
+
+@keyframes blink-dot {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+
+.blink-dot {
+  animation: blink-dot 1.6s infinite ease-in-out;
+}
+
+
+
 /* 화살표 애니메이션으로 스크롤 예고해주는 역할 */
 
 @keyframes arrowBounce {
@@ -21,6 +35,9 @@
 .arrow-bounce {
   animation: arrowBounce 1.4s ease-in-out infinite;
 }
+
+
+/* 알림 아이콘 애니메이션 */
 
 @keyframes notifyGlow {
    0% {
@@ -36,3 +53,43 @@
 .notify-glow {
   animation: notifyGlow 1.2s ease-in-out infinite;
 }
+
+
+/* 주의, 경고 알림이 올 때 쉐도우 부근이 웅웅... 맥동(Pulse)효과남 */
+
+@keyframes caution-pulse {
+  0% {
+    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
+  }
+  50% {
+    box-shadow: 0px 4px 10px rgba(255,215,0,0.65);
+  }
+  100% {
+    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
+  }
+}
+
+.caution-pulse {
+  animation: caution-pulse 1.4s ease-in-out infinite;
+}
+
+
+
+/* 경고, 위험 알림이 올 때 쉐도우 부근이 웅웅..맥동(Pulse)효과남 */
+
+@keyframes urgent-pulse {
+  0% {
+    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
+  }
+  50% {
+    box-shadow: 0px 4px 10px rgba(255,0,0,0.65);
+  }
+  100% {
+    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
+  }
+}
+
+.urgent-pulse {
+  animation: urgent-pulse 1.3s ease-in-out infinite;
+}
+

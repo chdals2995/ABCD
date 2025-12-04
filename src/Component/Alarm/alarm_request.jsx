@@ -63,11 +63,25 @@ export default function AlarmRequest() {
       {/* 리스트 */}
       {sortedList.map((item, idx) => (
         <div key={idx} className="flex justify-between pb-[20px]">
-          <span className="text-[16px]">{item.title}</span>
-          <span className={`text-[14px] ${statusColor[item.status]}`}>
-            {item.status}
+
+      {/* ● + 제목 묶음 */}
+      <div className="flex items-center gap-2">
+        {item.status === "접수" && (
+          <span className="
+          w-2.5 h-2.5 bg-[#FF0004] rounded-full blink-dot">
           </span>
-        </div>
+        )}
+
+        <span className="text-[16px]">{item.title}</span>
+      </div>
+
+      {/* 상태 */}
+      <span className={`text-[14px] ${statusColor[item.status]}`}>
+        {item.status}
+      </span>
+
+</div>
+
       ))}
 
     </div>
