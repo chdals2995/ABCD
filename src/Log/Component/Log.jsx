@@ -1,68 +1,35 @@
+// Log.jsx (기록 페이지)
+
 import { useState } from "react";
+import AlarmLog from "./AlarmLog";
+// import CheckLog from "./CheckLog"; // 아직 안 만든 경우 주석 가능
 
-export default function Log({item}) {
-    const [isEdit, setIsEait] = useState(false);
-    const [selectedStatus, setSelectedStatus] = useState(item.status);
+export default function Log() {
+  const [tab, setTab] = useState("alarm"); // alarm | check
 
-    const statusColor = {
-        "접수" : "text-[#25c310]",
-        "처리중" : "text-[#ff3b3b]",
-        "완료" : "text-[#367cff]"
-    };
+  return (
+    <div className="w-full h-full bg-white p-6">
 
-    return (
-        <div className="flex justify-between items-center py-3 border-b">
-            <span className="text-[16px]">{item.title}</span>
+      {/* 상단 탭 */}
+      <div className="flex gap-6 mb-6 text-[22px] font-bold">
+        <button
+          className={tab === "alarm" ? "text-[#054E76]" : "text-gray-400"}
+          onClick={() => setTab("alarm")}
+        >
+          알림기록
+        </button>
 
-            <div className="flex items-center gap-4">
-            {/* 평상시 표시 */}
-            {!isEdit && (
-                <span className={`text-[16px] ${statusColor[item.status]}`}>
-                    {item.status}
-                </span>
-            )}
+        <button
+          className={tab === "check" ? "text-[#054E76]" : "text-gray-400"}
+          onClick={() => setTab("check")}
+        >
+          점검기록
+        </button>
+      </div>
 
-            {/* 수정 모드 */}
-            {isEdit && (
-                <div className="flex gap-3">
-                    {["접수", "처리중", "완료"].map((s) => {
-                        <button
-                          key = {s}
-                          onClick = { () => setSelectedStatus(s)}
-                          className={`
-                            px-2 py-1 text-[15px]
-                            ${selectedStatus === s
-                              ? "border-2 border-[#054e76] rounded-md text-[#054e76]"
-                              : "text-gray-500"
-                            }
-                         `}
-                         >
-                            {s}
-                         </button>
-                      })}
-                 </div>
-            )}
-
-            {/* 수정 ｜ 저장 버튼  */}
-            {!isEdit ? (
-                <button
-                  onClick ={() => setIsEait(true)}
-                  className="text-[14px] border px-2 py-1 rounded-md"
-                  >
-                    수정
-                  </button>
-            ) : (
-                <button
-                  onClick = {() => {
-                    setIsEait(false);
-                    console.log("저장된 상태:", selectedStatus);    
-                  }}
-                  className="text-[14px] border px-2 py-1 rounded-md bg-blue-100"
-                >
-                    저장
-                </button>
-            )}
-            </div>
-        </div>
-    )
+      {/* 탭 콘텐츠 */}
+      {tab === "alarm" && <AlarmLog />}
+      {tab === "check" && <CheckLog />}
+    </div>
+  );
 }
