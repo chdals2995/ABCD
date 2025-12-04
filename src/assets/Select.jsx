@@ -23,7 +23,7 @@ export default function Select({
           rounded-[10px]
           border border-[#0888D4]
           bg-white
-          px-3 py-2
+          px-3
           text-sm
           outline-none
           focus:border-[#0888D4]
