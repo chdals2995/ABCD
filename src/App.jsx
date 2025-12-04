@@ -5,7 +5,7 @@ import "./App.css";
 import {Routes, Route} from "react-router-dom";
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
-import AuthStatus from "./components/AuthStatus";
+import AuthStatus from "./components/contexts/AuthStatus";
 
 //버튼 클릭 테스트 함수
 const onClick = () => {

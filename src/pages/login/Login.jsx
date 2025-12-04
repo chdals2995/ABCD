@@ -1,3 +1,4 @@
+// src/pages/login/Login.jsx
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../assets/logos/logo.png";
 import { useState } from "react";
@@ -8,7 +9,6 @@ export default function Login() {
   const nav = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  // id → email로 이름만 바꿔줄게 (동작에는 영향 X, 가독성만 좋아짐)
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
 
@@ -18,28 +18,23 @@ export default function Login() {
   async function onSubmit(e) {
     e.preventDefault();
 
-    console.log("📌 [Login] 로그인 버튼 클릭됨");
-    console.log("입력된 이메일:", email);
-    console.log("입력된 PW:", pass);
+    const emailEmpty = !email;
+    const passEmpty = !pass;
 
-    setEmailError(!email);
-    setPassError(!pass);
+    setEmailError(emailEmpty);
+    setPassError(passEmpty);
 
-    if (!email || !pass) {
-      console.log("❌ [Login] 이메일 또는 비밀번호 미입력");
+    if (emailEmpty || passEmpty) {
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log("⏳ [Login] login() 실행 시작");
-      const result = await login(email, pass); // ✅ AuthContext.login(email, pw)
-      console.log("✅ [Login] 로그인 성공:", result);
-
-      nav("/userMain"); // 로그인 성공 후 메인으로 이동
+      await login(email, pass);
+      nav("/userMain");
     } catch (er) {
-      console.error("❌ [Login] 로그인 실패:", er.code, er.message);
+      console.error("로그인 실패:", er);
       alert("아이디 또는 비밀번호가 잘못되었습니다.");
     } finally {
       setLoading(false);
@@ -54,7 +49,7 @@ export default function Login() {
           height: "793px",
           position: "absolute",
           left: "50%",
-          top:"40%",
+          top: "40%",
           marginTop: "100px",
           transform: "translate(-50%, -50%)",
           border: "5px solid #0888D4",
@@ -77,7 +72,7 @@ export default function Login() {
         {/* 이메일 입력 */}
         <input
           id="loginEmail"
-          type="email" // ✔ 이메일 입력
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
@@ -159,7 +154,7 @@ export default function Login() {
               transform: "translateX(-50%)",
             }}
           >
-            로그인
+            {loading ? "로그인 중..." : "로그인"}
           </button>
 
           <div
