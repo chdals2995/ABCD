@@ -1,9 +1,62 @@
 //  회원 가입 요청창
-import { useState } from 'react'
+
 import Modal from '../../assets/Modal'
 import Button from '../../assets/Button';
+import { useEffect, useState } from "react";
+import { rtdb } from "../firebase/config";
+import { ref, onValue, update } from "firebase/database";
+
+const ROLE_OPTIONS = [
+  { value: "user", label: "일반 사용자" },
+  { value: "manager", label: "관리자(건물/설비)" },
+  { value: "admin", label: "사이트 관리자" },
+];
 
 export default function JoinRequest(){
+    
+
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const usersRef = ref(rtdb, "users");
+
+    const unsub = onValue(usersRef, (snap) => {
+      const val = snap.val() || {};
+      const list = Object.entries(val).map(([id, data]) => ({
+        id,
+        ...data,
+      }));
+      // pending만 필터
+      setUsers(list.filter((u) => u.status === "pending"));
+    });
+
+    return () => unsub();
+  }, []);
+
+  const handleApprove = async (user, role) => {
+    const userRef = ref(rtdb, `users/${user.id}`);
+    await update(userRef, {
+      status: "approved",
+      role: role || "user",
+      approvedAt: Date.now(),
+      // approvedBy는 rules에서 email로 제한해두면 믿을 수 있음
+    });
+  };
+
+  const handleReject = async (user) => {
+    const userRef = ref(rtdb, `users/${user.id}`);
+    await update(userRef, {
+      status: "rejected",
+    });
+  };
+
+  const handleRoleChange = (userId, newRole) => {
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId ? { ...u, _selectedRole: newRole } : u
+      )
+    );
+  };
     const [open, setOpen] =useState(false);
     return(
         <>
