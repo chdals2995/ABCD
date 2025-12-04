@@ -1,8 +1,13 @@
 // 사이트 관리자 페이지
 
 import Member from '../Master/Member';
+import Building from '../Master/Building';
+import Elevator from '../Master/Elevator';
+import { useState } from 'react';
 
 export default function Management(){
+    const [tab, setTab] = useState
+
     return(
         <>
             <div>사이트 관리자</div>
