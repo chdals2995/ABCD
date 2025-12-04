@@ -1,5 +1,42 @@
+/* 웹폰트 불러오기 */
+@font-face {
+  font-family: "Pretendard";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2")
+    format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PyeojinGothic";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2504-1@1.0/PyeojinGothic-Bold.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+/* tailwind.config.js를 명시적으로 로드 */
+@config "../tailwind.config.js";
+
+/* Tailwind 불러오기 (v4 방식) */
 @import "tailwindcss";
 
+<<<<<<< HEAD
 /* 스크롤바 숨기기 */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -99,3 +136,19 @@
   animation: urgent-pulse 1.3s ease-in-out infinite;
 }
 
+=======
+/* 기본 폰트를 Pretendard로 */
+body {
+  font-family: "Pretendard", system-ui, sans-serif;
+}
+
+/* 리셋 */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+>>>>>>> a31b051f69a26ddc1a0a8faeae12481cf83e0d30

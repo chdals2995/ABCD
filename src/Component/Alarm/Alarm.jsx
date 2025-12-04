@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AlarmRequest from "./alarm_request.jsx";
 import AlarmProblems from "./alarm_problems.jsx";
+import AdminLayout from "../../layout/AdminLayout.jsx";
 // import AlarmProblems from "./alarm_problems.jsx";
 
 export default function Alarm() {
@@ -15,6 +16,7 @@ export default function Alarm() {
         pt-[156px]
       "
     >
+      <AdminLayout />
        <div className="flex flex-col items-center">
 
       

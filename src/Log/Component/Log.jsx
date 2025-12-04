@@ -1,14 +1,16 @@
 // Log.jsx (기록 페이지)
-
 import { useState } from "react";
 import AlarmLog from "./AlarmLog";
+import AdminLayout from "../../layout/AdminLayout";
 // import CheckLog from "./CheckLog"; // 아직 안 만든 경우 주석 가능
 
 export default function Log() {
+ 
   const [tab, setTab] = useState("alarm"); // alarm | check
 
   return (
     <div className="w-full h-full bg-white p-6">
+      <AdminLayout />
 
       {/* 상단 탭 */}
       <div className="flex gap-6 mb-6 text-[22px] font-bold">
