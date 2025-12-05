@@ -1,7 +1,7 @@
 // AlarmL.jsx
 import choiceIcon from "../../icons/choice_icon.png";
 
-export default function AlarmL({ row, checked, toggleRow }) {
+export default function AlarmL({ row, checked, toggleRow, editMode }) {
   return (
     <div
       className="
@@ -20,8 +20,11 @@ export default function AlarmL({ row, checked, toggleRow }) {
 
       {/* 체크박스 - 박스는 항상 같고, 안에 체크 아이콘만 들어감 */}
       <div
-        className="flex justify-center cursor-pointer"
-        onClick={toggleRow}
+        className={`
+          flex justify-center cursor-pointer
+          ${!editMode ? "opacity-0 pointer-events-none" : ""}
+          `}
+        onClick={editMode ? toggleRow : undefined}
       >
         <div className="
           w-[25px] h-[25px] 
