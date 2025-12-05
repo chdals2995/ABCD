@@ -4,11 +4,12 @@ import EnergyData from "../components/adminpage/EnergyData";
 import MemberList from "../components/adminpage/MemberList";
 import Notice from "../components/adminpage/Notice";
 import Vacant from "../components/adminpage/Vacant";
+import TestEnergyData from "../components/adminpage/TestEnergyData";
 
 export default function AdminPage() {
   return (
     <>
-      <h1 className="font-bold text-[36px] font-pyeojin fixed top-6 left-1/2 -translate-x-1/2 text-[#003C5B] ">
+      <h1 className="font-bold text-[36px] font-pyeojin absolute top-6 left-1/2 -translate-x-1/2 text-[#003C5B] ">
         건물 관리자
       </h1>
       <AdminLayout />
@@ -19,6 +20,7 @@ export default function AdminPage() {
         <Vacant />
         <Notice />
       </div>
+      <TestEnergyData />
     </>
   );
 }

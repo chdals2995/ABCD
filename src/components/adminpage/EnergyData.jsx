@@ -1,13 +1,8 @@
-// src/components/EnergyData.jsx
+// src/components/adminpage/EnergyData.jsx
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
-import {
-  ref,
-  query,
-  orderByChild,
-  limitToLast,
-  get,
-} from "firebase/database";
+import { ref, query, orderByKey, limitToLast, get } from "firebase/database";
+import EnergyRealtimeChart from "./EnergyRealtimeChart"; // ✅ 그래프 추가
 
 export default function EnergyData() {
   const [data, setData] = useState({
@@ -24,15 +19,15 @@ export default function EnergyData() {
     async function load() {
       try {
         const now = new Date();
-        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-        const todayKey = formatDateKey(now);       // "2025-12-04"
+        const todayKey = formatDateKey(now); // 👉 실제 오늘 날짜
         const yesterdayKey = formatDateKey(yesterday);
 
-        // 1️⃣ 오늘 최신 분 데이터 (실시간 느낌 값)
+        // 1️⃣ 오늘 기준, 가장 마지막 분 데이터 (실시간 느낌 값)
         const latestMinuteQuery = query(
-          ref(rtdb, `aggMinuteBuilding/${todayKey}`), // 🔹 BUILDING_ID 없음
-          orderByChild("createdAt"),
+          ref(rtdb, `aggMinuteBuilding/${todayKey}`),
+          orderByKey(), // "HH:mm" 키 기준 정렬
           limitToLast(1)
         );
 
@@ -43,27 +38,26 @@ export default function EnergyData() {
         let gasNow = 0;
 
         if (latestSnap.exists()) {
-          latestSnap.forEach((child) => {
-            const v = child.val() || {};
-            // 👉 실제 필드 이름에 맞게 수정 (예: elec, water, gas)
-            powerNow = v.elec ?? 0;
-            waterNow = v.water ?? 0;
-            gasNow = v.gas ?? 0;
-          });
+          const latest = Object.values(latestSnap.val() || {})[0] || {};
+
+          // minute 집계 구조: elecAvg / waterAvg / gasAvg / elecSum / ...
+          powerNow = latest.elecAvg ?? latest.elecSum ?? 0;
+          waterNow = latest.waterAvg ?? latest.waterSum ?? 0;
+          gasNow = latest.gasAvg ?? latest.gasSum ?? 0;
         }
 
-        // 2️⃣ 어제 하루 총 사용량 (aggDay 기준, 건물 하나라서 ID 없이)
+        // 2️⃣ 어제 하루 총 사용량 (aggDayBuilding 기준, 실제 어제 날짜)
         const yesterdaySnap = await get(
-          ref(rtdb, `aggDayBuilding/${yesterdayKey}`) // 🔹 BUILDING_ID 없음
+          ref(rtdb, `aggDayBuilding/${yesterdayKey}`)
         );
-        const yData = yesterdaySnap.val() || {};
+        const yData = (yesterdaySnap.exists() && yesterdaySnap.val()) || {};
 
-        // 👉 실제 필드 이름에 맞게 수정
-        const elecTotalY = yData.elecTotal ?? 0;
-        const waterTotalY = yData.waterTotal ?? 0;
-        const gasTotalY = yData.gasTotal ?? 0;
+        // day 집계 구조: elecSum / waterSum / gasSum ...
+        const elecTotalY = yData.elecSum ?? 0;
+        const waterTotalY = yData.waterSum ?? 0;
+        const gasTotalY = yData.gasSum ?? 0;
 
-        // 24시간 기준 평균 /h
+        // 24시간 기준 평균 /h (어제)
         const elecAvgY = elecTotalY / 24;
         const waterAvgY = waterTotalY / 24;
         const gasAvgY = gasTotalY / 24;
@@ -92,32 +86,41 @@ export default function EnergyData() {
 
   return (
     <div className="w-[553px] h-[438px] border-[12px] border-[#054E76] rounded-[10px] bg-white">
-      <div className="flex justify-between p-[22px] h-full">
-        <h1 className="font-bold font-pyeojin text-[20px]">
-          건물 전체 상태 요약
-        </h1>
+      {/* ▽ 세로로 위/아래 나누기 */}
+      <div className="flex flex-col h-full p-[22px] gap-4">
+        {/* 🔼 위쪽: 텍스트 요약 */}
+        <div className="flex justify-between">
+          <h1 className="font-bold font-pyeojin text-[25px]">
+            건물 전체 상태 요약
+          </h1>
 
-        <div className="text-[13px] leading-relaxed text-right">
-          {data.loading ? (
-            <span className="text-gray-400">데이터 불러오는 중...</span>
-          ) : (
-            <>
-              <span>
-                전력 : {data.powerNow} ㎾/h (어제 대비{" "}
-                {formatDiff(data.powerDiffPct)})
-              </span>
-              <br />
-              <span>
-                수도 : {data.waterNow} ㎥/h (어제 대비{" "}
-                {formatDiff(data.waterDiffPct)})
-              </span>
-              <br />
-              <span>
-                가스 : {data.gasNow} ℓ/h (어제 대비{" "}
-                {formatDiff(data.gasDiffPct)})
-              </span>
-            </>
-          )}
+          <div className="text-[13px] leading-relaxed text-right">
+            {data.loading ? (
+              <span className="text-gray-400">데이터 불러오는 중...</span>
+            ) : (
+              <div className="w-[220px] space-y-1">
+                <div className="w-full flex justify-between">
+                  <span>전력 : {data.powerNow} ㎾/h </span>
+                  <span>(어제 대비 {formatDiff(data.powerDiffPct)})</span>
+                </div>
+
+                <div className="w-full flex justify-between">
+                  <span>수도 : {data.waterNow} ㎥/h </span>
+                  <span>(어제 대비 {formatDiff(data.waterDiffPct)})</span>
+                </div>
+
+                <div className="w-full flex justify-between">
+                  <span>가스 : {data.gasNow} ℓ/h </span>
+                  <span>(어제 대비 {formatDiff(data.gasDiffPct)})</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 🔽 아래쪽: 실시간 그래프 */}
+        <div className="flex-1">
+          <EnergyRealtimeChart />
         </div>
       </div>
     </div>
@@ -134,19 +137,16 @@ function formatDateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-// 어제 대비 % 계산
 function calcDiffPct(now, base) {
   if (!base || base === 0) return null;
   const diff = ((now - base) / base) * 100;
-  return Number(diff.toFixed(1)); // 소수 1자리
+  return Number(diff.toFixed(1));
 }
 
-// 소수 1자리로 정리
 function round1(v) {
   return Number(Number(v).toFixed(1));
 }
 
-// 퍼센트 표시 포맷
 function formatDiff(pct) {
   if (pct === null || pct === undefined) return "데이터 없음";
   const sign = pct > 0 ? "+" : "";
