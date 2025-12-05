@@ -12,6 +12,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import CloseButton from "../../assets/CloseButton";
 
 export default function MemberList() {
   const [adminMembers, setAdminMembers] = useState([]);
@@ -273,6 +274,7 @@ export default function MemberList() {
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        closeOnBackdrop={false}
       >
         <form
           onSubmit={handleSubmit}
@@ -283,13 +285,7 @@ export default function MemberList() {
             <h2 className="flex-1 text-center text-[28px] font-pyeojin">
               회원 등록
             </h2>
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(false)}
-              className="w-6 text-[24px] leading-none"
-            >
-              ×
-            </button>
+            <CloseButton onClick={() => setIsCreateModalOpen(false)}/>
           </div>
 
           <div className="flex-1 px-12 py-8 space-y-4">
@@ -351,7 +347,7 @@ export default function MemberList() {
       </Modal>
 
       {/* 회원 정보 수정 모달 */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} closeOnBackdrop={false}>
         <form
           onSubmit={handleEditSubmit}
           className="w-full h-full flex flex-col text-[14px]"
@@ -361,13 +357,7 @@ export default function MemberList() {
             <h2 className="flex-1 text-center text-[28px] font-pyeojin">
               회원 정보 수정
             </h2>
-            <button
-              type="button"
-              onClick={() => setIsEditModalOpen(false)}
-              className="w-6 text-[24px] leading-none"
-            >
-              ×
-            </button>
+            <CloseButton onClick={() => setIsEditModalOpen(false)}/>
           </div>
 
           <div className="flex-1 px-12 py-8 space-y-4">
