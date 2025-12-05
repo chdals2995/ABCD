@@ -13,7 +13,7 @@ export default function Join() {
     email: "",
     password: "",
     name: "",
-    phone: "",       // 01012345678 형태
+    phone: ""       // 01012345678 형태
   });
 
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,12 @@ export default function Join() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
+   
+    const passBox = document.querySelector("#passBox");
+    if(form.password.length >= 6){
+    passBox.style.border = "2px solid red"
+    }
+};
 
   // ✅ reCAPTCHA 설정
   function setupRecaptcha() {
@@ -256,6 +261,7 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
             아이디
           </label>
           <input
+            id="idBox"
             name="email"
             type="text"
             value={form.email}
@@ -280,11 +286,13 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
             비밀번호
           </label>
           <input
+            id="passBox"
             name="password"
             type="password"
             value={form.password}
             onChange={handleChange}
             style={{
+              // border: form.password.length >= 6 ? "2px solid red" : "3px solid rgba(0,0,0,0.3)",
               width: "569px",
               lineHeight: "68px",
               border: "3px solid rgba(0,0,0,0.3)",
@@ -381,6 +389,7 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
 
           {/* 가입 버튼 */}
           <button
+            onClick={handleSubmit}
             disabled={loading}
             type="submit"
             style={{

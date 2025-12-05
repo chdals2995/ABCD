@@ -148,6 +148,7 @@ if (emailEmpty || passEmpty) {
             fontSize: "30px",
             marginLeft: "50%",
             transform: "translateX(-50%)",
+            outline:"none"
           }}
           placeholder="비밀번호"
         />
