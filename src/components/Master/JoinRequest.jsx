@@ -5,6 +5,7 @@ import Button from '../../assets/Button';
 import { useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, update } from "firebase/database";
+import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 export default function JoinRequest({ user, close }){
 
@@ -13,6 +14,7 @@ export default function JoinRequest({ user, close }){
   const handleApprove = async () => {
     const userRef = ref(rtdb, `users/${user.uid}`);
 
+
     await update(userRef, {
       status: "approved",
       role: role,
@@ -20,6 +22,7 @@ export default function JoinRequest({ user, close }){
       approvedBy: "ADMIN_UID_여기넣기"  // 실제 로그인 관리자 uid 넣어야 함
     });
     close();
+  
   };
 
     return(
@@ -39,7 +42,7 @@ export default function JoinRequest({ user, close }){
                     </div>
                     <div className='w-[192px]'>
                         <input type="text" name='name' className='w-full mb-[13px]' value={user.name}/>
-                        <input type="text" name='id' className='w-full mb-[13px]' value={user.email}/>
+                        <input type="text" name='id' className='w-full mb-[13px]' value={user.userID}/>
                         <input type="text" name='tel' className='w-full mb-[14px]' value={user.phone}/>
                         <div className='w-full flex justify-between'>
                           <input type="radio" name='permission' value="admin" checked={role === "admin"}
