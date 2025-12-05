@@ -3,7 +3,7 @@
 import { useState } from "react";
 import AlarmLog from "./AlarmLog";
 import AdminLayout from "../../layout/AdminLayout.jsx";
-// import CheckLog from "./CheckLog"; // 아직 안 만든 경우 주석 가능
+import CheckLog from "./CheckLog.jsx"; 
 
 export default function Log() {
   const [tab, setTab] = useState("alarm"); // alarm | check
