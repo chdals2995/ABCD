@@ -1,20 +1,22 @@
 import { useState } from "react";
 import AlarmRequest from "./alarm_request.jsx";
 import AlarmProblems from "./alarm_problems.jsx";
+import AdminLayout from "../../layout/AdminLayout.jsx";
 // import AlarmProblems from "./alarm_problems.jsx";
 
 export default function Alarm() {
   const [tab, setTab] = useState("request");
-
+  
   return (
-    <div 
-      className="
-        absolute right-0 top-0 
-        w-[371px] h-[919px]
-        bg-[#E6EEF2]
-        pt-[156px]
-      "
+    <div className="w-full h-full p-6">
+      <AdminLayout />
+
+    <div className="absolute right-0 top-17 w-[372px] h-[860px]
+    bg-[#E6EEF2] pt-[20px] border-[1px] border-[#054E76]"
     >
+
+
+    
        <div className="flex flex-col items-center">
 
       
@@ -29,9 +31,9 @@ export default function Alarm() {
               ? "bg-white text-black font-bold"
               : "text-white"
             }
-          `}
-          onClick={() => setTab("request")}
-        >
+            `}
+            onClick={() => setTab("request")}
+            >
           요청
         </div>
 
@@ -43,22 +45,23 @@ export default function Alarm() {
               ? "bg-white text-black font-bold"
               : "text-white"
             }
-          `}
-          onClick={() => setTab("problem")}
-        >
+            `}
+            onClick={() => setTab("problem")}
+            >
           문제
         </div>
       </div>
 
       {/* 내용 영역 */}
-      <div className="w-[335px] h-[698px] overflow-y-auto bg-white scrollbar-hide scroll-area">
+      <div className="w-[335px] h-[770px] overflow-y-auto bg-white scrollbar-hide scroll-area">
         {tab === "request" && <AlarmRequest />}
         {tab === "problem" && <AlarmProblems />}
         
         
       </div>
 
+     </div>
     </div>
-    </div>
+  </div>
   );
 }
