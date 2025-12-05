@@ -1,11 +1,11 @@
 // src/pages/login/Login.jsx
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../assets/logos/logo.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";          // ✅ useEffect 추가
 import { useAuth } from "../../components/contexts/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();                  // ✅ user도 같이 가져오기
   const nav = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -15,31 +15,67 @@ export default function Login() {
   const [emailError, setEmailError] = useState(false);
   const [passError, setPassError] = useState(false);
 
-  async function onSubmit(e) {
-    e.preventDefault();
+  // ✅ 로그인 후, user 정보(role/status)에 따라 라우팅
+  useEffect(() => {
+    if (!user) return; // 아직 로그인 안 했거나, 정보 로딩 전
 
-    const emailEmpty = !email;
-    const passEmpty = !pass;
-
-    setEmailError(emailEmpty);
-    setPassError(passEmpty);
-
-    if (emailEmpty || passEmpty) {
+      // 🔸 1) 아직 승인되지 않았거나, 권한이 없는 계정이면
+    if (user.status !== "approved" || user.role === "none") {
+      // 여기서는 *어디로도 nav 하지 않음*
+      // = 로그인 페이지에 그대로 남겨두기
+      // 필요하면 안내만 보여주기
+      alert("관리자 승인 후에 로그인할 수 있습니다.");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      await login(email, pass);
-      nav("/userMain");
-    } catch (er) {
-      console.error("로그인 실패:", er);
-      alert("아이디 또는 비밀번호가 잘못되었습니다.");
-    } finally {
-      setLoading(false);
+    // 🔸 2) 승인된 계정만 role에 따라 페이지 이동
+    if (user.role === "admin") {
+      nav("/admin");        // 관리자 메인
+    } else if (user.role === "master") {
+      nav("/main");        // 마스터(건물 총괄?) 메인
+    } else if (user.role === "user") {
+      nav("/userMain");    // 일반 사용자 메인
+    } else {
+      // 정의되지 않은 role이면 그냥 로그인 페이지에 남겨두기
+      // (원하면 다른 기본 페이지로 보내도 됨)
     }
+  }, [user, nav]);
+
+ async function onSubmit(e) {
+  e.preventDefault();
+
+  const emailEmpty = !email;
+  const passEmpty = !pass;
+
+  setEmailError(emailEmpty);
+  setPassError(passEmpty);
+
+  if (emailEmpty || passEmpty) {
+    return;
   }
+
+  setLoading(true);
+
+  try {
+    // 👉 사용자가 입력한 아이디 / 이메일
+    const loginId = email.trim();
+
+    // 👉 Join.jsx와 같은 규칙: @ 있으면 그대로, 없으면 @abcd.local 붙이기
+    const authEmail = loginId.includes("@")
+      ? loginId
+      : `${loginId}@abcd.local`;
+
+    console.log("🔐 로그인 시도 이메일:", authEmail);
+
+    await login(authEmail, pass);   // 여기서 authEmail 사용
+  } catch (er) {
+    console.error("로그인 실패:", er.code, er.message);
+    alert("아이디 또는 비밀번호가 잘못되었습니다.");
+  } finally {
+    setLoading(false);
+  }
+}
+
 
   return (
     <form onSubmit={onSubmit}>
@@ -72,7 +108,7 @@ export default function Login() {
         {/* 이메일 입력 */}
         <input
           id="loginEmail"
-          type="email"
+          type="text"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{

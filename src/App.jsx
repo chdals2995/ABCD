@@ -1,3 +1,4 @@
+//App.jsx
 import Button from "./assets/Button";
 
 import "./App.css";
@@ -5,7 +6,11 @@ import "./App.css";
 import {Routes, Route} from "react-router-dom";
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
+import AdminUserApproval from "./pages/login/AdminUserApproval";
+import Main from "./pages/Main";
 import AuthStatus from "./components/contexts/AuthStatus";
+
+
 
 //버튼 클릭 테스트 함수
 const onClick = () => {
@@ -26,6 +31,8 @@ function App() {
               <Route path="/" element={ <Login/>} />
               <Route path="/userMain" element={<AuthStatus/>} />
               <Route path="/join" element={ <Join/>} />
+              <Route path="/admin" element={<AdminUserApproval/>}/>
+              <Route path="/main" elemetn={<Main/>}/>
             </Routes>
       <Button onClick={onClick}>qjxms</Button>
     </>

@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
+
 export default function Join() {
   const [form, setForm] = useState({
     email: "",
@@ -93,45 +94,61 @@ export default function Join() {
   }
 
   // ✅ 최종 회원가입 (이메일 + 비밀번호 + RTDB + 휴대폰 인증 여부 체크)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
 
-    if (!form.name || !form.email || !form.password || !form.phone) {
-      alert("빈 항목이 있습니다.");
-      return;
-    }
+  if (!form.name || !form.email || !form.password || !form.phone) {
+    alert("빈 항목이 있습니다.");
+    return;
+  }
 
-    if (!isPhoneVerified) {
-      alert("휴대폰 인증을 완료해주세요.");
-      return;
-    }
+  if (!isPhoneVerified) {
+    alert("휴대폰 인증을 완료해주세요.");
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
+  try {
+      // 👉 사용자가 적은 아이디 (이메일 형식일 수도, 아닐 수도 있음)
+      const loginId = form.email.trim();
+
+      // 👉 Auth에서 쓸 실제 이메일 값
+      const authEmail = loginId.includes("@")
+        ? loginId
+        : `${loginId}@abcd.local`;
+
       // 1) Firebase Auth 계정 생성
       const cred = await createUserWithEmailAndPassword(
         auth,
-        form.email,
+        authEmail,
         form.password
       );
       const uid = cred.user.uid;
+      console.log("✅ Auth 계정 생성됨 uid:", uid, authEmail);
 
-      // 2) RTDB /users/{uid} 정보 저장 (승인 대기)
+      // 2) RTDB 저장 (원본 아이디 + 실제 이메일 둘 다 저장)
       const userRef = ref(rtdb, `users/${uid}`);
-      await set(userRef, {
-        email: form.email,
+      const payload = {
+        loginId,             // 사용자가 입력한 아이디 (이메일 아닐 수 있음)
+        email: authEmail,    // Auth에 등록된 이메일
         name: form.name,
         phone: form.phone,
-        status: "pending", // 관리자 승인 대기
-        role: "none",      // 아직 권한 없음
+        status: "pending",
+        role: "none",
+        userId: loginId,
         createdAt: Date.now(),
         approvedAt: null,
         approvedBy: null,
-      });
+      };
+      console.log("✅ RTDB에 저장할 payload:", payload);
+
+      await set(userRef, payload);
+      console.log("✅ RTDB /users/" + uid + " 저장 완료");
 
       setMessage("회원가입 완료! 현재 관리자 승인 대기 중입니다.");
+
       // 폼 초기화
       setForm({
         email: "",
@@ -143,7 +160,7 @@ export default function Join() {
       setIsCodeSent(false);
       setIsPhoneVerified(false);
     } catch (error) {
-      console.error(error);
+      console.error("❌ 회원가입 중 오류:", error);
       setMessage("회원가입 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -217,7 +234,7 @@ export default function Join() {
           </label>
           <input
             name="email"
-            type="email"
+            type="text"
             value={form.email}
             onChange={handleChange}
             style={{
@@ -229,7 +246,7 @@ export default function Join() {
               marginTop: "10px",
               fontSize: "24px",
             }}
-            placeholder="아이디(이메일) 입력"
+            placeholder="아이디 입력"
             required
           />
 

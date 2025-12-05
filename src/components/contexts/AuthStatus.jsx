@@ -2,6 +2,7 @@
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
+
 export default function AuthStatus() {
   const { user, logout } = useAuth();
 
