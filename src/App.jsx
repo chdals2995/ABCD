@@ -9,7 +9,7 @@ function App() {
   return (<>
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<JoinRequest/>}/>
+        <Route path='/' element={<Master/>}/>
       </Routes>
     </BrowserRouter></>
   );
