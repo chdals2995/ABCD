@@ -8,15 +8,16 @@ export default function Alarm() {
   const [tab, setTab] = useState("request");
 
   return (
-    <div 
-      className="
-        absolute right-0 top-0 
-        w-[371px] h-[919px]
-        bg-[#E6EEF2]
-        pt-[156px]
-      "
+    
+    <div className="absolute right-0 top-0 w-[371px] h-[919px]
+    bg-[#E6EEF2]
+    pt-[156px]
+    "
     >
-      <AdminLayout />
+    <AdminLayout />
+
+
+    
        <div className="flex flex-col items-center">
 
       
