@@ -70,7 +70,7 @@ export default function Login() {
     await login(authEmail, pass);   // 여기서 authEmail 사용
   } catch (er) {
     console.error("로그인 실패:", er.code, er.message);
-    alert("아이디 또는 비밀번호가 잘못되었습니다.");
+    alert("빈 항목이 있습니다.");
   } finally {
     setLoading(false);
   }
@@ -112,7 +112,7 @@ export default function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
-            border: emailError ? "1px solid red" : "1px solid #0D5D8E",
+            // border: emailError ? "1px solid red" : "1px solid #0D5D8E",
             width: "504px",
             lineHeight: "100px",
             borderRadius: "20px",
