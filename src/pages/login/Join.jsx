@@ -48,8 +48,23 @@ export default function Join() {
 
   // ✅ 인증번호 발송
   async function handleSendCode() {
-    if (!form.phone || form.phone.length < 10) {
-      alert("휴대폰 번호를 정확히 입력하세요. (예: 01012345678)");
+
+    const phoneNumb = document.querySelector("#phoneNumb");
+
+    // 휴대폰번호 입력란이 빈칸일 시 
+    // 입력란 2px solid red 적용
+    if (!form.phone) { 
+      phoneNumb.style.border = "2px solid red";
+      return;
+    }
+
+    if (form.phone.includes("-")){
+      phoneNumb.style.border = "2px solid red";
+      return;
+    }
+
+    if(form.phone.length !== 11){
+      phoneNumb.style.border = "2px solid red";
       return;
     }
 
@@ -71,9 +86,10 @@ export default function Join() {
 
       setIsCodeSent(true);
       alert("인증번호를 발송했습니다.");
+      phoneNumb.style.border = "2px solid red";
     } catch (err) {
       console.error("인증번호 발송 오류:", err);
-      alert("인증번호 발송에 실패했습니다. Firebase 설정을 확인해주세요.");
+      alert("인증번호 발송에 실패하였습니다.")
     }
   }
 
@@ -229,7 +245,7 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
             required
           />
 
-          {/* 아이디(이메일) */}
+          {/* 아이디 */}
           <label
             style={{
               fontSize: "24px",
@@ -289,6 +305,7 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
           </label>
           <div style={{ height: "68px", display: "flex", marginTop: "10px" }}>
             <input
+              id="phoneNumb"
               name="phone"
               type="text"
               value={form.phone}

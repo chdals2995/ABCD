@@ -58,6 +58,10 @@ if (emailEmpty || passEmpty) {
 
   setLoading(true);
 
+  const errorMessage = document.querySelector("#errorMessage");
+  const errorLoginBox = document.querySelector("#loginEmail");
+  const errorPassBox = document.querySelector("#loginPass");
+  
   try {
     // 👉 사용자가 입력한 아이디 / 이메일
     const loginId = email.trim();
@@ -72,6 +76,9 @@ if (emailEmpty || passEmpty) {
     await login(authEmail, pass);   // 여기서 authEmail 사용
   } catch (er) {
     console.error("로그인 실패:", er.code, er.message);
+    errorMessage.style.color = "red";
+    errorLoginBox.style.border = "3px solid red";
+    errorPassBox.style.border = "3px solid red";
   } finally {
     setLoading(false);
   }
@@ -112,6 +119,7 @@ if (emailEmpty || passEmpty) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
+            border : emailError ? "3px solid red" : "1px solid #0D5D8E",
             width: "504px",
             lineHeight: "100px",
             borderRadius: "20px",
@@ -122,7 +130,7 @@ if (emailEmpty || passEmpty) {
             transform: "translateX(-50%)",
           }}
           placeholder="이메일"
-        />
+        /> 
 
         {/* 비밀번호 입력 */}
         <input
@@ -131,6 +139,7 @@ if (emailEmpty || passEmpty) {
           value={pass}
           onChange={(e) => setPass(e.target.value)}
           style={{
+            border : passError ? "3px solid red" : "1px solid #0D5D8E",
             width: "504px",
             lineHeight: "100px",
             borderRadius: "20px",
@@ -142,6 +151,17 @@ if (emailEmpty || passEmpty) {
           }}
           placeholder="비밀번호"
         />
+        <p id="errorMessage" style={{
+        fontSize:"20px",
+        diplay:"block",
+        position:"absolute",
+        left:"50%",
+        transform:"translateX(-50%)",
+        color : emailError ? "red" : "transparent",
+        color : passError ? "red" : "transparent",
+        }}>
+        아이디 또는 비밀번호가 틀렸습니다.
+        </p>
 
         {/* 로그인 버튼 & 회원가입 링크 */}
         <div
