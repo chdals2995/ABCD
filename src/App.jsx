@@ -3,7 +3,7 @@ import { useState } from "react";
 import Master from "./pages/Master";
 import "./App.css";
 import JoinRequest from "./components/Master/JoinRequest";
-import AssetEx from "./pages/AseetEx";
+import JoinRequestList from "./components/Master/JoinRequestList";
 
 function App() {
   return (<>
