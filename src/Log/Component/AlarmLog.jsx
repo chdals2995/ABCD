@@ -142,7 +142,7 @@ export default function AlarmLog() {
       {/* 리스트 */}
       {formattedDate && filteredData.length === 0 && (
         <div className="w-full py-10 text-center text-gray-400 text-[18px]">
-          해당 날짜에 데이터가 존재하지 않습니다.
+          해당 날짜의 데이터가 존재하지 않습니다.
         </div>
       )}
       {paginatedData.map((row, idx) => (
