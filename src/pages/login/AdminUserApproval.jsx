@@ -69,19 +69,19 @@ export default function AdminUserApproval() {
     }
   };
 
-  const handleReject = async (u) => {
-    try {
-      const userRef = ref(rtdb, `users/${u.id}`);
-      await update(userRef, {
-        status: "rejected",
-        approvedAt: Date.now(),
-        approvedBy: currentUser?.uid || null,
-      });
-    } catch (e) {
-      console.error("거절 중 오류:", e);
-      alert("거절 처리 중 오류가 발생했습니다.");
-    }
-  };
+  // const handleReject = async (u) => {
+  //   try {
+  //     const userRef = ref(rtdb, `users/${u.id}`);
+  //     await update(userRef, {
+  //       status: "rejected",
+  //       approvedAt: Date.now(),
+  //       approvedBy: currentUser?.uid || null,
+  //     });
+  //   } catch (e) {
+  //     console.error("거절 중 오류:", e);
+  //     alert("거절 처리 중 오류가 발생했습니다.");
+  //   }
+  // };
 
   const handleRoleChange = (userId, newRole) => {
     setUsers((prev) =>
@@ -144,12 +144,12 @@ export default function AdminUserApproval() {
                   >
                     승인
                   </button>
-                  <button
+                  {/* <button
                     className="px-2 py-1 text-xs rounded bg-red-600 text-white"
                     onClick={() => handleReject(u)}
                   >
                     거절
-                  </button>
+                  </button> */}
                 </td>
               </tr>
             ))}

@@ -53,7 +53,7 @@ export function AuthProvider({ children }) {
           name: profile.name || "",
           phone: profile.phone || "",
           role: profile.role || "",                // 권한 (admin / manager / viewer 등)
-          status: profile.status || "pending",     // 승인 상태 (pending / approved / rejected)
+          status: profile.status || "pending",     // 승인 상태 (pending / approved)
           createdAt: profile.createdAt || null,
           approvedAt: profile.approvedAt || null,
           approvedBy: profile.approvedBy || null,

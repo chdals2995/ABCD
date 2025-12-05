@@ -50,7 +50,9 @@ export default function Login() {
   setEmailError(emailEmpty);
   setPassError(passEmpty);
 
-  if (emailEmpty || passEmpty) {
+  
+if (emailEmpty || passEmpty) {
+    alert("빈 항목이 있습니다.")
     return;
   }
 
@@ -70,12 +72,10 @@ export default function Login() {
     await login(authEmail, pass);   // 여기서 authEmail 사용
   } catch (er) {
     console.error("로그인 실패:", er.code, er.message);
-    alert("빈 항목이 있습니다.");
   } finally {
     setLoading(false);
   }
 }
-
 
   return (
     <form onSubmit={onSubmit}>
@@ -112,7 +112,6 @@ export default function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{
-            // border: emailError ? "1px solid red" : "1px solid #0D5D8E",
             width: "504px",
             lineHeight: "100px",
             borderRadius: "20px",
@@ -124,17 +123,6 @@ export default function Login() {
           }}
           placeholder="이메일"
         />
-        <p
-          style={{
-            position: "absolute",
-            display: emailError ? "block" : "none",
-            color: "red",
-            fontSize: "20px",
-            left: "150px",
-          }}
-        >
-          이메일을 입력해주세요.
-        </p>
 
         {/* 비밀번호 입력 */}
         <input
@@ -143,7 +131,6 @@ export default function Login() {
           value={pass}
           onChange={(e) => setPass(e.target.value)}
           style={{
-            border: passError ? "1px solid red" : "1px solid #0D5D8E",
             width: "504px",
             lineHeight: "100px",
             borderRadius: "20px",
@@ -155,17 +142,6 @@ export default function Login() {
           }}
           placeholder="비밀번호"
         />
-        <p
-          style={{
-            position: "absolute",
-            display: passError ? "block" : "none",
-            color: "red",
-            fontSize: "20px",
-            left: "150px",
-          }}
-        >
-          비밀번호를 입력해주세요.
-        </p>
 
         {/* 로그인 버튼 & 회원가입 링크 */}
         <div
