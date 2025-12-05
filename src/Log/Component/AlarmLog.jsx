@@ -132,7 +132,35 @@ export default function AlarmLog() {
         h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center
       ">
         <div className="text-center">No.</div>
-        <div className="text-center"></div>
+        {/* 전체 선택 체크박스 — 수정 모드일 때만 표시 */}
+        <div className="flex justify-center">
+        {editMode && (
+        <div
+          className="cursor-pointer"
+          onClick={() => {
+            const isAllChecked = checkedRows.every(Boolean); // 모두 체크됨?
+            const newState = Array(data.length).fill(!isAllChecked);
+            setCheckedRows(newState);
+          }}
+        >
+          <div
+            className="
+              w-[25px] h-[25px]
+              rounded-[3px]
+              bg-[#C8C8C8]
+              flex items-center justify-center
+            "
+          >
+            {/* 전체가 체크되어 있을 때만 체크 아이콘 표시 */}
+            {checkedRows.length > 0 &&
+              checkedRows.every(Boolean) && (
+                <img src={choiceIcon} className="w-[14px] h-[14px]" />
+              )}
+          </div>
+        </div>
+      )}
+    </div>
+
         <div className="text-center">아이디</div>
         <div className="text-center">내용</div>
         <div className="text-center">등록일</div>
