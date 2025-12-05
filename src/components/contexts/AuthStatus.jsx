@@ -21,7 +21,7 @@ export default function AuthStatus() {
 
   return (
     <>
-      <Link to="/login">LoginPage</Link>
+      <Link to="/">LoginPage</Link>
       <div>
         <span>{user.email}님</span>
         <button onClick={handleLogout}>로그아웃</button>

@@ -4,9 +4,11 @@ import { auth, rtdb } from "../../firebase/config";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 
 export default function Join() {
+  const nav = useNavigate(); // 추가
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -147,7 +149,12 @@ export default function Join() {
       await set(userRef, payload);
       console.log("✅ RTDB /users/" + uid + " 저장 완료");
 
-      setMessage("회원가입 완료! 현재 관리자 승인 대기 중입니다.");
+      // 👉 안내 문구 한번 보여주고
+setMessage("회원가입이 완료되었습니다.\n관리자 승인 후 로그인할 수 있습니다.");
+
+// 👉 로그인 페이지(루트 경로)로 이동
+nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오게 하고 싶으면 replace:true
+
 
       // 폼 초기화
       setForm({
