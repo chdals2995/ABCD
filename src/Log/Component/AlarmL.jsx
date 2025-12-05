@@ -18,24 +18,27 @@ export default function AlarmL({ row, checked, toggleRow, editMode }) {
       {/* No */}
       <div className="text-center">{row.id}</div>
 
-      {/* 체크박스 - 박스는 항상 같고, 안에 체크 아이콘만 들어감 */}
-      <div
-        className={`
-          flex justify-center cursor-pointer
-          ${!editMode ? "opacity-0 pointer-events-none" : ""}
-          `}
-        onClick={editMode ? toggleRow : undefined}
-      >
-        <div className="
-          w-[25px] h-[25px] 
-          rounded-[3px]
-          bg-[#C8C8C8]
-          flex items-center justify-center
-        ">
-          {checked && (
-            <img src={choiceIcon} className="w-[14px] h-[14px]" />
-          )}
-        </div>
+      {/* 체크박스 — 수정 모드일 때만 표시 */}
+      <div className="flex justify-center">
+        {editMode && (
+          <div
+            className="cursor-pointer"
+            onClick={toggleRow}
+          >
+            <div
+              className="
+                w-[25px] h-[25px] 
+                rounded-[3px]
+                bg-[#C8C8C8]
+                flex items-center justify-center
+              "
+            >
+              {checked && (
+                <img src={choiceIcon} className="w-[14px] h-[14px]" />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 아이디 */}
