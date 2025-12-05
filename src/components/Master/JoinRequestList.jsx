@@ -1,3 +1,4 @@
+// joinRequestList.jsx
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
@@ -46,7 +47,7 @@ export default function JoinRequestList() {
               <li
                 key={user.uid}
                 onClick={() => openUserModal(user)}
-                className="text=[18px] cursor-pointer border-b-0 hover:border-b-[2px] hover:border-b-[#054E76]"
+                className="text-[18px] cursor-pointer border-b-0 hover:border-b-[2px] hover:border-b-[#054E76]"
               >
                 {user.name} / 관리자 가입 신청
               </li>

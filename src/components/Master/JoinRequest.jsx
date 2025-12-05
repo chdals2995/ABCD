@@ -1,11 +1,12 @@
 //  회원 가입 요청창
-
+// joinRequest.jsx
 import Close from '../../assets/icons/close.png';
 import Modal from '../../assets/Modal'
 import Button from '../../assets/Button';
 import { useState } from "react";
-import { rtdb } from "../../firebase/config";
+import { rtdb, auth } from "../../firebase/config";
 import { ref, update } from "firebase/database";
+import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 
 export default function JoinRequest({ user, open, close }){
@@ -13,23 +14,48 @@ export default function JoinRequest({ user, open, close }){
 
   const [role, setRole] = useState("admin"); // 기본값
   const [adminPw, setAdminPw] = useState("");
+  const [error, setError] = useState("");
 
   const handleApprove = async () => {
-    const userRef = ref(rtdb, `users/${user.uid}`);
+    
+    setError("");
+
+    try {
+      const master = auth.currentUser;
+
+      if (!master) {
+        setError("마스터 계정으로 로그인해야 합니다.");
+        return;
+      }
+
+      // 마스터 비밀번호 검증
+      const credential = EmailAuthProvider.credential(
+        master.email,adminPw);
+
+      // 비밀번호 확인
+      await reauthenticateWithCredential(master, credential);
+
+     
+      //승인 처리
+      const userRef = ref(rtdb, `users/${user.uid}`); 
 
     await update(userRef, {
       status: "approved",
       role: role,
       approvedAt: Date.now(),
-      approvedBy: adminPw  // 실제 로그인 관리자 uid 넣어야 함
+      approvedBy: master.uid
     });
     close();
   
+  }catch (err) {
+      console.error(err);
+       setError("비밀번호가 틀렸습니다.");
+    }
   };
 
     return(
         <>
-            <Modal isOpen={open} onClose={()=>setOpen(false)}>
+            <Modal isOpen={open} onClose={close}>
               {/* 제목과 닫기 */}
               <div className='ml-[66px] relative'>
                 <p className='text-[26px] font-pyeojin mt-[71px]'>회원가입</p>
@@ -69,6 +95,10 @@ export default function JoinRequest({ user, open, close }){
                     value={adminPw}
                     onChange={(e) => setAdminPw(e.target.value)}/>
                 </div>
+                {/* 에러 메시지 */}
+                {error && (
+                  <p className="text-red-500 text-center mt-2">{error}</p>
+                )}
                 <div className='w-[79px] mx-auto mt-[29px]'>
                   <Button onClick={handleApprove}>승인</Button>
                 </div>
