@@ -1,7 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import Alarm from "./Component/Alarm/Alarm";
 import Log from "./Log/Component/Log";
-import Admin from "./layout/AdminLayout";
+import AdminLayout from "./layout/AdminLayout";
+
 
 import "./App.css";
 import AssetEx from "./pages/AseetEx";
