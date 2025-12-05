@@ -137,7 +137,7 @@ export default function MemberList() {
         userId,
         email,
         role: "none", // none / user / admin / master
-        status: "active",
+        status: "approved",
         createdAt: Date.now(),
       });
 
