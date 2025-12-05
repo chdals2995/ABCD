@@ -9,7 +9,7 @@ const onClick = () => {
 };
 
 const options = [
-  { value: "1", label: "2층 201호 앞 복도" },
+  { value: "1", label: "2층" },
   { value: "2", label: "2번" },
   { value: "3", label: "3번" },
 ];

@@ -4,8 +4,6 @@ export default function Modal({
   onClose,
   children,
   closeOnBackdrop = true,
-
- 
 }) {
   if (!isOpen) return null;
 
@@ -26,8 +24,8 @@ export default function Modal({
         <div
           className={`
             pointer-events-auto
-            rounded-[18px] border-[3px] border-[#054E76]
-            bg-[#e6eef2]
+             border-[3px] border-[#054E76]
+            bg-[#E7F3F8]
             flex flex-col
             max-w-[calc(100vw-40px)]
             max-h-[calc(100vh-40px)]
