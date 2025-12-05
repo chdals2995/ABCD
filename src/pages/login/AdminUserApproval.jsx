@@ -1,6 +1,6 @@
 // src/pages/AdminUserApproval.jsx
 import { useEffect, useState } from "react";
-import { rtdb } from "../firebase/config";
+import { rtdb } from "../../firebase/config";
 import { ref, onValue, update } from "firebase/database";
 
 const ROLE_OPTIONS = [
