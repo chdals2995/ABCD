@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 // src/layout/AdminLayout.jsx
 import { useState } from "react";
 import Menu from "../components/adminskin/Menu";
 import TopMenu from "../components/adminskin/TopMenu";
 import AlarmDrawer from "../alarm/AlarmDrawer";
+=======
+import Menu from '../components/admin/Menu';
+import TopMenu from '../components/admin/TopMenu';
+import Logo from '../assets/logos/logo.png';
+>>>>>>> 4c0b943 (테이블 표 규격 및 사이즈 정리, 필터 (전체/달력) 추가, 상태 정렬순으로 볼 수 있는 접수/처리중/완료 추가, 달력 랑이브러리 DatePicker 설치 및 import 월화수목금 표시를 위한 locale(ko) 설치 및 적용)
 
 export default function AdminLayout({ logoSize, floorGroups }) {
   const [alarmOpen, setAlarmOpen] = useState(false);

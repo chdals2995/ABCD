@@ -11,10 +11,17 @@
   },
   "dependencies": {
     "chart.js": "^4.5.1",
+    "data-fns": "^1.1.0",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "firebase": "^12.6.0",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
+<<<<<<< HEAD
     "react-datepicker": "^9.0.0",
+=======
+    "react-datepicker": "^8.10.0",
+>>>>>>> 4c0b943 (테이블 표 규격 및 사이즈 정리, 필터 (전체/달력) 추가, 상태 정렬순으로 볼 수 있는 접수/처리중/완료 추가, 달력 랑이브러리 DatePicker 설치 및 import 월화수목금 표시를 위한 locale(ko) 설치 및 적용)
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6",
     "react-toastify": "^11.0.5"

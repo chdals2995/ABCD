@@ -1,47 +1,64 @@
 // AlarmL.jsx
-import { useState } from "react";
+import choiceIcon from "../../icons/choice_icon.png";
 
-export default function AlarmL({ row, index, editMode, selected, setSelected }) {
-  const colors = {
-    접수: "text-[#25C310]",
-    처리중: "text-[#FF3B3B]",
-    완료: "text-[#367CFF]",
-  };
-
-  const toggle = () => {
-    if (selected.includes(row.id)) {
-      setSelected(selected.filter((id) => id !== row.id));
-    } else {
-      setSelected([...selected, row.id]);
-    }
-  };
-
-  // row.content 안에 "글자크기:XXpx" 같은 패턴 제거
-  const cleanedContent = row.content?.replace(/글자\s*크기\s*:\s*\d+px/gi, "");
-
+export default function AlarmL({ row, checked, toggleRow }) {
   return (
-    <div className="grid grid-cols-6 items-center h-[58px] border-b text-[20px]">
+    <div
+      className="
+        grid
+        grid-cols-[60px_80px_200px_1fr_200px_150px]
+        text-[22px]
+        py-3
+        border-b
+        items-center
+        w-full
+      "
+    >
 
-      {/* No. */}
-      <div className="w-[60px] text-center">{index}</div>
+      {/* No */}
+      <div className="text-center">{row.id}</div>
 
-      {/* 체크박스 (수정모드일 때만 표시) */}
-      <div className="w-[80px] flex justify-center">
-        {editMode && <input type="checkbox" onChange={toggle} className="scale-150" />}
+      {/* 체크박스 - 박스는 항상 같고, 안에 체크 아이콘만 들어감 */}
+      <div
+        className="flex justify-center cursor-pointer"
+        onClick={toggleRow}
+      >
+        <div className="
+          w-[25px] h-[25px] 
+          rounded-[3px]
+          bg-[#C8C8C8]
+          flex items-center justify-center
+        ">
+          {checked && (
+            <img src={choiceIcon} className="w-[14px] h-[14px]" />
+          )}
+        </div>
       </div>
 
       {/* 아이디 */}
-      <div className="w-[200px] text-center">{row.user}</div>
+      <div className="text-center truncate">{row.user}</div>
 
-      {/* 내용 (글자크기 문구 자동 제거됨) */}
-      <div className="flex-1">{cleanedContent}</div>
+      {/* 내용 */}
+      <div className="pl-2 whitespace-nowrap overflow-hidden">
+        {row.content || ""}
+      </div>
 
       {/* 등록일 */}
-      <div className="w-[200px] text-center">{row.date}</div>
+      <div className="text-center">{row.date}</div>
 
-      {/* 상태 텍스트 */}
-      <div className="w-[150px] flex justify-center items-center">
-        <span className={colors[row.status]}>{row.status}</span>
+      {/* 상태 */}
+      <div className="text-center">
+        <span
+          className={
+            row.status === "접수"
+              ? "text-[#25C310]"
+              : row.status === "처리중"
+              ? "text-[#FF3B3B]"
+              : "text-[#367CFF]"
+          }
+        >
+          {row.status}
+        </span>
       </div>
     </div>
   );
