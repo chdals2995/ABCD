@@ -1,45 +1,50 @@
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
+import JoinRequest from "./JoinRequest";
 
 
-export default function JoinRequestList({onSelectUser}){
+export default function JoinRequestList(){
     const [pendingList, setPendingList] = useState([]);
 
     useEffect(() => {
-        const userRef = ref(rtdb, "users");
+    const usersRef = ref(rtdb, "users");
 
-        onValue(userRef, (snapshot) => {
-        const data = snapshot.val() || {};
+    return onValue(usersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
 
-        const pending = Object.keys(data)
-            .filter((uid) => data[uid].status === "pending")
-            .map((uid) => ({
-            uid,
-            ...data[uid],
-            }));
+      const list = Object.entries(data)
+        .filter(([uid, user]) => user.status === "pending")
+        .map(([uid, user]) => ({ uid, ...user }));
 
-        setPendingList(pending);
-        });
+      setPendingUsers(list);
+    });
     }, []);
-
+    
     return(
-        <div className="w-[372px] h-full px-[27px] bg-[#E7F3F8] border-[#0888D4]
-            absolute right-0 top-[68px] pt-[30px] pl-[27px]">
-            <p className="text-[24px] font-pyeojin">가입 신청 내역</p>
-            <div className="w-[318px] h-[600px] bg-white m-auto mt-[79px]">
-                <ul>
-                    {pendingList.map((user) => (
-                        <li
-                        key={user.uid}
-                        onClick={() => onSelectUser(user)}
-                        className=""
-                        >
-                        {user.name} / 관리자 가입 신청
-                        </li>
-                    ))}
-                </ul>
+        <>
+            <div className="w-[372px] h-full px-[27px] bg-[#E7F3F8] border-[#0888D4]
+                absolute right-0 top-[68px] pt-[30px] pl-[27px]">
+                <p className="text-[24px] font-pyeojin">가입 신청 내역</p>
+                <div className="w-[318px] h-[600px] bg-white m-auto mt-[79px]">
+                    <ul>
+                        {pendingList.map((user) => (
+                            <li
+                            key={user.uid}
+                            onClick={() => openUserModal(user)}
+                            className=""
+                            >
+                            {user.name} / 관리자 가입 신청
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </div>
-        </div>
+            {/* 회원 요청 모달창 */}
+            <JoinRequest
+            user={selectedUser}
+            Close={closeUserModal}/>
+        </>
     );
 }
