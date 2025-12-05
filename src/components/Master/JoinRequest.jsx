@@ -5,15 +5,14 @@ import Button from '../../assets/Button';
 import { useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, update } from "firebase/database";
-import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
-export default function JoinRequest({ user, close }){
+export default function JoinRequest({ user, open, close }){
+  if (!user) return null;
 
   const [role, setRole] = useState("admin"); // 기본값
 
   const handleApprove = async () => {
     const userRef = ref(rtdb, `users/${user.uid}`);
-
 
     await update(userRef, {
       status: "approved",
@@ -27,7 +26,6 @@ export default function JoinRequest({ user, close }){
 
     return(
         <>
-            <button onClick={()=>setOpen(true)}>모달열기</button>
             <Modal isOpen={open} onClose={()=>setOpen(false)}>
                 <p className='text-[26px] font-pyeojin mt-[71px] ml-[66px]'>회원가입</p>
                 <div className="w-[422px] h-[224px] bg-white 
@@ -41,11 +39,12 @@ export default function JoinRequest({ user, close }){
                         <label htmlFor="permission" className='text-[20px] mb-[10px]'>권한 설정</label>
                     </div>
                     <div className='w-[192px]'>
-                        <input type="text" name='name' className='w-full mb-[13px]' value={user.name}/>
-                        <input type="text" name='id' className='w-full mb-[13px]' value={user.userID}/>
-                        <input type="text" name='tel' className='w-full mb-[14px]' value={user.phone}/>
+                        <input type="text" name='name' className='w-full mb-[13px]' value={user.name} readOnly/>
+                        <input type="text" name='id' className='w-full mb-[13px]' value={user.userID} readOnly/>
+                        <input type="text" name='tel' className='w-full mb-[14px]' value={user.phone} readOnly/>
                         <div className='w-full flex justify-between'>
-                          <input type="radio" name='permission' value="admin" checked={role === "admin"}
+                          <input type="radio" name='permission' value="admin" 
+                          checked={role === "admin"}
                           onChange={() => setRole("admin")}/> 관리인
                           <input type="radio" name='permission' value="none" className='ml-[60px]'
                           checked={role === "none"}

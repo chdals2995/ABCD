@@ -6,6 +6,18 @@ import JoinRequest from "./JoinRequest";
 
 export default function JoinRequestList(){
     const [pendingList, setPendingList] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [open, setOpen] = useState(false);
+
+    const openUserModal = (user) => {
+    setSelectedUser(user);
+    setOpen(true);
+    };
+
+    const closeUserModal = () => {
+    setOpen(false);
+    setSelectedUser(null);
+    };
 
     useEffect(() => {
     const usersRef = ref(rtdb, "users");
@@ -18,7 +30,7 @@ export default function JoinRequestList(){
         .filter(([uid, user]) => user.status === "pending")
         .map(([uid, user]) => ({ uid, ...user }));
 
-      setPendingUsers(list);
+      setPendingList(list);
     });
     }, []);
     
@@ -42,9 +54,13 @@ export default function JoinRequestList(){
                 </div>
             </div>
             {/* 회원 요청 모달창 */}
+            {selectedUser && (
             <JoinRequest
-            user={selectedUser}
-            Close={closeUserModal}/>
+                user={selectedUser}
+                open={open}
+                close={closeUserModal}
+            />
+            )}
         </>
     );
 }
