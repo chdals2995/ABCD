@@ -28,11 +28,6 @@ export default function Join() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-   
-    const passBox = document.querySelector("#passBox");
-    if(form.password.length >= 6){
-    passBox.style.border = "2px solid red"
-    }
 };
 
   // ✅ reCAPTCHA 설정
@@ -195,6 +190,27 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
     }
   };
 
+  const passBox = document.querySelector("#passBox");
+  const phoneNumb = document.querySelector("#phoneNumb");
+
+    if(form.password.length > 6){
+    passBox.style.border = "3px solid rgba(0,0,0,0.3)"
+    }
+
+    if(form.password.length < 6 && form.password.length == 1){
+    passBox.style.border = "3px solid red"
+    }
+
+
+
+    else if(form.phone.length > 11){
+    phoneNumb.style.border = "3px solid red"
+    }
+
+    if(form.phone.length < 11 && form.phone.length == 1){
+    phoneNumb.style.border = "3px solid rgba(0,0,0,0.3)"  
+    }
+
   return (
     <div>
       {/* ✅ reCAPTCHA 컨테이너 (DOM 안에 반드시 있어야 함) */}
@@ -292,10 +308,9 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
             value={form.password}
             onChange={handleChange}
             style={{
-              // border: form.password.length >= 6 ? "2px solid red" : "3px solid rgba(0,0,0,0.3)",
+              border:"3px solid rgba(0,0,0,0.3)",
               width: "569px",
               lineHeight: "68px",
-              border: "3px solid rgba(0,0,0,0.3)",
               textIndent: "40px",
               borderRadius: "10px",
               marginTop: "10px",
@@ -315,7 +330,8 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
             <input
               id="phoneNumb"
               name="phone"
-              type="text"
+              className="phone-input"
+              type="number"
               value={form.phone}
               onChange={handleChange}
               style={{
