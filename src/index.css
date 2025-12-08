@@ -5,132 +5,36 @@
     format("woff2");
   font-weight: 400;
   font-display: swap;
-}
+}  
 
 @font-face {
   font-family: "Pretendard";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2")
     format("woff2");
-  font-weight: 500;
+  font-weight: 500;  
   font-display: swap;
-}
+}  
 
 @font-face {
   font-family: "Pretendard";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2")
-    format("woff2");
-  font-weight: 600;
+  format("woff2");
+  font-weight: 600;  
   font-display: swap;
-}
+}  
 
 @font-face {
   font-family: "PyeojinGothic";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2504-1@1.0/PyeojinGothic-Bold.woff2")
-    format("woff2");
-  font-weight: 700;
+  format("woff2");
+  font-weight: 700;  
   font-display: swap;
-}
+}  
 /* tailwind.config.js를 명시적으로 로드 */
-@config "../tailwind.config.js";
 
 /* Tailwind 불러오기 (v4 방식) */
 @import "tailwindcss";
 
-<<<<<<< HEAD
-/* 스크롤바 숨기기 */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;  /* IE, Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-
-/* 요청 들어올 시, 새로운 요청인 걸 구분짓기 위한 깜빡임 애니메이션 */
-
-@keyframes blink-dot {
-  0% { opacity: 1; }
-  50% { opacity: 0.2; }
-  100% { opacity: 1; }
-}
-
-.blink-dot {
-  animation: blink-dot 1.6s infinite ease-in-out;
-}
-
-
-
-/* 화살표 애니메이션으로 스크롤 예고해주는 역할 */
-
-@keyframes arrowBounce {
-  0%   { transform: translateY(0); opacity: 0.4; }
-  50%  { transform: translateY(6px); opacity: 1; }
-  100% { transform: translateY(0); opacity: 0.4; }
-}
-
-.arrow-bounce {
-  animation: arrowBounce 1.4s ease-in-out infinite;
-}
-
-
-/* 알림 아이콘 애니메이션 */
-
-@keyframes notifyGlow {
-   0% {
-    box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
-    }
-    50% {
-      box-shadow: 0 5px 5px rgba(0, 0, 0, 0.35);
-    }
-    100% {
-      box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
-    }
-}
-.notify-glow {
-  animation: notifyGlow 1.2s ease-in-out infinite;
-}
-
-
-/* 주의, 경고 알림이 올 때 쉐도우 부근이 웅웅... 맥동(Pulse)효과남 */
-
-@keyframes caution-pulse {
-  0% {
-    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
-  }
-  50% {
-    box-shadow: 0px 4px 10px rgba(255,215,0,0.65);
-  }
-  100% {
-    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
-  }
-}
-
-.caution-pulse {
-  animation: caution-pulse 1.4s ease-in-out infinite;
-}
-
-
-
-/* 경고, 위험 알림이 올 때 쉐도우 부근이 웅웅..맥동(Pulse)효과남 */
-
-@keyframes urgent-pulse {
-  0% {
-    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
-  }
-  50% {
-    box-shadow: 0px 4px 10px rgba(255,0,0,0.65);
-  }
-  100% {
-    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
-  }
-}
-
-.urgent-pulse {
-  animation: urgent-pulse 1.3s ease-in-out infinite;
-}
-
-=======
 /* 기본 폰트를 Pretendard로 */
 body {
   font-family: "Pretendard", system-ui, sans-serif;
@@ -146,4 +50,107 @@ html {
   margin: 0 !important;
   padding: 0 !important;
 }
->>>>>>> 9e9098909da46e2075f054fec34e8e00e2b7cba2
+
+@config "../tailwind.config.js";
+
+
+/* ======================================================================
+      지금 내가 하는 영역은 아래로 
+   ======================================================================
+*/
+
+
+/* 스크롤바 숨기기 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}  
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE, Edge */
+  scrollbar-width: none;     /* Firefox */
+}  
+
+/* 요청 들어올 시, 새로운 요청인 걸 구분짓기 위한 깜빡임 애니메이션 */
+
+@keyframes blink-dot {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}  
+
+.blink-dot {
+  animation: blink-dot 1.6s infinite ease-in-out;
+}  
+
+
+
+/* 화살표 애니메이션으로 스크롤 예고해주는 역할 */
+
+@keyframes arrowBounce {
+  0%   { transform: translateY(0); opacity: 0.4; }
+  50%  { transform: translateY(6px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.4; }
+}  
+
+.arrow-bounce {
+  animation: arrowBounce 1.4s ease-in-out infinite;
+}  
+
+
+/* 알림 아이콘 애니메이션 */
+
+@keyframes notifyGlow {
+   0% {
+    box-shadow: 0 6px 0px rgba(0, 0, 0, 0); 
+    }
+    50% {
+      box-shadow: 0 5px 5px rgba(0, 0, 0, 0.35);
+    }  
+    100% {
+      box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
+    }  
+}    
+.notify-glow {
+  animation: notifyGlow 1.2s ease-in-out infinite;
+}  
+
+
+/* 주의, 경고 알림이 올 때 쉐도우 부근이 웅웅... 맥동(Pulse)효과남 */
+
+@keyframes caution-pulse {
+  0% {
+    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
+  }  
+  50% {
+    box-shadow: 0px 4px 10px rgba(255,215,0,0.65);
+  }  
+  100% {
+    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
+  }  
+}  
+
+.caution-pulse {
+  animation: caution-pulse 1.4s ease-in-out infinite;
+}  
+
+
+
+/* 경고, 위험 알림이 올 때 쉐도우 부근이 웅웅..맥동(Pulse)효과남 */
+
+@keyframes urgent-pulse {
+  0% {
+    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
+  }  
+  50% {
+    box-shadow: 0px 4px 10px rgba(255,0,0,0.65);
+  }  
+  100% {
+    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
+  }  
+}  
+
+.urgent-pulse {
+  animation: urgent-pulse 1.3s ease-in-out infinite;
+}  
+
+
