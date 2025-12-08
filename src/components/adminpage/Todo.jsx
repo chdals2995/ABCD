@@ -8,22 +8,22 @@ import Modal from "../../assets/Modal";
 import Button from "../../assets/Button";
 import CloseButton from "../../assets/CloseButton";
 
-// YYYY.MM.DD 형식
+// YY.MM.DD 형식 (예: 2025-12-16 → 25.12.16)
 function formatDate(value) {
   if (!value) return "";
   const d = new Date(value);
-  const yyyy = d.getFullYear();
+  const yy = String(d.getFullYear()).slice(2); // "2025" → "25"
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}.${mm}.${dd}`;
+  return `${yy}.${mm}.${dd}`;
 }
 
-// 시작/종료 날짜 라벨
+// 시작/종료 날짜 라벨 → "25.12.16~25.12.24"
 function buildPeriodLabel(startAt, endAt) {
   if (!startAt && !endAt) return "";
   const startStr = startAt ? formatDate(startAt) : "-";
   const endStr = endAt ? formatDate(endAt) : "-";
-  return `시작 ${startStr} · 종료 ${endStr}`;
+  return `${startStr}~${endStr}`;
 }
 
 // timestamp → <input type="date"> 값
@@ -385,7 +385,7 @@ export default function Todo() {
                 w-full h-[39px]
                 bg-white
                 px-3
-                shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                shadow-[0_2px_3px_rgga(0,0,0,0.25)]
                 outline-none
                 text-[18px]
               "
@@ -405,13 +405,13 @@ export default function Todo() {
                   value={form.startDate}
                   onChange={handleChange}
                   className="
-        w-[115px]            /* ✔ 폭 줄이기 */
-        h-[32px]
-        bg-white px-2
-        shadow-[0_2px_3px_rgba(0,0,0,0.25)]
-        outline-none
-        text-[13px]          /* ✔ 글씨도 살짝 줄이기 */
-      "
+                    w-[115px]
+                    h-[32px]
+                    bg-white px-2
+                    shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                    outline-none
+                    text-[13px]
+                  "
                 />
 
                 {/* 시작 시간 */}
@@ -421,13 +421,13 @@ export default function Todo() {
                   value={form.startTime}
                   onChange={handleChange}
                   className="
-        w-[110px]            /* ✔ 시간 input은 더 조금 */
-        h-[32px]
-        bg-white px-2
-        shadow-[0_2px_3px_rgba(0,0,0,0.25)]
-        outline-none
-        text-[13px]
-      "
+                    w-[110px]
+                    h-[32px]
+                    bg-white px-2
+                    shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                    outline-none
+                    text-[13px]
+                  "
                 />
               </div>
 
@@ -440,13 +440,13 @@ export default function Todo() {
                   value={form.endDate}
                   onChange={handleChange}
                   className="
-               w-[115px]
-               h-[32px]
-               bg-white px-2
-               shadow-[0_2px_3px_rgba(0,0,0,0.25)]
-               outline-none
-               text-[13px]
-               "
+                    w-[115px]
+                    h-[32px]
+                    bg-white px-2
+                    shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                    outline-none
+                    text-[13px]
+                  "
                 />
 
                 {/* 종료 시간 */}
@@ -456,13 +456,13 @@ export default function Todo() {
                   value={form.endTime}
                   onChange={handleChange}
                   className="
-                 w-[110px]
-                 h-[32px]
-                 bg-white px-2
-                 shadow-[0_2px_3px_rgba(0,0,0,0.25)]
-                 outline-none
-                 text-[13px]
-               "
+                    w-[110px]
+                    h-[32px]
+                    bg-white px-2
+                    shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                    outline-none
+                    text-[13px]
+                  "
                 />
               </div>
             </div>
