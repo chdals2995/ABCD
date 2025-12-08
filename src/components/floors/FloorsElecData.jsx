@@ -124,7 +124,7 @@ export default function FloorsElecData() {
       {
         label: "오늘 전기 사용량 (kWh)",
         data: values,
-        backgroundColor: "#0888D4",
+        backgroundColor: "#FF9130",
         borderRadius: 6,
       },
     ],

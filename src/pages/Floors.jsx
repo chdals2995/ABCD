@@ -11,14 +11,14 @@ export default function Floors() {
       {/* 👉 왼/오 배경 (맨 뒤) */}
       <div className="absolute inset-0 flex z-0">
         <div className="w-[554px] bg-[#E7F3F8] relative">
-          <div className="absolute w-[411px] right-[47px] bg-[red] top-[170px] ">
+          <div className="absolute w-[411px] right-[47px] top-[170px] flex flex-col gap-[47px]">
             <FloorsElecData />
             <FloorsTempData />
           </div>
         </div>
         <div className="flex-1"></div>
         <div className="w-[554px] bg-[#E7F3F8] relative">
-          <div className="absolute w-[411px] left-[47px] bg-[red] top-[170px]">
+          <div className="absolute w-[411px] left-[47px] top-[170px] flex flex-col gap-[47px]">
             <FloorsWaterData />
             <FloorsGasData />
           </div>
