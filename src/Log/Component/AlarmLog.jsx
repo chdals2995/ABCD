@@ -8,6 +8,23 @@ import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 import Button from "../../assets/Button";
 
+// 날짜 유틸
+function formatDate(d) {
+  if (!d) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function todayDot() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
+}
+
 export default function AlarmLog() {
   const [data, setData] = useState([
     { id: 1, user: "qeaowymu", content: "", date: "2025-10-13", status: "접수" },
@@ -29,7 +46,7 @@ export default function AlarmLog() {
   /* 날짜 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
   const datePickerRef = useRef(null);
-  const formattedDate = selectedDate ? selectedDate.toISOString().slice(0, 10) : null;
+  const formattedDate = formatDate(selectedDate);
 
   /* 상태 필터 */
   const [statusFilter, setStatusFilter] = useState(null);
@@ -101,7 +118,10 @@ export default function AlarmLog() {
           <div className="flex items-center gap-2 cursor-pointer"
                onClick={() => datePickerRef.current.setOpen(true)}>
             <span className="font-[500]">
-              날짜 {selectedDate ? selectedDate.toISOString().slice(0, 10).replace(/-/g, ".") : "2025.01.01"}
+              날짜{" "}
+              {selectedDate
+                ? formatDate(selectedDate).replace(/-/g, ".")
+                : todayDot()}
             </span>
             <img src={CalendarIcon} className="w-[30px] h-[30px]" />
           </div>
@@ -133,14 +153,15 @@ export default function AlarmLog() {
         h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center
       ">
         <div className="text-center">No.</div>
+
         {/* 전체 선택 체크박스 — 수정 모드일 때만 표시 */}
         <div className="flex justify-center">
         {editMode && (
         <div
           className="cursor-pointer"
           onClick={() => {
-            const isAllChecked = checkedRows.every(Boolean); // 모두 체크됨?
-            const newState = Array(data.length).fill(!isAllChecked);
+            const isAllChecked = checkedRows.every(Boolean);
+            const newState = Array(data.length).fill(!isAllAllChecked);
             setCheckedRows(newState);
           }}
         >
@@ -152,7 +173,6 @@ export default function AlarmLog() {
               flex items-center justify-center
             "
           >
-            {/* 전체가 체크되어 있을 때만 체크 아이콘 표시 */}
             {checkedRows.length > 0 &&
               checkedRows.every(Boolean) && (
                 <img src={choiceIcon} className="w-[14px] h-[14px]" />
@@ -218,12 +238,10 @@ export default function AlarmLog() {
                 완료
               </Button>
 
-
               <div className="relative">
                 <Button onClick={() => setDropdownOpen(!dropdownOpen)}>
                   옵션 ▼
                 </Button>
-
 
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-1 bg-white border shadow rounded w-[80px] text-center">

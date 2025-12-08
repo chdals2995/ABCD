@@ -8,6 +8,23 @@ import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
+// 날짜 유틸
+function formatDate(d) {
+  if (!d) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function todayDot() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
+}
+
 export default function CheckLog() {
   const [data, setData] = useState([
     { id: 1, title: "전기 점검", content: "배전반 점검 필요", date: "2025-06-05", status: "완료" },
@@ -20,7 +37,7 @@ export default function CheckLog() {
   /* 날짜 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
   const datePickerRef = useRef(null);
-  const formattedDate = selectedDate ? selectedDate.toISOString().slice(0, 10) : null;
+  const formattedDate = formatDate(selectedDate);
 
   /* 검색 */
   const [search, setSearch] = useState("");
@@ -30,21 +47,19 @@ export default function CheckLog() {
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [selectedRow, setSelectedRow] = useState(null);
 
-  /* ----------- CheckForm → 저장 콜백 ----------- */
+  /* 입력 저장 */
   const handleFormSave = (payload) => {
     if (formMode === "create") {
-      // 새로 추가
       const newId = data.length ? Math.max(...data.map((d) => d.id)) + 1 : 1;
       const newItem = {
         id: newId,
         title: payload.title,
         content: payload.content,
-        date: new Date().toISOString().slice(0, 10), // 오늘 날짜
+        date: formatDate(new Date()), // 오늘 날짜 저장
         status: "미완료",
       };
       setData((prev) => [...prev, newItem]);
     } else if (formMode === "edit" && payload.id) {
-      // 수정
       setData((prev) =>
         prev.map((item) =>
           item.id === payload.id
@@ -55,7 +70,7 @@ export default function CheckLog() {
     }
   };
 
-  /* 항목 클릭 → 수정 모달 */
+  /* 항목 클릭 */
   const handleItemClick = (row) => {
     setFormMode("edit");
     setSelectedRow(row);
@@ -109,8 +124,8 @@ export default function CheckLog() {
             <span className="font-[500]">
               날짜{" "}
               {selectedDate
-                ? selectedDate.toISOString().slice(0, 10).replace(/-/g, ".")
-                : "2025.01.01"}
+                ? formatDate(selectedDate).replace(/-/g, ".")
+                : todayDot()}
             </span>
             <img src={CalendarIcon} className="w-[30px] h-[30px]" />
           </div>
@@ -127,8 +142,7 @@ export default function CheckLog() {
           {/* 검색 */}
           <div className="flex items-center gap-2 ml-2">
             <input
-              className="border px-2 py-1 rounded w-[200px] text-[17px] text-center 
-              "
+              className="border px-2 py-1 rounded w-[200px] text-[17px] text-center"
               placeholder="검색어를 입력하세요."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -137,7 +151,7 @@ export default function CheckLog() {
           </div>
         </div>
 
-        {/* 글쓰기 버튼 */}
+        {/* 글쓰기 */}
         <button
           className="px-12 py-1 font-extrabold text-[20px] text-[#054E76] cursor-pointer"
           onClick={() => {
@@ -211,4 +225,3 @@ export default function CheckLog() {
     </div>
   );
 }
-//저장기능이 계속 지속하려면 DB에 저장되어야함 
