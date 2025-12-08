@@ -1,6 +1,6 @@
 // joinRequestList.jsx
 import { useEffect, useState } from "react";
-import { rtdb } from "../../firebase/config";
+import { rtdb } from "../../../firebase/config";
 import { ref, onValue } from "firebase/database";
 import JoinRequest from "./JoinRequest";
 
@@ -24,6 +24,7 @@ export default function JoinRequestList() {
 
     return onValue(usersRef, (snapshot) => {
       const data = snapshot.val();
+      console.log("RTDB DATA:", data);
       if (!data) return;
 
       const list = Object.entries(data)
@@ -41,13 +42,14 @@ export default function JoinRequestList() {
                 absolute right-0 top-[68px] pt-[30px] pl-[27px]"
       >
         <p className="text-[24px] font-pyeojin">가입 신청 내역</p>
-        <div className="w-[318px] h-[600px] bg-white m-auto mt-[30px] px-[14px] pt-[17px]">
+        <div className="w-[318px] h-[600px] bg-white m-auto mt-[30px] px-[14px] pt-[7px]">
           <ul>
             {pendingList.map((user) => (
               <li
                 key={user.uid}
                 onClick={() => openUserModal(user)}
-                className="text-[18px] cursor-pointer border-b-0 hover:border-b-[2px] hover:border-b-[#054E76]"
+                className="text-[18px] mt-[10px] cursor-pointer border-b-2 border-transparent 
+                  hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
               >
                 {user.name} / 관리자 가입 신청
               </li>
@@ -56,9 +58,8 @@ export default function JoinRequestList() {
         </div>
       </div>
       {/* 회원 요청 모달창 */}
-      {selectedUser && (
-        <JoinRequest user={selectedUser} open={open} close={closeUserModal} />
-      )}
+      <JoinRequest user={selectedUser} open={open} close={closeUserModal} />
+    
     </>
   );
 }

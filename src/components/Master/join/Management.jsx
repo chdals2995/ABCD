@@ -1,8 +1,8 @@
 // 사이트 관리자 페이지
 
-import Member from "../Master/Member";
-import Building from "../Master/Building";
-import Elevator from "../Master/Elevator";
+import Member from "../join/Member"
+import Building from "../building/Building";
+import Elevator from "../elevator/Elevator";
 import { useState } from "react";
 
 export default function Management() {
@@ -36,7 +36,7 @@ export default function Management() {
           </li>
         </ul>
         {/* 탭 내용 */}
-        <div className="TabBox w-[996px] h-[546px] border-2">
+        <div className="TabBox w-[996px] h-[546px] border-2 border-t-transparent bg-[#E7F3F8]">
           {tab === "A" && <Member />}
           {tab === "B" && <Building />}
           {tab === "C" && <Elevator />}

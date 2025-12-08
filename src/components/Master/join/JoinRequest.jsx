@@ -1,16 +1,16 @@
 //  회원 가입 요청창
 // joinRequest.jsx
-import Close from '../../assets/icons/close.png';
-import Modal from '../../assets/Modal'
-import Button from '../../assets/Button';
+import Close from '../../../assets/icons/close.png';
+import Modal from '../../../assets/Modal'
+import Button from '../../../assets/Button';
 import { useState } from "react";
-import { rtdb, auth } from "../../firebase/config";
+import { rtdb, auth } from "../../../firebase/config";
 import { ref, update } from "firebase/database";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 
 export default function JoinRequest({ user, open, close }){
-  if (!user) return null;
+  if (!open || !user) return null;
 
   const [role, setRole] = useState("admin"); // 기본값
   const [adminPw, setAdminPw] = useState("");
@@ -99,6 +99,7 @@ export default function JoinRequest({ user, open, close }){
                 {error && (
                   <p className="text-red-500 text-center mt-2">{error}</p>
                 )}
+                {/* 승인버튼 */}
                 <div className='w-[79px] mx-auto mt-[29px]'>
                   <Button onClick={handleApprove}>승인</Button>
                 </div>
