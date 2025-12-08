@@ -161,7 +161,7 @@ export default function AlarmLog() {
           className="cursor-pointer"
           onClick={() => {
             const isAllChecked = checkedRows.every(Boolean);
-            const newState = Array(data.length).fill(!isAllAllChecked);
+            const newState = Array(data.length).fill(!isAllChecked);
             setCheckedRows(newState);
           }}
         >
