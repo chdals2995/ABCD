@@ -17,19 +17,26 @@ export default function Management() {
         {/* 탭메뉴 */}
         <ul className="flex items-center justify-center">
           <li
-            className="TabMenu w-[333px] h-[82px] border-3 border-[#054E76]"
+            className={`TabMenu w-[333px] h-[82px] border-3 border-[#054E76] text-white
+              text-[32px] font-pyeojin text-center pt-[15px]
+              ${tab==='A' ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("A")}
           >
             회원관리
           </li>
           <li
-            className="TabMenu w-[333px] h-[82px] border-3 border-[#054E76]"
+            className={`TabMenu w-[333px] h-[82px] text-white
+              text-[32px] font-pyeojin text-center pt-[15px]
+            border-3 border-l-transparent border-r-transparent border-[#054E76]
+            ${tab==='B' ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("B")}
           >
             건물등록
           </li>
           <li
-            className="TabMenu w-[333px] h-[82px] border-3 border-[#054E76]"
+            className={`TabMenu w-[333px] h-[82px] border-3 border-[#054E76] text-white
+              text-[32px] font-pyeojin text-center pt-[15px]
+            ${tab==='C' ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("C")}
           >
             승강기
