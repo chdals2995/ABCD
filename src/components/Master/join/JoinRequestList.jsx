@@ -24,7 +24,6 @@ export default function JoinRequestList() {
 
     return onValue(usersRef, (snapshot) => {
       const data = snapshot.val();
-      console.log("RTDB DATA:", data);
       if (!data) return;
 
       const list = Object.entries(data)

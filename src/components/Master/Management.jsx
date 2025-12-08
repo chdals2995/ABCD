@@ -1,8 +1,8 @@
 // 사이트 관리자 페이지
 
-import Member from "../join/Member"
-import Building from "../building/Building";
-import Elevator from "../elevator/Elevator";
+import Member from "./join/Member"
+import Building from "./building/Building";
+import Elevator from "./elevator/Elevator";
 import { useState } from "react";
 
 export default function Management() {
@@ -17,7 +17,7 @@ export default function Management() {
         {/* 탭메뉴 */}
         <ul className="flex items-center justify-center">
           <li
-            className={`TabMenu w-[333px] h-[82px] border-3 border-[#054E76] text-white
+            className={`w-[333px] h-[82px] border-3 border-[#054E76] text-white
               text-[32px] font-pyeojin text-center pt-[15px]
               ${tab==='A' ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("A")}
@@ -25,7 +25,7 @@ export default function Management() {
             회원관리
           </li>
           <li
-            className={`TabMenu w-[333px] h-[82px] text-white
+            className={`w-[333px] h-[82px] text-white
               text-[32px] font-pyeojin text-center pt-[15px]
             border-3 border-l-transparent border-r-transparent border-[#054E76]
             ${tab==='B' ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
@@ -34,7 +34,7 @@ export default function Management() {
             건물등록
           </li>
           <li
-            className={`TabMenu w-[333px] h-[82px] border-3 border-[#054E76] text-white
+            className={`w-[333px] h-[82px] border-3 border-[#054E76] text-white
               text-[32px] font-pyeojin text-center pt-[15px]
             ${tab==='C' ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("C")}
@@ -43,7 +43,7 @@ export default function Management() {
           </li>
         </ul>
         {/* 탭 내용 */}
-        <div className="TabBox w-[996px] h-[546px] border-2 border-t-transparent bg-[#E7F3F8]
+        <div className="w-[996px] h-[546px] border-2 border-t-transparent bg-[#E7F3F8]
           py-[49px] px-[111px]">
           {tab === "A" && <Member />}
           {tab === "B" && <Building />}
