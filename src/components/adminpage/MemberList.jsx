@@ -6,13 +6,35 @@ import Modal from "../../assets/Modal";
 
 // 🔹 Firebase
 import { rtdb, auth, secondaryAuth } from "../../firebase/config";
-import { ref, onValue, set, update } from "firebase/database";
+import {
+  ref,
+  onValue,
+  set,
+  update,
+  get,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import CloseButton from "../../assets/CloseButton";
+
+// 숫자만 받아서 010-1234-5678 형태로 포맷
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, ""); // 숫자만 추출
+
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) {
+    // 010-1234
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+  // 010-1234-5678 (최대 11자리까지)
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+}
 
 export default function MemberList() {
   const [adminMembers, setAdminMembers] = useState([]);
@@ -107,7 +129,13 @@ export default function MemberList() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    let nextValue = value;
+    if (name === "phone") {
+      nextValue = formatPhone(value); // 전화번호 자동 하이픈
+    }
+
+    setForm((prev) => ({ ...prev, [name]: nextValue }));
   };
 
   const handleSubmit = async (e) => {
@@ -123,6 +151,31 @@ export default function MemberList() {
 
       const email = `${userId}@abcd.local`;
 
+      // 🔎 RTDB에서 전화번호 / ID 중복 체크
+      const usersRef = ref(rtdb, "users");
+
+      // 전화번호 중복 (전화번호를 입력한 경우에만 체크)
+      if (phone) {
+        const phoneQuery = query(
+          usersRef,
+          orderByChild("phone"),
+          equalTo(phone)
+        );
+        const phoneSnap = await get(phoneQuery);
+        if (phoneSnap.exists()) {
+          alert("이미 등록된 전화번호입니다.");
+          return;
+        }
+      }
+
+      // ID 중복
+      const idQuery = query(usersRef, orderByChild("userId"), equalTo(userId));
+      const idSnap = await get(idQuery);
+      if (idSnap.exists()) {
+        alert("이미 사용 중인 ID입니다.");
+        return;
+      }
+
       // secondaryAuth 사용 → 현재 로그인 유지
       const cred = await createUserWithEmailAndPassword(
         secondaryAuth,
@@ -134,7 +187,7 @@ export default function MemberList() {
       const userRef = ref(rtdb, `users/${uid}`);
       await set(userRef, {
         name,
-        phone,
+        phone, // 화면에 보이는 그대로(010-1234-5678) 저장
         userId,
         email,
         role: "none", // none / user / admin / master
@@ -167,7 +220,13 @@ export default function MemberList() {
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+
+    let nextValue = value;
+    if (name === "phone") {
+      nextValue = formatPhone(value); // 수정 화면에서도 자동 하이픈
+    }
+
+    setEditForm((prev) => ({ ...prev, [name]: nextValue }));
   };
 
   const handleEditSubmit = async (e) => {
@@ -280,12 +339,12 @@ export default function MemberList() {
           onSubmit={handleSubmit}
           className="w-full h-full flex flex-col text-[14px]"
         >
-          <div className="flex items-center justify-between px-8 py-4 border-b border-[#054E76]">
+          <div className="flex itemscenter justify-between px-8 py-4 border-b border-[#054E76]">
             <div className="w-6" />
             <h2 className="flex-1 text-center text-[28px] font-pyeojin">
               회원 등록
             </h2>
-            <CloseButton onClick={() => setIsCreateModalOpen(false)}/>
+            <CloseButton onClick={() => setIsCreateModalOpen(false)} />
           </div>
 
           <div className="flex-1 px-12 py-8 space-y-4">
@@ -306,7 +365,7 @@ export default function MemberList() {
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="010 - 1111 2222"
+                placeholder="010-1111-2222"
                 className="flex-1 h-[40px] bg-white px-3 shadow-[0_2px_3px_rgba(0,0,0,0.25)] outline-none"
               />
             </div>
@@ -347,7 +406,11 @@ export default function MemberList() {
       </Modal>
 
       {/* 회원 정보 수정 모달 */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} closeOnBackdrop={false}>
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        closeOnBackdrop={false}
+      >
         <form
           onSubmit={handleEditSubmit}
           className="w-full h-full flex flex-col text-[14px]"
@@ -357,7 +420,7 @@ export default function MemberList() {
             <h2 className="flex-1 text-center text-[28px] font-pyeojin">
               회원 정보 수정
             </h2>
-            <CloseButton onClick={() => setIsEditModalOpen(false)}/>
+            <CloseButton onClick={() => setIsEditModalOpen(false)} />
           </div>
 
           <div className="flex-1 px-12 py-8 space-y-4">
