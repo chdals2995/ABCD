@@ -2,7 +2,6 @@ import { useState } from "react";
 import AttachmentIcon from "../../icons/attachment_icon.png";
 import Button from "../../assets/Button";
 
-
 export default function CheckForm({
   onClose,
   title,
@@ -12,7 +11,7 @@ export default function CheckForm({
 }) {
   /* ---------------------- 상태 ---------------------- */
 
-  // 제목
+  // 제목 — create만 수정 가능
   const [editTitle, setEditTitle] = useState(
     mode === "edit" ? row?.title : title
   );
@@ -22,19 +21,26 @@ export default function CheckForm({
     mode === "edit" ? row?.content : ""
   );
 
-  // edit 모드: "수정 → 저장" 버튼 토글
+  // edit 모드에서 "수정 → 저장" 버튼 전환
   const [isEditing, setIsEditing] = useState(mode === "create");
 
-  const buttonLabel = isEditing ? "저장" : "수정";
+  // 버튼 텍스트
+  const buttonLabel =
+    mode === "edit"
+      ? isEditing
+        ? "저장"
+        : "수정"
+      : "저장";
 
   /* ---------------------- 저장 처리 ---------------------- */
   const handleSave = () => {
-    if (!isEditing) {
-      // 수정 버튼 → 저장 가능 상태로
+    // EDIT 모드에서 "수정" 클릭 → 편집 가능하도록 전환
+    if (mode === "edit" && !isEditing) {
       setIsEditing(true);
       return;
     }
 
+    // 저장 실행
     const payload = {
       title: editTitle,
       content,
@@ -112,13 +118,14 @@ export default function CheckForm({
               placeholder="내용을 입력해주세요."
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              disabled={mode === "edit" && !isEditing} 
             />
           </div>
         </div>
 
         {/* 저장 버튼 */}
         <div className="flex justify-center mt-8">
-          <Button onClick={handleSave}>저장</Button>
+          <Button onClick={handleSave}>{buttonLabel}</Button>
         </div>
 
       </div>

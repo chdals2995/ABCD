@@ -87,7 +87,7 @@ export default function AlarmLog() {
         {/* 왼쪽 */}
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold"
+            className="text-[#054E76] font-semibold cursor-pointer"
             onClick={() => {
               setSelectedDate(null);
               setStatusFilter(null);

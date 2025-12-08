@@ -90,7 +90,7 @@ export default function CheckLog() {
         {/* 왼쪽: 전체 | 날짜 | 검색 */}
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold"
+            className="text-[#054E76] font-semibold cursor-pointer"
             onClick={() => {
               setSelectedDate(null);
               setSearch("");
@@ -127,7 +127,7 @@ export default function CheckLog() {
           {/* 검색 */}
           <div className="flex items-center gap-2 ml-2">
             <input
-              className="border px-2 py-1 rounded w-[200px] text-[17px] text-center
+              className="border px-2 py-1 rounded w-[200px] text-[17px] text-center 
               "
               placeholder="검색어를 입력하세요."
               value={search}
@@ -139,7 +139,7 @@ export default function CheckLog() {
 
         {/* 글쓰기 버튼 */}
         <button
-          className="px-12 py-1 font-extrabold text-[20px] text-[#054E76]"
+          className="px-12 py-1 font-extrabold text-[20px] text-[#054E76] cursor-pointer"
           onClick={() => {
             setFormMode("create");
             setSelectedRow(null);
