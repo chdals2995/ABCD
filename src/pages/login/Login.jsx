@@ -92,9 +92,9 @@ useEffect(() => {
   setFromLogin(false); // 승인까지 된 경우도 깔끔하게 초기화
 
   if (user.role === "admin") {
-    nav("/admin");          // 관리자
+    nav("/main");          // 관리자
   } else if (user.role === "master") {
-    nav("/main");      // 마스터
+    nav("/admin");      // 마스터
   } else if (user.role === "user") {
     nav("/userMain");  // 일반 사용자
   }
