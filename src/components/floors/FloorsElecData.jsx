@@ -5,30 +5,23 @@ import { Bar } from "react-chartjs-2";
 import { rtdb } from "../../firebase/config";
 import { ref, get } from "firebase/database";
 
-// 🔹 RTDB에서 층 정보를 읽어올 경로 (실제 구조에 맞게 수정)
-// 예: buildingFloors = { "B2": true, "B1": true, "1F": true, "2F": true, ... }
-const FLOORS_PATH = "buildingFloors"; // <= 이 부분만 네 구조에 맞게 바꾸면 됨
+// 🔹 simConfig/default 기준으로 층 ID 배열 만들기
+// basementFloors=3, totalFloors=20 ➜ ["B3","B2","B1","1F",...,"17F"]
+function buildFloorIds(basementFloors, totalFloors) {
+  const floors = [];
 
-// 층 문자열(B2, B1, 1F, 2F...)을 "정렬용 숫자"로 변환
-// B2 -> -2, B1 -> -1, 1F -> 1, 2F -> 2 이런 식
-function toFloorIndex(floor) {
-  if (typeof floor !== "string") return 9999;
-
-  if (floor.startsWith("B")) {
-    const n = parseInt(floor.slice(1), 10); // "B2" -> 2
-    if (Number.isNaN(n)) return -9999;
-    return -n; // B2(-2), B1(-1) → 지하가 더 작은 값(위로 오도록)
+  // 지하층 (B3, B2, B1 ...)
+  for (let b = basementFloors; b >= 1; b--) {
+    floors.push(`B${b}`);
   }
 
-  // "1F", "2F", "10F" 같은 건 숫자 부분만 파싱
-  const num = parseInt(floor, 10);
-  if (!Number.isNaN(num)) return num;
+  // 지상층 (1F, 2F, ...)
+  const groundFloors = totalFloors - basementFloors;
+  for (let f = 1; f <= groundFloors; f++) {
+    floors.push(`${f}F`);
+  }
 
-  return 9999;
-}
-
-function sortFloors(a, b) {
-  return toFloorIndex(a) - toFloorIndex(b);
+  return floors;
 }
 
 function formatDateKey(date) {
@@ -57,39 +50,40 @@ export default function FloorsElecData() {
       try {
         const todayKey = formatDateKey(new Date());
 
-        // 1️⃣ 층 목록 가져오기
-        const floorsSnap = await get(ref(rtdb, FLOORS_PATH));
-
-        if (!floorsSnap.exists()) {
+        // 1️⃣ simConfig/default에서 층 정보 읽기
+        const configSnap = await get(ref(rtdb, "simConfig/default"));
+        if (!configSnap.exists()) {
           if (!isMounted) return;
-          setState({
-            loading: false,
-            labels: [],
-            values: [],
-          });
+          console.warn("simConfig/default 없음");
+          setState({ loading: false, labels: [], values: [] });
           return;
         }
 
-        const floorsData = floorsSnap.val() || {};
+        const config = configSnap.val() || {};
+        const basementFloors = config.basementFloors ?? 0;
+        const totalFloors = config.totalFloors ?? 0;
 
-        // floorsData가 { "B2": {...}, "B1": {...}, "1F": {...} } 이런 구조라고 가정
-        // key를 층 이름으로 사용
-        let floors = Object.keys(floorsData);
+        const floorIds = buildFloorIds(basementFloors, totalFloors);
 
-        // 지하 → 지상 순으로 정렬
-        floors = floors.sort(sortFloors);
+        // 디버그용으로 한 번 찍어보면 좋음
+        console.log("floorIds:", floorIds, "todayKey:", todayKey);
 
-        // 2️⃣ 각 층의 오늘 일일 전기 합계(elecSum) 가져오기
+        // 2️⃣ 각 층의 오늘 일일 전기 합계(elecSum) 읽기
         const results = await Promise.all(
-          floors.map(async (floor) => {
-            const daySnap = await get(ref(rtdb, `aggDay/${floor}/${todayKey}`));
+          floorIds.map(async (floorId) => {
+            const daySnap = await get(
+              ref(rtdb, `aggDay/${floorId}/${todayKey}`)
+            );
+
             if (!daySnap.exists()) {
-              return { floor, value: 0 };
+              // 해당 층에 아직 데이터 없으면 0으로
+              return { floor: floorId, value: 0 };
             }
 
             const data = daySnap.val() || {};
-            const elecSum = data.elecSum ?? 0; // 필드 이름 다르면 여기 수정
-            return { floor, value: elecSum };
+            const elecSum = data.elecSum ?? 0; // 필드 이름 다르면 여기만 수정
+            console.log("aggDay", floorId, todayKey, "=", data); // 디버그용
+            return { floor: floorId, value: elecSum };
           })
         );
 
@@ -110,13 +104,12 @@ export default function FloorsElecData() {
       }
     }
 
-    // 🔹 페이지 로드 시 1번 실행
+    // 🔹 페이지 로드 시 한 번
     fetchData();
 
-    // 🔹 이후 10분 간격으로 반복 실행
+    // 🔹 이후 10분 간격으로 다시
     const timerId = setInterval(fetchData, INTERVAL_MS);
 
-    // 언마운트 시 클린업
     return () => {
       isMounted = false;
       clearInterval(timerId);
@@ -164,7 +157,6 @@ export default function FloorsElecData() {
 
   return (
     <div className="w-full h-full border border-gray-200 rounded-[10px] bg-white px-4 py-3">
-      {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold">층별 전기 사용량 (오늘 누적)</h2>
         {loading && (
@@ -172,7 +164,6 @@ export default function FloorsElecData() {
         )}
       </div>
 
-      {/* 차트 영역 */}
       <div className="w-full h-[260px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
