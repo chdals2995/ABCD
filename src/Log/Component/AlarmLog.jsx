@@ -112,7 +112,7 @@ export default function AlarmLog() {
             locale={ko}
             dateFormat="yyyy.MM.dd"
             className="hidden"
-            popperPlacement="bottom-start"
+            popperPlacement="bottom"
           />
         </div>
 

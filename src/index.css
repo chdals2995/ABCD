@@ -36,7 +36,28 @@
 /* Tailwind 불러오기 (v4 방식) */
 @import "tailwindcss";
 
-<<<<<<< HEAD
+
+
+/* 기본 폰트를 Pretendard로 */
+body {
+  font-family: "Pretendard", system-ui, sans-serif;
+}
+
+/* 리셋 */
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ===================================================================
+                     여기서부턴 내가 추가한 영역  
+================================================================= */
+
+
 /* 스크롤바 숨기기 */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -136,19 +157,20 @@
   animation: urgent-pulse 1.3s ease-in-out infinite;
 }
 
-=======
-/* 기본 폰트를 Pretendard로 */
-body {
-  font-family: "Pretendard", system-ui, sans-serif;
+
+/* 달력위에 달려있던 꼬리 제거 했음 */
+.react-datepicker__triangle,
+.react-datepicker__triangle::before,
+.react-datepicker__triangle::after {
+  display: none !important;
 }
 
-/* 리셋 */
-* {
-  box-sizing: border-box;
+/* 삼각형 자리에 생기는 여백까지 제거 */
+.react-datepicker-popper[data-placement^="bottom"] .react-datepicker__triangle {
+  margin-top: 0 !important;
 }
 
-body, html {
-  margin: 0 !important;
-  padding: 0 !important;
+.react-datepicker-popper[data-placement^="top"] .react-datepicker__triangle {
+  margin-bottom: 0 !important;
 }
->>>>>>> a31b051f69a26ddc1a0a8faeae12481cf83e0d30
+
