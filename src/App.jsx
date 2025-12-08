@@ -1,14 +1,10 @@
 import "./App.css";
-import AdminPage from "./pages/AdminPage";
-
+import Floors from "./pages/Floors";
 
 function App() {
   return (
     <>
-      <AdminPage />
-      
-    
-  
+      <Floors />
     </>
   );
 }
