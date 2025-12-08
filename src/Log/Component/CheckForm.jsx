@@ -1,5 +1,7 @@
 import { useState } from "react";
 import AttachmentIcon from "../../icons/attachment_icon.png";
+import Button from "../../assets/Button";
+
 
 export default function CheckForm({
   onClose,
@@ -110,19 +112,13 @@ export default function CheckForm({
               placeholder="내용을 입력해주세요."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              disabled={mode === "edit" && !isEditing}
             />
           </div>
         </div>
 
         {/* 저장 버튼 */}
         <div className="flex justify-center mt-8">
-          <button
-            className="px-10 py-3 border rounded text-[18px]"
-            onClick={handleSave}
-          >
-            {buttonLabel}
-          </button>
+          <Button onClick={handleSave}>저장</Button>
         </div>
 
       </div>
