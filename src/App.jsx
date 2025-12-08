@@ -6,6 +6,8 @@ import Login from "./pages/login/Login";
 import AdminUserApproval from "./pages/login/AdminUserApproval";
 import Main from "./pages/Main";
 import AuthStatus from "./components/Login/contexts/AuthStatus";
+import Data from "./pages/Data";
+
 
 function App() {
   return (
@@ -15,7 +17,8 @@ function App() {
               <Route path="/userMain" element={<AuthStatus/>} />
               <Route path="/join" element={ <Join/>} />
               <Route path="/admin" element={<AdminUserApproval/>}/>
-              <Route path="/main" elemetn={<Main/>}/>
+              <Route path="/main" element={<Main/>}/>
+              <Route path="/data" element={<Data/>}/>
             </Routes>
     </>
   );
