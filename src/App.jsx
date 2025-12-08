@@ -5,7 +5,7 @@ import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
 import AdminUserApproval from "./pages/login/AdminUserApproval";
 import Main from "./pages/Main";
-import AuthStatus from "./components/contexts/AuthStatus";
+import AuthStatus from "./components/Login/contexts/AuthStatus";
 
 function App() {
   return (

@@ -2,7 +2,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import Logo from "../../assets/logos/logo.png";
 import { useState, useEffect } from "react";          // ✅ useEffect 추가
-import { useAuth } from "../../components/contexts/AuthContext";
+import { useAuth } from "../../components/Login/contexts/AuthContext";
 
 export default function Login() {
   const { login, user } = useAuth();                  // ✅ user도 같이 가져오기
@@ -11,35 +11,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
-
+ 
+  const [fromLogin, setFromLogin] = useState(false); // 로그인 시도 여부
   const [emailError, setEmailError] = useState(false);
   const [passError, setPassError] = useState(false);
-
-  // ✅ 로그인 후, user 정보(role/status)에 따라 라우팅
-  useEffect(() => {
-    if (!user) return; // 아직 로그인 안 했거나, 정보 로딩 전
-
-      // 🔸 1) 아직 승인되지 않았거나, 권한이 없는 계정이면
-    if (user.status !== "approved" || user.role === "none") {
-      // 여기서는 *어디로도 nav 하지 않음*
-      // = 로그인 페이지에 그대로 남겨두기
-      // 필요하면 안내만 보여주기
-      alert("관리자 승인 후에 로그인할 수 있습니다.");
-      return;
-    }
-
-    // 🔸 2) 승인된 계정만 role에 따라 페이지 이동
-    if (user.role === "admin") {
-      nav("/admin");        // 관리자 메인
-    } else if (user.role === "master") {
-      nav("/main");        // 마스터(건물 총괄?) 메인
-    } else if (user.role === "user") {
-      nav("/userMain");    // 일반 사용자 메인
-    } else {
-      // 정의되지 않은 role이면 그냥 로그인 페이지에 남겨두기
-      // (원하면 다른 기본 페이지로 보내도 됨)
-    }
-  }, [user, nav]);
 
  async function onSubmit(e) {
   e.preventDefault();
@@ -72,17 +47,58 @@ if (emailEmpty || passEmpty) {
       : `${loginId}@abcd.local`;
 
     console.log("🔐 로그인 시도 이메일:", authEmail);
-
+ 
+    setFromLogin(true);          // ✅ 이번 user 변경은 '로그인 버튼 눌러서' 생긴 거야!
     await login(authEmail, pass);   // 여기서 authEmail 사용
   } catch (er) {
     console.error("로그인 실패:", er.code, er.message);
     errorMessage.style.color = "red";
     errorLoginBox.style.border = "3px solid red";
     errorPassBox.style.border = "3px solid red";
+    setFromLogin(false);         // 실패했으니 false로 다시
   } finally {
     setLoading(false);
   }
 }
+
+// ✅ 로그인 후, user 정보(role/status)에 따라 라우팅
+useEffect(() => {
+  if (!user) return; // 아직 로그인 안 했거나, 정보 로딩 전
+
+  const isApproved =
+    user.status === "approved" && user.role !== "none";
+
+  // 🔸 1) 승인 안 된 계정이면
+  if (!isApproved) {
+    // 👉 로그인 버튼 눌러서 들어온 경우에만 안내
+    if (fromLogin) {
+      alert("관리자 승인 후에 로그인할 수 있습니다.");
+
+      // ⬇ 여기서 DOM 스타일 초기화 (있으면)
+      const errorMessage = document.querySelector("#errorMessage");
+      const errorLoginBox = document.querySelector("#loginEmail");
+      const errorPassBox = document.querySelector("#loginPass");
+
+      if (errorMessage) errorMessage.style.color = "transparent";
+      if (errorLoginBox) errorLoginBox.style.border = "1px solid #0D5D8E";
+      if (errorPassBox) errorPassBox.style.border = "1px solid #0D5D8E";
+
+      setFromLogin(false); // 한 번 안내했으면 다시 false로
+    }
+    return; // 어떤 경우든 승인 안 된 계정은 여기서 끝 (nav X)
+  }
+
+  // 🔸 2) 승인된 계정만 role에 따라 페이지 이동
+  setFromLogin(false); // 승인까지 된 경우도 깔끔하게 초기화
+
+  if (user.role === "admin") {
+    nav("/admin");          // 관리자
+  } else if (user.role === "master") {
+    nav("/main");      // 마스터
+  } else if (user.role === "user") {
+    nav("/userMain");  // 일반 사용자
+  }
+}, [user, nav, fromLogin]); 
 
   return (
     <form onSubmit={onSubmit}>

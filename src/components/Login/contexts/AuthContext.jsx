@@ -1,6 +1,6 @@
 // src/components/contexts/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, rtdb } from "../../firebase/config"; // ✅ rtdb 추가
+import { auth, rtdb } from "../../../firebase/config"; // ✅ rtdb 추가
 import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,

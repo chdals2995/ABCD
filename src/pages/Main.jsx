@@ -1,4 +1,4 @@
-import AuthStatus from "../components/contexts/AuthStatus"
+import AuthStatus from "../components/Login/contexts/AuthStatus"
 
 
 

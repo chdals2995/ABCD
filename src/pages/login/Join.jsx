@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logos/logo.png"
 
 
 export default function Join() {
@@ -17,7 +18,9 @@ export default function Join() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(""); 
+  const [agreeTerms, setAgreeTerms] = useState(false); // 약관동의
+
 
   // ✅ 휴대폰 인증 관련 state (컴포넌트 최상단에!)
   const [verificationCode, setVerificationCode] = useState(""); // 입력한 인증번호
@@ -116,6 +119,11 @@ export default function Join() {
   e.preventDefault();
   setMessage("");
 
+   if (!agreeTerms) {
+    alert("이용약관에 동의해야 가입할 수 있습니다.");
+    return;
+  }
+
   if (!form.name || !form.email || !form.password || !form.phone) {
     alert("빈 항목이 있습니다.");
     return;
@@ -125,7 +133,7 @@ export default function Join() {
     alert("휴대폰 인증을 완료해주세요.");
     return;
   }
-
+  
   setLoading(true);
 
   try {
@@ -149,13 +157,12 @@ export default function Join() {
       // 2) RTDB 저장 (원본 아이디 + 실제 이메일 둘 다 저장)
       const userRef = ref(rtdb, `users/${uid}`);
       const payload = {
-        loginId,             // 사용자가 입력한 아이디 (이메일 아닐 수 있음)
+        userId,             // 사용자가 입력한 아이디 (이메일 아닐 수 있음)
         email: authEmail,    // Auth에 등록된 이메일
         name: form.name,
         phone: form.phone,
         status: "pending",
         role: "none",
-        userId: loginId,
         createdAt: Date.now(),
         approvedAt: null,
         approvedBy: null,
@@ -213,8 +220,46 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
 
   return (
     <div>
+      <div style={{ // 이용약관
+        width:"100%", 
+        height:"100%",
+        backgroundColor:"#ffffff", 
+        position:"absolute", 
+        top:"0px", 
+        bottom:"0px", 
+        left:"0px",
+        zIndex:100
+        }}>
+      
+      <input 
+      type="checkbox"
+      checked={agreeTerms}
+      onChange={(e) => setAgreeMents(e.target.checked)}
+       />
+
+       <span>
+    <a href="/terms" target="_blank" rel="noreferrer">
+      이용약관
+    </a>
+    에 동의합니다.
+  </span>
+
+<button type="submit" disabled={!agreeTerms || loading}>
+  회원가입
+</button>
+
+      </div>
+
       {/* ✅ reCAPTCHA 컨테이너 (DOM 안에 반드시 있어야 함) */}
       <div id="recaptcha-container"></div>
+      <img src={logo} style={{
+        zIndex:999,
+        position:"absolute", 
+        top:"0px", 
+        left:"0px",
+        width:"329px",
+        height:"128px"
+        }} alt="로고이미지" />
 
       <form onSubmit={handleSubmit}>
         <div

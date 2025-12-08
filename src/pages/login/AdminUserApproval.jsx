@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue, update } from "firebase/database";
-import { useAuth } from "../../components/contexts/AuthContext";
-import AuthStatus from "../../components/contexts/AuthStatus";
+import { useAuth } from "../../components/Login/contexts/AuthContext";
+import AuthStatus from "../../components/Login/contexts/AuthStatus";
 
 
 
