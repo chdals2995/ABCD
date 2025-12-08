@@ -140,66 +140,63 @@ export default function Join() {
   
   setLoading(true);
 
-  try {
-      // 👉 사용자가 적은 아이디 (이메일 형식일 수도, 아닐 수도 있음)
-      const loginId = form.email.trim();
+    try {
+    // 👉 사용자가 적은 아이디 (이메일 형식일 수도, 아닐 수도 있음)
+    const loginId = form.email.trim();
 
-      // 👉 Auth에서 쓸 실제 이메일 값
-      const authEmail = loginId.includes("@")
-        ? loginId
-        : `${loginId}@abcd.local`;
+    // 👉 Auth에서 쓸 실제 이메일 값
+    const authEmail = loginId.includes("@")
+      ? loginId
+      : `${loginId}@abcd.local`;
 
-      // 1) Firebase Auth 계정 생성
-      const cred = await createUserWithEmailAndPassword(
-        auth,
-        authEmail,
-        form.password
-      );
-      const uid = cred.user.uid;
-      console.log("✅ Auth 계정 생성됨 uid:", uid, authEmail);
+    // 1) Firebase Auth 계정 생성
+    const cred = await createUserWithEmailAndPassword(
+      auth,
+      authEmail,
+      form.password
+    );
+    const uid = cred.user.uid;
+    console.log("✅ Auth 계정 생성됨 uid:", uid, authEmail);
 
-      // 2) RTDB 저장 (원본 아이디 + 실제 이메일 둘 다 저장)
-      const userRef = ref(rtdb, `users/${uid}`);
-      const payload = {
-        userId,             // 사용자가 입력한 아이디 (이메일 아닐 수 있음)
-        email: authEmail,    // Auth에 등록된 이메일
-        name: form.name,
-        phone: form.phone,
-        status: "pending",
-        role: "none",
-        createdAt: Date.now(),
-        approvedAt: null,
-        approvedBy: null,
-      };
-      console.log("✅ RTDB에 저장할 payload:", payload);
+    // 2) RTDB 저장
+    const userRef = ref(rtdb, `users/${uid}`);
+    const payload = {
+      userId: loginId,      // ✅ 여기 수정!
+      email: authEmail,
+      name: form.name,
+      phone: form.phone,
+      status: "pending",
+      role: "none",
+      createdAt: Date.now(),
+      approvedAt: null,
+      approvedBy: null,
+    };
+    console.log("✅ RTDB에 저장할 payload:", payload);
 
-      await set(userRef, payload);
-      console.log("✅ RTDB /users/" + uid + " 저장 완료");
+    await set(userRef, payload);
+    console.log("✅ RTDB /users/" + uid + " 저장 완료");
 
-      // 👉 안내 문구 한번 보여주고
-setMessage("회원가입이 완료되었습니다.\n관리자 승인 후 로그인할 수 있습니다.");
+    // 안내 + 이동
+    setMessage("회원가입이 완료되었습니다.\n관리자 승인 후 로그인할 수 있습니다.");
+    nav("/", { replace: true });
 
-// 👉 로그인 페이지(루트 경로)로 이동
-nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오게 하고 싶으면 replace:true
-
-
-      // 폼 초기화
-      setForm({
-        email: "",
-        password: "",
-        name: "",
-        phone: "",
-      });
-      setVerificationCode("");
-      setIsCodeSent(false);
-      setIsPhoneVerified(false);
-    } catch (error) {
-      console.error("❌ 회원가입 중 오류:", error);
-      setMessage("회원가입 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // 폼 초기화
+    setForm({
+      email: "",
+      password: "",
+      name: "",
+      phone: "",
+    });
+    setVerificationCode("");
+    setIsCodeSent(false);
+    setIsPhoneVerified(false);
+  } catch (error) {
+    console.error("❌ 회원가입 중 오류:", error);
+    setMessage("회원가입 중 오류가 발생했습니다.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const passBox = document.querySelector("#passBox");
   const phoneNumb = document.querySelector("#phoneNumb");
@@ -545,7 +542,7 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
 
           {/* 가입 버튼 */}
           <button
-            onClick={handleSubmit}
+            
             disabled={loading}
             type="submit"
             style={{
