@@ -37,16 +37,18 @@ export default function Member(){
         <>
             
             <div>
-                <p>회원목록</p>
-                <ul>
+                <p className="text-[26px]">회원목록</p>
+                <ul className="mt-[32px]">
                     {memberList.map((user) => (
                         <li key={user.uid}
-                            className="group">
-                            <span>{user.name}</span>
-                            <span>{user.userId}</span>
-                            <span>관리인</span>
+                            className="group w-[777px] h-[52px] mb-[19px] text-[20px] bg-white
+                                border-transparent border-2 hover:border-[2px] hover:border-[#054E76] rounded-[10px]
+                                flex items-center justify-between">
+                            <span className="ml-[73px] w-[120px] block border">{user.name}</span>
+                            <span className="w-[280px] block border">{user.userId}</span>
+                            <span className="mr-[130px]">관리인</span>
                             <button onClick={()=>handleEdit(user)}
-                                className="hidden group-hover:block">수정</button>
+                                className="hidden group-hover:block w-[79px] h-[52px] bg-[#054E76] text-white rounded-[10px]">수정</button>
                         </li>
                     ))}
                 </ul>

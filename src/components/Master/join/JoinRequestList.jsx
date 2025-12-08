@@ -48,7 +48,7 @@ export default function JoinRequestList() {
               <li
                 key={user.uid}
                 onClick={() => openUserModal(user)}
-                className="text-[18px] mt-[10px] cursor-pointer border-b-2 border-transparent 
+                className="text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
                   hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
               >
                 {user.name} / 관리자 가입 신청

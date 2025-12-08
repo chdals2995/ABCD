@@ -43,7 +43,8 @@ export default function Management() {
           </li>
         </ul>
         {/* 탭 내용 */}
-        <div className="TabBox w-[996px] h-[546px] border-2 border-t-transparent bg-[#E7F3F8]">
+        <div className="TabBox w-[996px] h-[546px] border-2 border-t-transparent bg-[#E7F3F8]
+          py-[49px] px-[111px]">
           {tab === "A" && <Member />}
           {tab === "B" && <Building />}
           {tab === "C" && <Elevator />}
