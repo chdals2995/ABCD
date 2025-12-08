@@ -5,7 +5,9 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import logo from "../../assets/logos/logo.png"
+import logo from "../../assets/logos/logo.png";
+
+
 
 
 export default function Join() {
@@ -19,7 +21,9 @@ export default function Join() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(""); 
-  const [agreeTerms, setAgreeTerms] = useState(false); // 약관동의
+   const [agreeTerms, setAgreeTerms] = useState(false);   // 약관동의 체크
+  const [showTerms, setShowTerms] = useState(true);      // ✅ 약관 화면 보이기/숨기기
+
 
 
   // ✅ 휴대폰 인증 관련 state (컴포넌트 최상단에!)
@@ -220,40 +224,131 @@ nav("/", { replace: true });   // 뒤로가기 눌러도 다시 join 안 나오�
 
   return (
     <div>
-      <div style={{ // 이용약관
-        width:"100%", 
-        height:"100%",
-        backgroundColor:"#ffffff", 
-        position:"absolute", 
-        top:"0px", 
-        bottom:"0px", 
-        left:"0px",
-        zIndex:100
-        }}>
-      
-      <input 
-      type="checkbox"
-      checked={agreeTerms}
-      onChange={(e) => setAgreeMents(e.target.checked)}
-       />
+       {/* ✅ 이용약관 전체 화면 (처음에만 보이고, 동의하면 사라짐) */}
+    {showTerms && (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0,0,0,0.4)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "800px",
+            maxHeight: "80vh",
+            backgroundColor: "#ffffff",
+            borderRadius: "12px",
+            padding: "24px 32px",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <h2 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "16px" }}>
+            이용약관
+          </h2>
 
-       <span>
-    <a href="/terms" target="_blank" rel="noreferrer">
-      이용약관
-    </a>
-    에 동의합니다.
-  </span>
+          {/* 약관 내용 스크롤 영역 */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              border: "1px solid #e5e7eb",
+              padding: "16px",
+              marginBottom: "16px",
+              fontSize: "14px",
+              lineHeight: 1.5,
+              whiteSpace: "pre-line",
+            }}
+          >
+            {/* 👉 여기 안에 진짜 약관 텍스트 넣으면 됨 */}
+            건물 관리인 웹 서비스 이용약관입니다.
+            {"\n\n"}
+            1. 목적{"\n"}
+            이 약관은 정석케미칼(전자거래 사업자)이 운영하는 정석케미칼(이하 "홈페이지"이라 한다)에서 제공하는 인터넷 관련 서비스(이하 "서비스"라 한다)를 이용함에 있어 사이버홈페이지과 이용자의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.
+※ 「PC통신 등을 이용하는 전자거래에 대해서도 그 성질에 반하지 않는 한 이 약관을 준용합니다」
+            {"\n\n"}
+            2. 회원의 의무{"\n"}
+            ① "홈페이지" 이란 사업자가 재화 또는 용역을 이용자에게 제공하기 위하여 컴퓨터 등 정보통신설비를 이용하여 재화 또는 용역을 거래할 수 있도록 설정한 가상의 영업장을 말하며, 아울러 사이버홈페이지을 운영하는 사업자의 의미로도 사용합니다.
 
-<button type="submit" disabled={!agreeTerms || loading}>
-  회원가입
-</button>
+② "이용자"란 "홈페이지"에 접속하여 이 약관에 따라 "홈페이지"이 제공하는 서비스를 받는 회원 및 비회원을 말합니다.
 
+③ '회원'이라 함은 "홈페이지"에 개인정보를 제공하여 회원등록을 한 자로서, "홈페이지"의 정보를 지속적으로 제공받으며, "홈페이지"이 제공하는 서비스를 계속적으로 이용할 수 있는 자를 말합니다.
+
+④ 비회원'이라 함은 회원에 가입하지 않고 "홈페이지"이 제공하는 서비스를 이용하는 자를 말합니다.
+          </div>
+
+          {/* 동의 체크박스 + 버튼들 */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "12px",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)} // 🔁 오타 주의!
+            />
+            <span style={{ fontSize: "14px" }}>
+              위{" "}
+              <span style={{ fontWeight: "bold" }}>이용약관</span>을 모두 읽고 동의합니다.
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "8px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => nav(-1)} // 뒤로가기 (로그인 페이지로)
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "1px solid #9ca3af",
+                backgroundColor: "#f3f4f6",
+                cursor: "pointer",
+              }}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={!agreeTerms}
+              onClick={() => setShowTerms(false)}   // ✅ 동의 → 약관 화면 닫고 폼 보이게
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: agreeTerms ? "#0888D4" : "#9ca3af",
+                color: "white",
+                cursor: agreeTerms ? "pointer" : "not-allowed",
+              }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
       </div>
-
+    )}
+    
       {/* ✅ reCAPTCHA 컨테이너 (DOM 안에 반드시 있어야 함) */}
       <div id="recaptcha-container"></div>
       <img src={logo} style={{
-        zIndex:999,
         position:"absolute", 
         top:"0px", 
         left:"0px",
