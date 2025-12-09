@@ -175,7 +175,7 @@ export default function Floors() {
             <div className="relative w-[483px] h-[40px] mb-[4px]">
               {/* 건물 이름 (화살표 기준 왼쪽) */}
               {buildingName && (
-                <div className="absolute right-1/2 -translate-x-[70px] top-1/2 -translate-y-1/2 text-xs font-semibold text-[#054E76] text-right whitespace-nowrap">
+                <div className="absolute right-1/2 -translate-x-[180px] top-1/2 -translate-y-1/2 text-s font-semibold text-[#054E76] text-right whitespace-nowrap">
                   {buildingName}
                 </div>
               )}
