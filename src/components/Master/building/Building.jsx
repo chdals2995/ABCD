@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, set } from "firebase/database";
 import Button from '../../../assets/Button';
 
 
@@ -30,7 +30,7 @@ export default function Building(){
 
     try {
       const id = crypto.randomUUID(); // 랜덤 ID
-      await set(ref(rtdb, `buildings/${id}`), {
+      await set(ref(rtdb, `/buildings/${id}`), {
         ...form,
         createdAt: Date.now(),
       });
@@ -57,10 +57,6 @@ export default function Building(){
                         <label htmlFor="name" className='text-[20px] mb-[10px]'>건물명</label>
                         <input type="text" name="name" value={form.name} onChange={handleChange} />
                     </div>
-                    <div>
-                        <label htmlFor="floors" className='text-[20px] mb-[10px]'>전체 층수</label>
-                        <input type="number" name="floors" value={form.floors} onChange={handleChange}/>
-                    </div>
                     <div className="flex justify-between">
                         <div className="w-[100px]">
                             <label htmlFor="up" className='text-[20px] mb-[10px]'>지상</label>
@@ -70,6 +66,10 @@ export default function Building(){
                             <label htmlFor="down" className='text-[20px] mb-[10px]'>지하</label>
                             <input type="number" name="down" value={form.down} onChange={handleChange} className="w-[60px]"/>
                         </div>
+                    </div>
+                    <div>
+                        <label htmlFor="floors" className='text-[20px] mb-[10px]'>전체 층수</label>
+                        <input type="number" name="floors" value={form.floors} onChange={handleChange}/>
                     </div>
                     <div>
                         <label htmlFor="park" className='text-[20px] mb-[10px]'>주차타워</label>
