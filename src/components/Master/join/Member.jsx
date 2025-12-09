@@ -33,6 +33,7 @@ export default function Member(){
             setSelectedUser(null);
             setOpen(false);
         };
+        
 
     return(
         <>
@@ -56,7 +57,7 @@ export default function Member(){
             </div>
             {/* 모달창 */}
             {selectedUser && (
-            <JoinRequest user={selectedUser} open={open} close={closeModal} />
+            <JoinRequest user={selectedUser} open={open} close={closeModal} buttonName={"저장"}/>
             )}
         </>
     );

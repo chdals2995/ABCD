@@ -83,12 +83,12 @@ export default function ElevatorManagement({elevator, open, close}){
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="num" className='text-[20px] mb-[10px]'>고유 번호</label>
-                            <input type="text" name="num" value={form.num} onChange={handleChange} 
+                            <input type="text" id="num" value={form.num} onChange={handleChange} 
                             pattern="\d{4}-\d{3}" placeholder="'-'를 포함해서 입력해주세요" className="px-[10px] w-[226px]"/>
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="all" className='text-[20px] mb-[10px]'>총 운행 층수</label>
-                            <input type="number" name="all" value={form.all} onChange={handleChange} className="w-[226px]"/>
+                            <input type="number" id="all" value={form.all} onChange={handleChange} className="w-[226px]"/>
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="down" className='text-[20px] mb-[10px]'>지하 층수</label>
@@ -96,7 +96,7 @@ export default function ElevatorManagement({elevator, open, close}){
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="belongTo" className='text-[20px] mb-[10px]'>소속 건물명</label>
-                            <input type="text" name="belongTo" value={form.belongTo} onChange={handleChange}/>
+                            <input type="text" id="belongTo" value={form.belongTo} onChange={handleChange}/>
                         </div>
                     </div>
                     {/* 에러 메시지 */}

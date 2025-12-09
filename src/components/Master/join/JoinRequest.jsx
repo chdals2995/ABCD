@@ -9,7 +9,7 @@ import { ref, update } from "firebase/database";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 
-export default function JoinRequest({ user, open, close }){
+export default function JoinRequest({ user, open, close ,buttonName}){
   if (!open || !user) return null;
 
   const [role, setRole] = useState("admin"); // 기본값
@@ -55,7 +55,7 @@ export default function JoinRequest({ user, open, close }){
 
     return(
         <>
-            <Modal isOpen={open} onClose={close}>
+            <Modal isOpen={open} onClose={close} >
               {/* 제목과 닫기 */}
               <div className='ml-[66px] relative'>
                 <p className='text-[26px] font-pyeojin mt-[71px]'>회원가입</p>
@@ -101,7 +101,7 @@ export default function JoinRequest({ user, open, close }){
                 )}
                 {/* 승인버튼 */}
                 <div className='w-[79px] mx-auto mt-[29px]'>
-                  <Button onClick={handleApprove}>승인</Button>
+                  <Button onClick={handleApprove}>{buttonName}</Button>
                 </div>
             </Modal>
         </>

@@ -57,7 +57,7 @@ export default function JoinRequestList() {
         </div>
       </div>
       {/* 회원 요청 모달창 */}
-      <JoinRequest user={selectedUser} open={open} close={closeUserModal} />
+      <JoinRequest user={selectedUser} open={open} close={closeUserModal} buttonName={"승인"}/>
     
     </>
   );

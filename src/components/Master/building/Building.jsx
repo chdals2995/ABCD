@@ -1,20 +1,17 @@
 import { useState } from "react";
 import { rtdb } from "../../../firebase/config";
 import { ref, set } from "firebase/database";
-import Button from '../../../assets/Button';
+import Button from "../../../assets/Button";
 
-export default function Building(){
-    const [form, setForm] = useState({
-        name: "",
-        up: "",
-        down: "",
-        floors: "",
-        park: "no",       // 주차타워: yes / no
-        parkf: "",
-    });
+export default function Building() {
+  const [form, setForm] = useState({
+    name: "",
+    down: "",
+    floors: "",
+    park: "no", // 주차타워: yes / no
+    parkf: "",
+  });
 
-    
-    
   // 입력 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,7 +36,6 @@ export default function Building(){
 
       setForm({
         name: "",
-        up: "",
         down: "",
         floors: "",
         park: "no",
@@ -51,52 +47,84 @@ export default function Building(){
     }
   };
 
-    return(
-        <div>
-            <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px]">
-                <div className='flex flex-col w-[75px]'>
-                    <div className="flex justify-between w-[342px]">
-                        <label htmlFor="name" className='text-[20px] mb-[10px]'>건물명</label>
-                        <input type="text" name="name" value={form.name} onChange={handleChange} 
-                        className="h-[30px]"/>
-                    </div>
-                    <div className="flex justify-between w-[342px]">
-                        <div className="w-[100px]">
-                            <label htmlFor="up" className='text-[20px] mb-[10px]'>지상</label>
-                            <input type="number" name="up" value={form.up} onChange={handleChange} className="w-[60px]"/>
-                        </div>
-                        <div className="w-[100px]">
-                            <label htmlFor="down" className='text-[20px] mb-[10px]'>지하</label>
-                            <input type="number" name="down" value={form.down} onChange={handleChange} className="w-[60px]"/>
-                        </div>
-                    </div>
-                    <div className="flex justify-between w-[342px]">
-                        <label htmlFor="floors" className='text-[20px] mb-[10px]'>전체 층수</label>
-                        <input type="number" name="floors" value={form.floors} onChange={handleChange}/>
-                    </div>
-                    <div className="flex justify-between w-[342px]">
-                        <label htmlFor="park" className='text-[20px] mb-[10px]'>주차타워</label>
-                        <input type="radio" name="park"
-                  value="yes"
-                  checked={form.park === "yes"}
-                  onChange={handleChange}/>유
-                        <input type="radio" name="park"
-                  value="no"
-                  checked={form.park === "no"}
-                  onChange={handleChange}/>무
-                    </div>
-                    {form.park === "yes" && (
-                    <div className="flex justify-between w-[342px]">
-                        <label htmlFor="parkf" className='text-[20px] mb-[10px]'>층수</label>
-                        <input type="number" name="parkf" value={form.parkf}
-                          onChange={handleChange}/>
-                    </div>
-                    )}
-                </div>
+  return (
+    <div>
+      <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px]">
+        <div className="flex flex-col w-[75px]">
+          <div className="flex justify-between w-[342px]">
+            <label htmlFor="name" className="text-[20px] mb-[10px]">
+              건물명
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="h-[30px]"
+            />
+          </div>
+          <div className="flex justify-between w-[342px]">
+            <label htmlFor="floors" className="text-[20px] mb-[10px]">
+              전체 층수
+            </label>
+            <input
+              type="number"
+              name="floors"
+              value={form.floors}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="w-[100px]">
+            <label htmlFor="down" className="text-[20px] mb-[10px]">
+              지하
+            </label>
+            <input
+              type="number"
+              name="down"
+              value={form.down}
+              onChange={handleChange}
+              className="w-[60px]"
+            />
+          </div>
+          <div className="flex justify-between w-[342px]">
+            <label htmlFor="park" className="text-[20px] mb-[10px]">
+              주차타워
+            </label>
+            <input
+              type="radio"
+              name="park"
+              value="yes"
+              checked={form.park === "yes"}
+              onChange={handleChange}
+            />
+            유
+            <input
+              type="radio"
+              name="park"
+              value="no"
+              checked={form.park === "no"}
+              onChange={handleChange}
+            />
+            무
+          </div>
+          {form.park === "yes" && (
+            <div className="flex justify-between w-[342px]">
+              <label htmlFor="parkf" className="text-[20px] mb-[10px]">
+                층수
+              </label>
+              <input
+                type="number"
+                name="parkf"
+                value={form.parkf}
+                onChange={handleChange}
+              />
             </div>
-            <div className='w-[79px] mx-auto mt-[29px]'>
-                <Button onClick={Save}>등록</Button>
-            </div>
+          )}
         </div>
-    );
+      </div>
+      <div className="w-[79px] mx-auto mt-[29px]">
+        <Button onClick={Save}>등록</Button>
+      </div>
+    </div>
+  );
 }

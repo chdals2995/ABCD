@@ -38,7 +38,7 @@ export default function ElevatorLog(){
             className="w-[372px] h-[885px] px-[27px] bg-[#E7F3F8] border-[#0888D4]
                     absolute right-0 top-[68px] pt-[30px] pl-[27px]"
             >
-                <p className="text-[24px] font-pyeojin">건물 등록 내역</p>
+                <p className="text-[24px] font-pyeojin">승강기 등록 내역</p>
                 <div className="w-[318px] h-[600px] bg-white m-auto mt-[30px] px-[14px] pt-[7px]">
                     <ul>
                         {Log.map((elevator) => (
