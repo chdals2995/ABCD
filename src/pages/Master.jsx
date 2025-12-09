@@ -7,7 +7,6 @@ export default function Master(){
         <>
             <AdminLayout/>
             <Management/>
-            <JoinRequestList/>
         </>
     );
 }

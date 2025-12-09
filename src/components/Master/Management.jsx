@@ -3,6 +3,9 @@
 import Member from "./join/Member"
 import Building from "./building/Building";
 import Elevator from "./elevator/Elevator";
+import JoinRequestList from "./join/joinRequestList";
+import BuildingLog from "./building/BuildingLog";
+import ElevatorLog from "./elevator/ElevatorLog";
 import { useState } from "react";
 
 export default function Management() {
@@ -49,6 +52,10 @@ export default function Management() {
           {tab === "B" && <Building />}
           {tab === "C" && <Elevator />}
         </div>
+        {/* 해당 탭 우측 내역 */}
+        {tab === "A" && <JoinRequestList/>}
+        {tab === "B" && <BuildingLog />}
+        {tab === "C" && <ElevatorLog/>}
       </div>
     </>
   );

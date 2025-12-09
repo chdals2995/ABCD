@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue, set } from "firebase/database";
+import { ref, set } from "firebase/database";
 import Button from '../../../assets/Button';
 
 export default function Building(){
@@ -35,7 +35,7 @@ export default function Building(){
         createdAt: Date.now(),
       });
 
-      alert("저장되었습니다.");
+      alert("등록되었습니다.");
 
       setForm({
         name: "",
@@ -46,8 +46,8 @@ export default function Building(){
         parkf: "",
       });
     } catch (error) {
-      console.error("건물 저장 실패:", error);
-      alert("저장 실패");
+      console.error("건물 등록 실패:", error);
+      alert("등록에 실패하였습니다.");
     }
   };
 
@@ -87,15 +87,14 @@ export default function Building(){
                     {form.park === "yes" && (
                     <div>
                         <label htmlFor="parkf" className='text-[20px] mb-[10px]'>층수</label>
-                        <input type="number" name="parkf"
-                value={form.parkf}
-                onChange={handleChange}/>
+                        <input type="number" name="parkf" value={form.parkf}
+                          onChange={handleChange}/>
                     </div>
                     )}
                 </div>
             </div>
             <div className='w-[79px] mx-auto mt-[29px]'>
-                <Button onClick={Save}>저장</Button>
+                <Button onClick={Save}>등록</Button>
             </div>
         </div>
     );
