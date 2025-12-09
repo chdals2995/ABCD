@@ -1,1 +1,18 @@
+<<<<<<< HEAD
 @import "tailwindcss";
+=======
+*{
+box-sizing:border-box
+}
+
+.phone-input::-webkit-inner-spin-button,
+.phone-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.phone-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+>>>>>>> b0ea8099eabf01cebd25e1e6ec22cea77d1fdd52
