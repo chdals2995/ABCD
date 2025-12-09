@@ -3,8 +3,6 @@ import { rtdb } from "../../../firebase/config";
 import { ref, onValue, set } from "firebase/database";
 import Button from '../../../assets/Button';
 
-
-
 export default function Building(){
     const [form, setForm] = useState({
         name: "",
@@ -14,6 +12,8 @@ export default function Building(){
         park: "no",       // 주차타워: yes / no
         parkf: "",
     });
+
+    
     
   // 입력 변경 핸들러
   const handleChange = (e) => {
@@ -30,10 +30,12 @@ export default function Building(){
 
     try {
       const id = crypto.randomUUID(); // 랜덤 ID
-      await set(ref(rtdb, `/buildings/${id}`), {
+      await set(ref(rtdb, `buildings/${id}`), {
         ...form,
         createdAt: Date.now(),
       });
+
+      alert("저장되었습니다.");
 
       setForm({
         name: "",
@@ -93,7 +95,7 @@ export default function Building(){
                 </div>
             </div>
             <div className='w-[79px] mx-auto mt-[29px]'>
-                <Button onClick={Save} >저장</Button>
+                <Button onClick={Save}>저장</Button>
             </div>
         </div>
     );
