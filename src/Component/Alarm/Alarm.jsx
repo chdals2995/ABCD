@@ -4,16 +4,28 @@ import { ref, onValue } from "firebase/database";
 import AlarmRequest from "./alarm_request.jsx";
 import AlarmProblems from "./alarm_problems.jsx";
 import AdminLayout from "../../layout/AdminLayout.jsx";
-// import AlarmProblems from "./alarm_problems.jsx";
+import AlarmDropDownRequest from "./alarm_dropdown_request.jsx";
+import AlarmDropDownUrgent from "./alarm_dropdown_urgent.jsx";
+import AlarmDropDownCaution from "./alarm_dropdown_caution.jsx";
 
 
 export default function Alarm() {
   const [tab, setTab] = useState("request");
   const [alerts, setAlerts] = useState([]);
-  
+
+  // 드롭다운 테스트용!!!!!!
+  const [testAlert, setTestAlert] = useState(null);
+  const [testUrgent, setTestUrgent] = useState(null);
+  const [testCaution, setTestCaution] = useState(null);
+
+  const [prevAlerts, setPrevAlerts] = useState([]);
+  const [liveAlert, setLiveAlert] = useState(null); //실시간 감지용
+
+
   // DB에서 알림 가져오기
   useEffect(() => {
   const alertsRef = ref(rtdb, "alerts");
+  
 
   return onValue(alertsRef, (snapshot) => {
     const floors = snapshot.val() || {};
@@ -91,6 +103,59 @@ export default function Alarm() {
     <div className="w-full h-full p-6">
       <AdminLayout />
 
+    {/* 드롭다운 테스트용~~~~ */}
+    <button 
+      className="absolute top-4 left-4 px-3 py-2 bg-blue-500 text-white"
+      onClick={() => 
+        setTestAlert({
+          id: "test123",
+          floor:"5층",
+          level: "경고",
+           metric: "전력",
+           reason: "과부하 가능성이 감지되었습니다.",
+           createdAt: Date.now()
+        })
+      }
+      >
+        요청 알림 테스트
+      </button>
+
+      <button
+      className="absolute top-4 left-[140px] px-3 py-2 bg-red-600 text-white"
+      onClick={() =>
+        setTestUrgent({
+          id: "urgent001",
+          floor: "7층",
+          level: "문제",        // 또는 "긴급" → 너 구조에 맞게
+          metric: "가스",
+          reason: "가스 누출이 감지되었습니다.",
+          createdAt: Date.now()
+        })
+      }
+    >
+      긴급 알림 테스트
+    </button>
+
+    <button
+  className="absolute top-4 left-[280px] px-3 py-2 bg-yellow-500 text-black"
+  onClick={() =>
+    setTestCaution({
+      id: "caution001",
+      floor: "3층",
+      level: "주의",
+      metric: "수도",
+      reason: "수압이 불안정합니다.",
+      createdAt: Date.now()
+    })
+  }
+>
+  주의 알림 테스트
+</button>
+
+
+
+
+
     <div className="absolute right-0 top-17 w-[372px] h-[860px]
     bg-[#E6EEF2] pt-[20px] border-[1px] border-[#054E76]"
     >
@@ -139,6 +204,9 @@ export default function Alarm() {
 
      </div>
     </div>
+    {testAlert && <AlarmDropDownRequest alert={testAlert} />}
+    {testCaution && <AlarmDropDownCaution alert={testCaution} />}
+    {testUrgent && <AlarmDropDownUrgent alert={testUrgent} />} 
   </div>
   );
 }
