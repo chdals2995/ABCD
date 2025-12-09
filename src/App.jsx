@@ -20,7 +20,7 @@ function App() {
         <Route path="/Join" element={<Join />} />
         <Route path="/UserMain" element={<AuthStatus />} />
 
-        {/* 메인 페이지 */}
+        {/* 메인 페이지 */}  
         <Route path="/main" element={<MainPage />} />
 
         {/* 알람 페이지 */}
