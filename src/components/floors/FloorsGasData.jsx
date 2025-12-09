@@ -31,6 +31,34 @@ function round1(v) {
   return Number(Number(v).toFixed(1));
 }
 
+// 🔹 값이 20~80% 영역에 오도록 y축 범위 계산
+function getYAxisRange(values) {
+  const valid = values.filter((v) => typeof v === "number" && !Number.isNaN(v));
+
+  if (!valid.length) {
+    return { yMin: 0, yMax: 1 };
+  }
+
+  let minVal = Math.min(...valid);
+  let maxVal = Math.max(...valid);
+
+  if (minVal === maxVal) {
+    const padding = maxVal === 0 ? 1 : maxVal * 0.5;
+    const yMin = Math.max(0, minVal - padding);
+    const yMax = maxVal + padding;
+    return { yMin, yMax };
+  }
+
+  const range = maxVal - minVal;
+  let yMin = minVal - range / 3;
+  let yMax = maxVal + range / 3;
+
+  // 사용량은 음수가 의미 없으니 0 아래는 잘라줌
+  if (yMin < 0) yMin = 0;
+
+  return { yMin, yMax };
+}
+
 export default function FloorsGasData() {
   const [state, setState] = useState({
     loading: true,
@@ -102,13 +130,16 @@ export default function FloorsGasData() {
 
   const { loading, labels, values } = state;
 
+  // 🔹 y축 범위 계산
+  const { yMin, yMax } = getYAxisRange(values);
+
   const chartData = {
     labels,
     datasets: [
       {
         label: "오늘 가스 사용량 (ℓ)",
         data: values,
-        backgroundColor: "#4F6150", // 가스 색
+        backgroundColor: "#4F6150",
         borderRadius: 6,
       },
     ],
@@ -133,7 +164,9 @@ export default function FloorsGasData() {
         title: { display: true, text: "층" },
       },
       y: {
-        beginAtZero: true,
+        min: yMin,
+        max: yMax,
+        beginAtZero: false,
         title: { display: true, text: "오늘 누적 가스 사용량 (ℓ)" },
       },
     },

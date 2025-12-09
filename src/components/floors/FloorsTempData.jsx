@@ -31,6 +31,33 @@ function round1(v) {
   return Number(Number(v).toFixed(1));
 }
 
+// 🔹 온도값도 20~80% 영역에 오도록 y축 범위 계산
+function getYAxisRange(values) {
+  const valid = values.filter((v) => typeof v === "number" && !Number.isNaN(v));
+
+  if (!valid.length) {
+    return { yMin: 0, yMax: 1 };
+  }
+
+  let minVal = Math.min(...valid);
+  let maxVal = Math.max(...valid);
+
+  if (minVal === maxVal) {
+    const padding = maxVal === 0 ? 1 : maxVal * 0.5;
+    const yMin = Math.max(0, minVal - padding);
+    const yMax = maxVal + padding;
+    return { yMin, yMax };
+  }
+
+  const range = maxVal - minVal;
+  let yMin = minVal - range / 3;
+  let yMax = maxVal + range / 3;
+
+  if (yMin < 0) yMin = 0;
+
+  return { yMin, yMax };
+}
+
 export default function FloorsTempData() {
   const [state, setState] = useState({
     loading: true,
@@ -69,7 +96,6 @@ export default function FloorsTempData() {
             }
 
             const data = daySnap.val() || {};
-            // tempAvg 우선, 없으면 tempSum / count 시도
             let temp = data.tempAvg;
             if (temp == null) {
               if (
@@ -114,13 +140,15 @@ export default function FloorsTempData() {
 
   const { loading, labels, values } = state;
 
+  const { yMin, yMax } = getYAxisRange(values);
+
   const chartData = {
     labels,
     datasets: [
       {
         label: "오늘 평균 온도 (℃)",
         data: values,
-        backgroundColor: "#F97373", // 온도는 붉은 계열
+        backgroundColor: "#F97373",
         borderRadius: 6,
       },
     ],
@@ -145,6 +173,8 @@ export default function FloorsTempData() {
         title: { display: true, text: "층" },
       },
       y: {
+        min: yMin,
+        max: yMax,
         beginAtZero: false,
         title: { display: true, text: "오늘 평균 온도 (℃)" },
       },

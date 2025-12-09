@@ -5,12 +5,10 @@ import { Bar } from "react-chartjs-2";
 import { rtdb } from "../../firebase/config";
 import { ref, get } from "firebase/database";
 
-// 🔹 simConfig/default 기준으로 층 ID 배열 만들기
-// basementFloors=3, totalFloors=20 ➜ ["B3","B2","B1","1F",...,"17F"]
 function buildFloorIds(basementFloors, totalFloors) {
   const floors = [];
 
-  // 지하층 (B3, B2, B1 ...)
+  // 지하층 (B3, B2, B1 ... 순서)
   for (let b = basementFloors; b >= 1; b--) {
     floors.push(`B${b}`);
   }
@@ -28,11 +26,42 @@ function formatDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`; // "YYYY-MM-DD"
+  return `${y}-${m}-${d}`;
 }
 
 function round1(v) {
   return Number(Number(v).toFixed(1));
+}
+
+// 🔹 values 범위를 20%~80% 구간에 오도록 y축 min/max 계산
+function getYAxisRange(values) {
+  const valid = values.filter((v) => typeof v === "number" && !Number.isNaN(v));
+
+  if (!valid.length) {
+    return { yMin: 0, yMax: 1 };
+  }
+
+  let minVal = Math.min(...valid);
+  let maxVal = Math.max(...valid);
+
+  // 값이 전부 같을 때 (flat) → 위/아래로 여유만 조금 줌
+  if (minVal === maxVal) {
+    const padding = maxVal === 0 ? 1 : maxVal * 0.5;
+    const yMin = Math.max(0, minVal - padding);
+    const yMax = maxVal + padding;
+    return { yMin, yMax };
+  }
+
+  const range = maxVal - minVal;
+
+  // 이론적으로 20%~80%에 오도록 만드는 값
+  let yMin = minVal - range / 3; // min - 1/3 range
+  let yMax = maxVal + range / 3; // max + 1/3 range
+
+  // 에너지 사용량이라 음수는 의미 없으니 0 아래로는 잘라줌
+  if (yMin < 0) yMin = 0;
+
+  return { yMin, yMax };
 }
 
 export default function FloorsElecData() {
@@ -54,7 +83,6 @@ export default function FloorsElecData() {
         const configSnap = await get(ref(rtdb, "simConfig/default"));
         if (!configSnap.exists()) {
           if (!isMounted) return;
-          console.warn("simConfig/default 없음");
           setState({ loading: false, labels: [], values: [] });
           return;
         }
@@ -65,9 +93,6 @@ export default function FloorsElecData() {
 
         const floorIds = buildFloorIds(basementFloors, totalFloors);
 
-        // 디버그용으로 한 번 찍어보면 좋음
-        console.log("floorIds:", floorIds, "todayKey:", todayKey);
-
         // 2️⃣ 각 층의 오늘 일일 전기 합계(elecSum) 읽기
         const results = await Promise.all(
           floorIds.map(async (floorId) => {
@@ -76,13 +101,11 @@ export default function FloorsElecData() {
             );
 
             if (!daySnap.exists()) {
-              // 해당 층에 아직 데이터 없으면 0으로
               return { floor: floorId, value: 0 };
             }
 
             const data = daySnap.val() || {};
-            const elecSum = data.elecSum ?? 0; // 필드 이름 다르면 여기만 수정
-            console.log("aggDay", floorId, todayKey, "=", data); // 디버그용
+            const elecSum = data.elecSum ?? 0;
             return { floor: floorId, value: elecSum };
           })
         );
@@ -104,10 +127,7 @@ export default function FloorsElecData() {
       }
     }
 
-    // 🔹 페이지 로드 시 한 번
     fetchData();
-
-    // 🔹 이후 10분 간격으로 다시
     const timerId = setInterval(fetchData, INTERVAL_MS);
 
     return () => {
@@ -117,6 +137,9 @@ export default function FloorsElecData() {
   }, []);
 
   const { loading, labels, values } = state;
+
+  // 🔹 y축 범위 계산 (막대가 20~80% 안쪽에 오도록)
+  const { yMin, yMax } = getYAxisRange(values);
 
   const chartData = {
     labels,
@@ -149,7 +172,9 @@ export default function FloorsElecData() {
         title: { display: true, text: "층" },
       },
       y: {
-        beginAtZero: true,
+        min: yMin,
+        max: yMax,
+        beginAtZero: false, // min/max를 직접 지정했으니 false로
         title: { display: true, text: "오늘 누적 전기 사용량 (kWh)" },
       },
     },
