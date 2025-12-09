@@ -3,6 +3,7 @@ import { useState } from "react";
 import Button from "../assets/Button";
 import Select from "../assets/Select";
 import Modal from "../assets/Modal";
+import CloseButton from "../assets/CloseButton";
 
 const onClick = () => {
   alert("버튼 클릭됨");
@@ -20,6 +21,7 @@ export default function AssetEx() {
 
   return (
     <>
+      <CloseButton />
       <Button onClick={onClick}>qjxms</Button>
 
       <Select
