@@ -94,7 +94,7 @@ useEffect(() => {
   if (user.role === "admin") {
     nav("/main");          // 관리자
   } else if (user.role === "master") {
-    nav("/admin");      // 마스터
+    nav("/main");      // 마스터
   } else if (user.role === "user") {
     nav("/userMain");  // 일반 사용자
   }
