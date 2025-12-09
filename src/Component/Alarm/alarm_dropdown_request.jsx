@@ -1,43 +1,33 @@
 import { useEffect, useState } from "react";
 import userIcon from "../../icons/login_icon.png";
-import warningIcon from "../../icons/Alert_triangle_48.png";
-import dangerIcon from "../../icons/Alert_triangle_red_wihte.png";
 
 /*
   AlarmDropDownRequest
-  - 경고/문제 알림이 발생했을 때 상단에 3초 동안 표시되는 드롭다운 알림
-  - 부모(Alarm.jsx)에서 전달받는 alert 객체는 이미 변환된 데이터임.
-    예: { id, floor, level, metric, reason, createdAt }
+  - 민원인(사용자)에게서 "요청"이 들어왔을 때 상단에 2.5초 동안 표시되는 드롭다운
+  - alert 객체 구조 예:
+      {
+        id,
+        floor,     // "5층"
+        level,     // "경고" / "주의" / "문제" / "정상"
+        metric,    // "수도" / "전력" / "가스" / "온도"
+        reason,    // 상세 내용
+        createdAt
+      }
+  - 요청 알림은 "센서 경고"가 아니라 "사람이 보낸 요청"이므로
+    아이콘은 항상 사람 아이콘(userIcon)을 사용한다.
 */
 export default function AlarmDropDownRequest({ alert }) {
-  // 드롭다운 등장 애니메이션 상태
   const [active, setActive] = useState(false);
 
-  /*
-    level(한글 기준)에 따라 아이콘 선택
-    - Alarm.jsx에서 이미 level 변환이 끝나 있기 때문에 
-      "경고" / "문제" / "주의" / "정상" 형태로 들어옴.
-  */
-  const iconMap = {
-    경고: warningIcon,
-    문제: dangerIcon,
-    정상: userIcon,
-    주의: warningIcon, // 필요하면 나중에 아이콘 변경 가능
-  };
-
-  const iconImg = iconMap[alert?.level] || userIcon;
-
-  /*
-    컴포넌트가 mount되면:
-    1) 0.01초 후 active = true → 아래에서 위로 올라오는 애니메이션
-    2) 2.5초 뒤 active = false → 다시 위로 사라짐
-  */
+  // 드롭다운 등장/퇴장 애니메이션 제어
   useEffect(() => {
+    // 살짝 지연 후 나타나도록 설정
     setTimeout(() => setActive(true), 10);
 
-    const timer = setTimeout(() => setActive(false), 3000);
+    // 2.5초 뒤 자동으로 위로 사라짐
+    const timer = setTimeout(() => setActive(false), 2500);
 
-    // 컴포넌트 unmount될 때 타이머 제거
+    // 언마운트 시 타이머 정리
     return () => clearTimeout(timer);
   }, []);
 
@@ -47,32 +37,32 @@ export default function AlarmDropDownRequest({ alert }) {
         fixed left-1/2 -translate-x-1/2
         w-[404px] h-[117px]
         bg-white shadow-md rounded-lg
-        flex items-center px-6 gap-4
+        flex items-center
+        px-6
         transition-all duration-300 ease-out z-[9999]
-        ${active ? "top-6" : "-top-32"}   // active 상태에 따라 위치 변화
-        notify-glow                       // 기존 CSS 효과 유지
+        ${active ? "top-6" : "-top-32"}
+        notify-glow
       `}
     >
-      {/* 왼쪽 아이콘 + 층 정보 */}
-      <div className="flex flex-col items-center justify-center w-[50px]">
-        <img src={iconImg} className="w-[40px] h-[40px]" />
+      {/* 왼쪽: 사람 아이콘 + 층 정보 */}
+      <div className="flex flex-col items-center justify-center w-[120px]">
+        <img src={userIcon} className="w-10 h-10 mb-1" />
 
-        {/* alert.floor = 몇층인지 */}
-        <span className="text-[14px] text-gray-600 mt-1 whitespace-nowrap">
-          {alert?.floor || "층 없음"}
+        <span className="text-[13px] text-gray-600 mt-1 whitespace-nowrap">
+          {alert?.floor || ""}
         </span>
       </div>
 
-      {/* 오른쪽 텍스트 영역 */}
-      <div className="flex flex-col flex-1">
-        {/* 알림 제목: 예) [경고] 전력 이상 감지 */}
-        <span className="text-[17px] font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">
+      {/* 오른쪽: 제목 + 상세 내용 */}
+      <div className="flex flex-col flex-1 pl-3">
+        {/* 예: [경고] 전력 이상 감지 */}
+        <span className="text-[20px font-bold text-[#000] truncate">
           [{alert?.level}] {alert?.metric} 이상 감지
         </span>
 
-        {/* 알림 상세 이유: 예) 과부하 가능성이 감지되었습니다. */}
-        <span className="text-[14px] text-gray-600 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">
-          {alert?.reason}
+        {/* 상세 reason (예: 과부하 가능성이 감지되었습니다.) */}
+        <span className="text-[15px] text-gray-600 mt-1">
+          {alert?.reason || ""}
         </span>
       </div>
     </div>

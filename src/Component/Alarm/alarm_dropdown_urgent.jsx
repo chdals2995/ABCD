@@ -66,7 +66,7 @@ export default function AlarmDropDownUrgent({ alert }) {
         </span>
 
         {/* 세부 reason 설명 */}
-        <span className="text-[16px] text-gray-600 mt-1">
+        <span className="text-[15px] text-gray-600 mt-1">
           {alert?.reason || ""}
         </span>
       </div>

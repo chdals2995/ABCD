@@ -45,12 +45,12 @@ export default function AlarmDropDownCaution({ alert }) {
       <div className="flex flex-col flex-1 pl-3">
 
         {/* 예: [주의] 수도 이상 감지 */}
-        <span className="text-[20px] font-bold text-[#000] truncate">
+        <span className="text-[20px font-bold text-[#000] truncate">
           [{alert?.level}] {alert?.metric} 이상 감지
         </span>
 
         {/* 상세 내용 */}
-        <span className="text-[16px] text-gray-600 mt-1">
+        <span className="text-[15px] text-gray-600 mt-1">
           {alert?.reason || ""}
         </span>
       </div>
