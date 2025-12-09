@@ -3,7 +3,7 @@
 import Member from "./join/Member"
 import Building from "./building/Building";
 import Elevator from "./elevator/Elevator";
-import JoinRequestList from "./join/joinRequestList";
+import JoinRequestList from "./join/JoinRequestList";
 import BuildingLog from "./building/BuildingLog";
 import ElevatorLog from "./elevator/ElevatorLog";
 import { useState } from "react";
