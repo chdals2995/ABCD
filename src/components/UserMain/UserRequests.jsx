@@ -47,44 +47,48 @@ export default function UserRequest() {
 
   // 🔹 내 민원만 구독
   useEffect(() => {
-    if (!user) return; // 아직 로그인 정보 없으면 아무것도 안 함
+  if (!user) return;
 
-    // /requests 중 userUid == 현재 user.uid 인 것만
-    const q = query(
-      ref(rtdb, "requests"),
-      orderByChild("userUid"),
-      equalTo(user.uid)
-    );
+  const q = query(
+    ref(rtdb, "requests"),
+    orderByChild("userUid"),
+    equalTo(user.uid)
+  );
 
-    const unsub = onValue(q, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) {
-        setRequests([]);
-        return;
-      }
+  const unsub = onValue(q, (snapshot) => {
+    const data = snapshot.val();
+    console.log("[UserRequest] snapshot >>>", data);
 
-      const list = Object.entries(data)
-        .map(([id, r]) => ({
-          id,
-          title: r.title || "",
-          content: r.content || "",
-          status: r.status || "접수",
-          // 🔽 추가 필드들
-          date: r.date || "",
-          floor: r.floor || "",
-          room: r.room || "",
-          type: r.type || "",
-          createdAt: r.createdAt || 0,
-          // 사용자가 입력한 date가 있으면 그걸 우선 표시, 없으면 createdAt 사용
-          dateLabel: formatDate(r.date || r.createdAt),
-        }))
-        .sort((a, b) => b.createdAt - a.createdAt); // 최신순
+    if (!data) {
+      setRequests([]);
+      return;
+    }
 
-      setRequests(list);
-    });
+    const list = Object.entries(data)
+      .map(([id, r]) => ({
+        id,
+        userUid: r.userUid || null,   // 🔹 userUid도 같이 들고 있고
+        title: r.title || "",
+        content: r.content || "",
+        status: r.status || "접수",
+        date: r.date || "",
+        floor: r.floor || "",
+        room: r.room || "",
+        type: r.type || "",
+        createdAt: r.createdAt || 0,
+        dateLabel: formatDate(r.date || r.createdAt),
+      }))
+      // 혹시 모를 상황 대비해서 한 번 더 "내 것만" 필터
+      .filter((item) => item.userUid === user.uid)
+      .sort((a, b) => b.createdAt - a.createdAt);
 
-    return () => unsub();
-  }, [user]);
+    console.log("[UserRequest] list after filter >>>", list);
+    setRequests(list);
+  });
+
+  return () => unsub();
+}, [user]);
+
 
   // 입력값 변경
   const handleChange = (e) => {
@@ -381,6 +385,8 @@ export default function UserRequest() {
           </div>
         </form>
       </Modal>
+
+      
     </div>
   );
 }
