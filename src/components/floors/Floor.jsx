@@ -5,8 +5,7 @@ import { ref, onValue } from "firebase/database";
 
 import cautionIcon from "../../assets/icons/caution.png";
 import warningIcon from "../../assets/icons/warning.png";
-// circleIcon은 일단 사용 안 함
-// import circleIcon from "../../assets/icons/circle.png";
+import circleIcon from "../../assets/icons/circle.png";
 
 // 오늘 날짜 -> "YYYY-MM-DD"
 function formatDateKey(date) {
@@ -18,9 +17,11 @@ function formatDateKey(date) {
 
 /**
  * props:
- *  - floor: "10F" / "9F" ... 이런 층 ID
+ *  - floor: "10F" / "9F" ...
+ *  - selected: boolean (선택된 층인지)
+ *  - onClick: () => void (층 클릭 시)
  */
-export default function Floor({ floor }) {
+export default function Floor({ floor, selected, onClick }) {
   const [counts, setCounts] = useState({
     warning: 0,
     caution: 0,
@@ -60,10 +61,8 @@ export default function Floor({ floor }) {
     return () => unsubscribe();
   }, [floor]);
 
-  // 경고/주의 배지: 값이 0이면 렌더 안 함
-  const CountBadge = ({ icon, value, alt, sizeClass }) => {
-    if (!value || value <= 0) return null;
-
+  const Badge = ({ icon, value, alt, sizeClass }) => {
+    if (!value) return null; // 0이면 안 보여줌
     return (
       <div className={`relative ${sizeClass} flex items-center justify-center`}>
         <img
@@ -81,33 +80,40 @@ export default function Floor({ floor }) {
   };
 
   return (
-    // 이 컴포넌트는 부모가 h-[63px]로 감싸고 있다고 가정
-    <div className="relative w-full h-full bg-[#A3C2D7]">
-      {/* 층 텍스트 (왼쪽 고정) */}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative w-full h-full text-left ${
+        selected ? "bg-[#6FA8D6]" : "bg-[#A3C2D7]"
+      }`}
+    >
+      {/* 층 텍스트 */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[60px] text-sm font-semibold text-[#054E76] ml-[18px]">
         {floor}
       </div>
 
-      {/* 아이콘 묶음: 줄 기준 중앙 정렬 */}
+      {/* 아이콘 3개 묶음: 중앙 */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-[16px]">
-        {/* 🔺 경고 (0이면 안 나옴) */}
-        <CountBadge
+        <Badge
           icon={warningIcon}
           value={counts.warning}
           alt="경고 개수"
           sizeClass="w-[51px] h-[58px]"
         />
-
-        {/* 🔶 주의 (0이면 안 나옴) */}
-        <CountBadge
+        <Badge
           icon={cautionIcon}
           value={counts.caution}
           alt="주의 개수"
           sizeClass="w-[51px] h-[58px]"
         />
-
-        {/* ⚪ circle은 지금은 숨김 (나중에 값 생기면 여기 추가) */}
+        {/* circle은 나중 다른 용도로 쓸 거라 지금은 0이면 아예 표시 안 함 */}
+        <Badge
+          icon={circleIcon}
+          value={counts.total}
+          alt="전체 알림 수"
+          sizeClass="w-[52px] h-[52px]"
+        />
       </div>
-    </div>
+    </button>
   );
 }

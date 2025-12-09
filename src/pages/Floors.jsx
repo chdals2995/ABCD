@@ -5,6 +5,12 @@ import FloorsElecData from "../components/floors/FloorsElecData";
 import FloorsGasData from "../components/floors/FloorsGasData";
 import FloorsTempData from "../components/floors/FloorsTempData";
 import FloorsWaterData from "../components/floors/FloorsWaterData";
+import SelectedFloorElecData from "../components/floors/SelectedFloorElecData";
+import SelectedFloorGasData from "../components/floors/SelectedFloorGasData";
+import SelectedFloorTempData from "../components/floors/SelectedFloorTempData";
+import SelectedFloorWaterData from "../components/floors/SelectedFloorWaterData";
+import ProblemList from "../components/floors/ProblemList";
+
 import AdminLayout from "../layout/AdminLayout";
 import Floor from "../components/floors/Floor";
 
@@ -60,6 +66,7 @@ export default function Floors() {
   const [groupIndex, setGroupIndex] = useState(0);
   const [floorGroups, setFloorGroups] = useState([]);
   const [buildingName, setBuildingName] = useState("");
+  const [selectedFloor, setSelectedFloor] = useState(null); // ⬅ 선택된 층
 
   // 🔹 RTDB buildings에서 up/down 읽어서 그룹 생성
   useEffect(() => {
@@ -133,6 +140,11 @@ export default function Floors() {
     setGroupIndex((prev) => prev - 1);
   };
 
+  // 층 선택 / 해제
+  const handleSelectFloor = (floorName) => {
+    setSelectedFloor((prev) => (prev === floorName ? null : floorName));
+  };
+
   return (
     <div className="relative h-screen w-screen">
       {/* 👉 뒤 배경 (좌/우 패널만) */}
@@ -140,8 +152,17 @@ export default function Floors() {
         {/* 왼쪽 패널 */}
         <div className="w-[554px] bg-[#E7F3F8] relative">
           <div className="absolute w-[411px] right-[47px] top-[170px] flex flex-col gap-[47px]">
-            <FloorsElecData />
-            <FloorsTempData />
+            {selectedFloor ? (
+              <>
+                <SelectedFloorElecData floor={selectedFloor} />
+                <SelectedFloorTempData floor={selectedFloor} />
+              </>
+            ) : (
+              <>
+                <FloorsElecData />
+                <FloorsTempData />
+              </>
+            )}
           </div>
         </div>
 
@@ -150,9 +171,19 @@ export default function Floors() {
 
         {/* 오른쪽 패널 */}
         <div className="w-[554px] bg-[#E7F3F8] relative">
-          <div className="absolute w-[411px] left-[47px] top-[170px] flex flex-col gap-[47px]">
-            <FloorsWaterData />
-            <FloorsGasData />
+          <div className="absolute w-[411px] left-[47px] top-[170px] flex flex-col gap-[20px]">
+            {selectedFloor ? (
+              <>
+                <SelectedFloorWaterData floor={selectedFloor} />
+                <SelectedFloorGasData floor={selectedFloor} />
+                <ProblemList floor={selectedFloor} />
+              </>
+            ) : (
+              <>
+                <FloorsWaterData />
+                <FloorsGasData />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -175,7 +206,7 @@ export default function Floors() {
             <div className="relative w-[483px] h-[40px] mb-[4px]">
               {/* 건물 이름 (화살표 기준 왼쪽) */}
               {buildingName && (
-                <div className="absolute right-1/2 -translate-x-[180px] top-1/2 -translate-y-1/2 text-s font-semibold text-[#054E76] text-right whitespace-nowrap">
+                <div className="absolute right-1/2 -translate-x-[180px] top-1/2 -translate-y-1/2 text-xs font-semibold text-[#054E76] text-right whitespace-nowrap">
                   {buildingName}
                 </div>
               )}
@@ -230,7 +261,13 @@ export default function Floors() {
               <div className="w-[453px] mx-auto gap-[9px] flex flex-col">
                 {rows.map((floorName, idx) => (
                   <div key={idx} className="h-[63px] px-[16px] relative">
-                    {floorName && <Floor floor={floorName} />}
+                    {floorName && (
+                      <Floor
+                        floor={floorName}
+                        selected={selectedFloor === floorName}
+                        onClick={() => handleSelectFloor(floorName)}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
