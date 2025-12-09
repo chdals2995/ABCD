@@ -7,10 +7,10 @@ export default function Data(){
 
    return(
    <Routes>
-      <Route path="/Data/ElecData" element={<ElecData/>}/>
-      <Route path="/Data/WaterData" element={<WaterData/>}/>
-              <Route path="/Data/TempData" element={<TempData/>}/>
-              <Route path="/Data/GasData" element={<GasData/>}/>
+      <Route path="ElecData" element={<ElecData/>}/>
+      <Route path="WaterData" element={<WaterData/>}/>
+      <Route path="TempData" element={<TempData/>}/>
+      <Route path="GasData" element={<GasData/>}/>
    </Routes>
    )
 } 

@@ -1,17 +1,16 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics, isSupported } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// src/firebase/config.js (또는 .jsx / .ts)
 
-//Firestore / RTDB / Auth
+// Import the functions you need from the SDKs you need
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAnalytics, isSupported } from "firebase/analytics";
+
+// Firestore / RTDB / Auth
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FB_API_KEY,
   authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
@@ -23,16 +22,23 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+// ✅ 기본 앱 (기존대로 사용, HMR 대비)
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // 각 서비스 인스턴스 export
-export const db = getFirestore(app); // Firestore
-export const rtdb = getDatabase(app); // Realtime Database
-export const auth = getAuth(app); // Auth
+const db = getFirestore(app); // Firestore
+const rtdb = getDatabase(app); // Realtime Database
+const auth = getAuth(app); // 기본 Auth (실제 로그인/권한용)
+
+// ✅ 새 유저 생성 전용 보조 앱 (메인 auth.currentUser 안 바뀜)
+const secondaryApp =
+  getApps().find((a) => a.name === "Secondary") ||
+  initializeApp(firebaseConfig, "Secondary");
+
+const secondaryAuth = getAuth(secondaryApp);
 
 // Analytics (지원되는 환경에서만)
-export let analytics = null;
+let analytics = null;
 
 // 로그인유지를 위해
 setPersistence( auth , browserLocalPersistence).catch(console.error);
@@ -46,3 +52,5 @@ if (typeof window !== "undefined") {
   });
 }
 
+// export
+export { app, db, rtdb, auth, secondaryAuth, analytics };
