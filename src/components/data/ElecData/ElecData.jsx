@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function ElecData(){
      return(
 
@@ -10,7 +12,12 @@ export default function ElecData(){
      bottom:"0px"
      }}>
 
-    <h1>이곳은 금단의 영역... 전력 데이터!!1</h1>
+    <nav>
+     <Link style={{marginLeft:"20px"}} to="/Data/WaterData">온도</Link>
+     <Link style={{marginLeft:"20px"}} to="/Data/TempData">수도</Link>
+     <Link style={{marginLeft:"20px"}} to="/Data/GasData">가스</Link>
+    </nav>
+
     <div style={{
       width:"1619px",   
       height:"810px ", 
