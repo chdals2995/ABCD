@@ -12,16 +12,15 @@ import Floor from "../components/floors/Floor";
 import upArrow from "../assets/icons/upArrow.png";
 import downArrow from "../assets/icons/downArrow.png";
 
+// 아이콘 설명용
+import alertIcon from "../assets/icons/alert.png"; // 노란 삼각형
+import warningIcon from "../assets/icons/iconRed.png"; // 빨간 삼각형
+import questionIcon from "../assets/icons/iconQuestion.png"; // 파란 원
+
 import { rtdb } from "../firebase/config";
 import { ref, get } from "firebase/database";
 
 // 🔹 up/down 값으로 10개씩 끊어서 그룹 만들기
-//   up = "20", down = "3"  =>
-//   groups = [
-//     ["B1","B2","B3"],        // 지하 (내려가기 버튼으로 가야 하는 그룹)
-//     ["10F","9F",...,"1F"],   // 1~10층
-//     ["20F","19F",...,"11F"]  // 11~20층
-//   ]
 function buildFloorGroups(upCount, downCount) {
   const GROUP_SIZE = 10;
   const up = Number(upCount) || 0;
@@ -71,7 +70,6 @@ export default function Floors() {
         const snap = await get(ref(rtdb, "buildings"));
         if (!snap.exists()) {
           if (!isMounted) return;
-          // fallback: 20층, 지하 0층
           setFloorGroups(buildFloorGroups(20, 0));
           return;
         }
@@ -172,28 +170,60 @@ export default function Floors() {
         {/* 중앙 영역 */}
         <div className="flex-1 flex justify-center items-end">
           {/* 이 블록만 클릭되도록 pointer-events-auto */}
-          <div className="flex flex-col items-center gap-[8px] mb-[95px] pointer-events-auto">
-            {buildingName && (
-              <div className="mb-1 text-xs text-[#054E76] font-semibold">
-                {buildingName}
-              </div>
-            )}
+          <div className="flex flex-col items-center gap-[8px] pb-[45px] pointer-events-auto">
+            {/* ⬆ 화살표는 중앙, 건물 이름은 왼쪽, 아이콘 설명은 오른쪽 */}
+            <div className="relative w-[483px] h-[40px] mb-[4px]">
+              {/* 건물 이름 (화살표 기준 왼쪽) */}
+              {buildingName && (
+                <div className="absolute right-1/2 -translate-x-[70px] top-1/2 -translate-y-1/2 text-xs font-semibold text-[#054E76] text-right whitespace-nowrap">
+                  {buildingName}
+                </div>
+              )}
 
-            {/* ⬆ 위 아이콘 (위층 보기) */}
-            <button
-              type="button"
-              onClick={handleUp}
-              disabled={!canGoUp}
-              className={`p-0 bg-transparent ${
-                canGoUp ? "cursor-pointer" : "opacity-30 cursor-default"
-              }`}
-            >
-              <img
-                src={upArrow}
-                alt="위층 보기"
-                className="w-[70px] h-[33px]"
-              />
-            </button>
+              {/* 화살표 */}
+              <button
+                type="button"
+                onClick={handleUp}
+                disabled={!canGoUp}
+                className={`absolute left-1/2 -translate-x-1/2 p-0 bg-transparent ${
+                  canGoUp ? "cursor-pointer" : "opacity-30 cursor-default"
+                }`}
+              >
+                <img
+                  src={upArrow}
+                  alt="위층 보기"
+                  className="w-[70px] h-[33px]"
+                />
+              </button>
+
+              {/* 아이콘 설명 (화살표 기준 오른쪽) */}
+              <div className="absolute left-1/2 translate-x-[60px] top-1/2 -translate-y-1/2 flex items-center gap-[12px] text-[11px] text-[#054E76]">
+                <div className="flex flex-col items-center">
+                  <img
+                    src={warningIcon}
+                    alt="경고"
+                    className="w-[24px] h-[24px] mb-[2px]"
+                  />
+                  <span>경고</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={alertIcon}
+                    alt="주의"
+                    className="w-[24px] h-[24px] mb-[2px]"
+                  />
+                  <span>주의</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <img
+                    src={questionIcon}
+                    alt="요청"
+                    className="w-[24px] h-[24px] mb-[2px]"
+                  />
+                  <span>요청</span>
+                </div>
+              </div>
+            </div>
 
             {/* 🟦 회색 패널 안에 10층 빌딩 */}
             <div className="w-[483px] px-[16px] pb-[34px] pt-[18px] bg-[#DBE0E4] floorContainer">
