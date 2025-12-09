@@ -75,45 +75,50 @@ export default function BuildingEdit({building, open, close}){
                     <img src={Close} alt="닫기" className='w-[41px] h-[41px] absolute top-3 right-3'
                         onClick={()=>close()}/>
                 </div>
-                {/* 회원 정보 */}
-                <div className='flex flex-col items-end w-[75px]'>
-                    <div>
-                        <label htmlFor="name" className='text-[20px] mb-[10px]'>건물명</label>
-                        <input type="text" name="name" value={form.name} onChange={handleChange} />
-                    </div>
-                    <div className="flex justify-between">
-                        <div className="w-[100px]">
-                            <label htmlFor="up" className='text-[20px] mb-[10px]'>지상</label>
-                            <input type="number" name="up" value={form.up} onChange={handleChange} className="w-[60px]"/>
-                        </div>
-                        <div className="w-[100px]">
-                            <label htmlFor="down" className='text-[20px] mb-[10px]'>지하</label>
-                            <input type="number" name="down" value={form.down} onChange={handleChange} className="w-[60px]"/>
-                        </div>
-                    </div>
-                    <div>
-                        <label htmlFor="floors" className='text-[20px] mb-[10px]'>전체 층수</label>
-                        <input type="number" name="floors" value={form.floors} onChange={handleChange}/>
-                    </div>
-                    <div>
-                        <label htmlFor="park" className='text-[20px] mb-[10px]'>주차타워</label>
-                        <input type="radio" name="park" value="yes"
-                            checked={form.park === "yes"} onChange={handleChange}/>유
-                        <input type="radio" name="park" value="no"
-                            checked={form.park === "no"} onChange={handleChange}/>무
-                    </div>
-                    {form.park === "yes" && (
+                {/* 건물 정보 */}
+                <div className="w-[422px] h-[224px] bg-white 
+                  ml-[66px] mt-[19px] pt-[38px] px-[66px] rounded-[10px]
+                  shadow-[0px_4px_4px_rgba(0,0,0,0.25)]
+                  flex justify-between">
+                    <div className='flex flex-col items-end w-[75px]'>
                         <div>
-                            <label htmlFor="parkf" className='text-[20px] mb-[10px]'>층수</label>
-                            <input type="number" name="parkf" value={form.parkf}
-                            onChange={handleChange}/>
+                            <label htmlFor="name" className='text-[20px] mb-[10px]'>건물명</label>
+                            <input type="text" name="name" value={form.name} onChange={handleChange} />
                         </div>
+                        <div className="flex justify-between">
+                            <div className="w-[100px]">
+                                <label htmlFor="up" className='text-[20px] mb-[10px]'>지상</label>
+                                <input type="number" name="up" value={form.up} onChange={handleChange} className="w-[60px]"/>
+                            </div>
+                            <div className="w-[100px]">
+                                <label htmlFor="down" className='text-[20px] mb-[10px]'>지하</label>
+                                <input type="number" name="down" value={form.down} onChange={handleChange} className="w-[60px]"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="floors" className='text-[20px] mb-[10px]'>전체 층수</label>
+                            <input type="number" name="floors" value={form.floors} onChange={handleChange}/>
+                        </div>
+                        <div>
+                            <label htmlFor="park" className='text-[20px] mb-[10px]'>주차타워</label>
+                            <input type="radio" name="park" value="yes"
+                                checked={form.park === "yes"} onChange={handleChange}/>유
+                            <input type="radio" name="park" value="no"
+                                checked={form.park === "no"} onChange={handleChange}/>무
+                        </div>
+                        {form.park === "yes" && (
+                            <div>
+                                <label htmlFor="parkf" className='text-[20px] mb-[10px]'>층수</label>
+                                <input type="number" name="parkf" value={form.parkf}
+                                onChange={handleChange}/>
+                            </div>
+                        )}
+                    </div>
+                    {/* 에러 메시지 */}
+                    {error && (
+                        <p className="text-red-500 text-center mt-2">{error}</p>
                     )}
                 </div>
-                {/* 에러 메시지 */}
-                {error && (
-                    <p className="text-red-500 text-center mt-2">{error}</p>
-                )}
                 {/* 승인버튼 */}
                     <div className='w-[79px] mx-auto mt-[29px]'>
                         <Button onClick={SaveEdit}>저장</Button>

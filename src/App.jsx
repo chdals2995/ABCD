@@ -1,18 +1,28 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
-import Master from "./pages/Master";
 import "./App.css";
-import JoinRequest from "./components/Master/join/JoinRequest";
-import JoinRequestList from "./components/Master/join/JoinRequestList";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
+import Join from "./pages/login/Join";
+import Login from "./pages/login/Login";
+import AuthStatus from "./components/Login/contexts/AuthStatus";
+import MainPage from "./pages/MainPage";
+import { AuthProvider } from "./components/Login/contexts/AuthContext";
+import Master from "./pages/Master"
 
 function App() {
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          <Route path='/' element={<Master/>}/>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/UserMain" element={<AuthStatus />} />
+            <Route path="/Join" element={<Join />} />
+            <Route path="/main" element={<MainPage />} />
+            <Route path="/Master" element={<Master />} />
+
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </>
   );
 }

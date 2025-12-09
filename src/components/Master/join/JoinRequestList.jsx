@@ -37,7 +37,7 @@ export default function JoinRequestList() {
   return (
     <>
       <div
-        className="w-[372px] h-full px-[27px] bg-[#E7F3F8] border-[#0888D4]
+        className="w-[372px] h-[885px] px-[27px] bg-[#E7F3F8] border-[#0888D4]
                 absolute right-0 top-[68px] pt-[30px] pl-[27px]"
       >
         <p className="text-[24px] font-pyeojin">가입 신청 내역</p>
