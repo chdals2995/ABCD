@@ -52,8 +52,5 @@ if (typeof window !== "undefined") {
   });
 }
 
-<<<<<<< HEAD
-=======
 // export
 export { app, db, rtdb, auth, secondaryAuth, analytics };
->>>>>>> 9e9098909da46e2075f054fec34e8e00e2b7cba2
