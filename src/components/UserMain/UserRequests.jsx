@@ -1,9 +1,17 @@
 // src/components/UserMain/UserRequest.jsx
 
 import { useEffect, useState } from "react";
-import { ref, onValue, push, set, query, orderByChild, equalTo } from "firebase/database";
+import {
+  ref,
+  onValue,
+  push,
+  set,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 import { rtdb } from "../../firebase/config";
-import { useAuth } from "../Login/contexts/AuthContext"; // 🔹 경로는 프로젝트 구조에 맞게 조정!
+import { useAuth } from "../Login/contexts/AuthContext"; // 경로는 프로젝트 구조에 맞게!
 import Modal from "../../assets/Modal";
 import Button from "../../assets/Button";
 import CloseButton from "../../assets/CloseButton";
@@ -21,14 +29,21 @@ function formatDate(value) {
   return `${yyyy}.${mm}.${dd}`;
 }
 
+// ✅ 폼 초기값을 하나로 정의해두면 reset할 때 편함
+const INITIAL_FORM = {
+  title: "",
+  date: "",
+  floor: "",
+  room: "",
+  type: "",
+  content: "",
+};
+
 export default function UserRequest() {
-  const { user } = useAuth();                 // ✅ 현재 로그인 유저
+  const { user } = useAuth(); // ✅ 현재 로그인 유저
   const [requests, setRequests] = useState([]); // 내 민원 목록
   const [isModalOpen, setIsModalOpen] = useState(false); // 작성 모달
-  const [form, setForm] = useState({
-    title: "",
-    content: "",
-  });
+  const [form, setForm] = useState(INITIAL_FORM);
 
   // 🔹 내 민원만 구독
   useEffect(() => {
@@ -54,8 +69,14 @@ export default function UserRequest() {
           title: r.title || "",
           content: r.content || "",
           status: r.status || "접수",
+          // 🔽 추가 필드들
+          date: r.date || "",
+          floor: r.floor || "",
+          room: r.room || "",
+          type: r.type || "",
           createdAt: r.createdAt || 0,
-          dateLabel: formatDate(r.createdAt),
+          // 사용자가 입력한 date가 있으면 그걸 우선 표시, 없으면 createdAt 사용
+          dateLabel: formatDate(r.date || r.createdAt),
         }))
         .sort((a, b) => b.createdAt - a.createdAt); // 최신순
 
@@ -73,7 +94,7 @@ export default function UserRequest() {
 
   // 민원 작성 버튼 클릭 → 모달 열기
   const handleOpenModal = () => {
-    setForm({ title: "", content: "" });
+    setForm(INITIAL_FORM); // ✅ 모든 필드 초기화
     setIsModalOpen(true);
   };
 
@@ -89,8 +110,9 @@ export default function UserRequest() {
     const title = form.title.trim();
     const content = form.content.trim();
 
-    if (!title || !content) {
-      alert("제목과 내용을 모두 입력해주세요.");
+    // ✅ 새로 추가한 항목들도 필수로 체크
+    if (!title || !content || !form.date || !form.floor || !form.room || !form.type) {
+      alert("모든 항목을 입력해주세요.");
       return;
     }
 
@@ -100,14 +122,18 @@ export default function UserRequest() {
 
       await set(newRef, {
         title,
+        date: form.date,
+        floor: form.floor,
+        room: form.room,
+        type: form.type,
         content,
-        status: "접수",                // 기본 상태
+        status: "접수", // 기본 상태
         userUid: user.uid,
         userEmail: user.email || null,
         createdAt: Date.now(),
       });
 
-      setForm({ title: "", content: "" });
+      setForm(INITIAL_FORM); // ✅ 성공 후 초기화
       setIsModalOpen(false);
     } catch (err) {
       console.error(err);
@@ -145,9 +171,21 @@ export default function UserRequest() {
               key={req.id}
               className="border-b border-[#000000] text-[16px] pb-[4px]"
             >
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
+                {/* 층/호실 */}
+                <span className="w-[90px] text-[13px] truncate">
+                  {req.floor && req.room
+                    ? `${req.floor}층 ${req.room}호`
+                    : ""}
+                </span>
+
+                {/* 유형 */}
+                <span className="w-[70px] text-[13px] text-center truncate">
+                  {req.type}
+                </span>
+
                 {/* 제목 */}
-                <span className="w-[180px] font-bold truncate mr-4">
+                <span className="w-[150px] font-bold truncate mr-2">
                   {req.title}
                 </span>
 
@@ -160,7 +198,7 @@ export default function UserRequest() {
                 </span>
 
                 {/* 날짜 */}
-                <span className="w-[100px] ml-4 text-right text-[13px] whitespace-nowrap">
+                <span className="w-[90px] ml-2 text-right text-[13px] whitespace-nowrap">
                   {req.dateLabel}
                 </span>
               </div>
@@ -215,6 +253,88 @@ export default function UserRequest() {
             <CloseButton onClick={handleCloseModal} />
           </div>
 
+          {/* 날짜 */}
+          <div className="mb-3">
+            <label className="block mb-1 text-[18px]">요청 일자</label>
+            <input
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              className="
+                w-full h-[36px]
+                bg-white
+                px-3
+                shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                outline-none
+                text-[16px]
+              "
+            />
+          </div>
+
+          {/* 층 / 호실 */}
+          <div className="mb-3 flex gap-3">
+            <div className="flex-1">
+              <label className="block mb-1 text-[18px]">층</label>
+              <input
+                name="floor"
+                value={form.floor}
+                onChange={handleChange}
+                placeholder="예: 10"
+                className="
+                  w-full h-[36px]
+                  bg-white
+                  px-3
+                  shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                  outline-none
+                  text-[16px]
+                "
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block mb-1 text-[18px]">호실</label>
+              <input
+                name="room"
+                value={form.room}
+                onChange={handleChange}
+                placeholder="예: 1003"
+                className="
+                  w-full h-[36px]
+                  bg-white
+                  px-3
+                  shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                  outline-none
+                  text-[16px]
+                "
+              />
+            </div>
+          </div>
+
+          {/* 유형 */}
+          <div className="mb-4">
+            <label className="block mb-1 text-[18px]">민원 유형</label>
+            <select
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              className="
+                w-full h-[36px]
+                bg-white
+                px-3
+                shadow-[0_2px_3px_rgba(0,0,0,0.25)]
+                outline-none
+                text-[16px]
+              "
+            >
+              <option value="">선택하세요</option>
+              <option value="전기">전기</option>
+              <option value="수도">수도</option>
+              <option value="가스">가스</option>
+              <option value="냉난방">냉난방</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+
           {/* 제목 */}
           <div className="mb-4">
             <label className="block mb-1 text-[20px]">제목</label>
@@ -244,7 +364,7 @@ export default function UserRequest() {
               placeholder="내용을 입력 하세요"
               className="
                 w-full
-                h-[225px]
+                h-[160px]
                 bg-white
                 px-3 py-2
                 shadow-[0_2px_3px_rgba(0,0,0,0.25)]

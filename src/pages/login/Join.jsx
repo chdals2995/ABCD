@@ -3,7 +3,6 @@ import { useState } from "react";
 import { auth, rtdb } from "../../firebase/config";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, set } from "firebase/database";
-import { RecaptchaVerifier} from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logos/logo.png";
 
@@ -20,7 +19,7 @@ export default function Join() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(""); 
-   const [agreeTerms, setAgreeTerms] = useState(false);   // 약관동의 체크
+  const [agreeTerms, setAgreeTerms] = useState(false);   // 약관동의 체크
   const [showTerms, setShowTerms] = useState(true);      // ✅ 약관 화면 보이기/숨기기
 
   // 공통 인풋 변경 핸들러
@@ -28,24 +27,8 @@ export default function Join() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
 };
-
-  // ✅ reCAPTCHA 설정
-  function setupRecaptcha() {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: (response) => {
-            console.log("reCAPTCHA solved:", response);
-          },
-        }
-      );
-    }
-  }
   
-  // ✅ 최종 회원가입 (이메일 + 비밀번호 + RTDB + 휴대폰 인증 여부 체크)
+  // ✅ 최종 회원가입 (이메일 + 비밀번호 + RTDB)
  const handleSubmit = async (e) => {
   e.preventDefault();
   setMessage("");
@@ -107,8 +90,6 @@ export default function Join() {
       password: "",
       name: ""
     });
-    setVerificationCode("");
-    setIsCodeSent(false);
   } catch (error) {
     console.error("❌ 회원가입 중 오류:", error);
     setMessage("회원가입 중 오류가 발생했습니다.");
@@ -116,16 +97,6 @@ export default function Join() {
     setLoading(false);
   }
 };
-
-  const passBox = document.querySelector("#passBox");
-
-    if(form.password.length > 6){
-    passBox.style.border = "3px solid rgba(0,0,0,0.3)"
-    }
-
-    if(form.password.length < 6 && form.password.length == 1){
-    passBox.style.border = "3px solid red"
-    }
 
   return (
     <div>
@@ -251,7 +222,7 @@ export default function Join() {
       </div>
     )}
     
-      {/* ✅ reCAPTCHA 컨테이너 (DOM 안에 반드시 있어야 함) */}
+      
       <div id="recaptcha-container"></div>
       <img src={logo} style={{
         position:"absolute", 
@@ -261,7 +232,7 @@ export default function Join() {
         height:"128px"
         }} alt="로고이미지" />
 
-      <form onSubmit={handleSubmit}>
+      <form noValidate onSubmit={handleSubmit}>
 
         <div
           style={{
@@ -351,23 +322,27 @@ export default function Join() {
             비밀번호
           </label>
           <input
-            id="passBox"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            style={{
-              border:"3px solid rgba(0,0,0,0.3)",
-              width: "569px",
-              lineHeight: "68px",
-              textIndent: "40px",
-              borderRadius: "10px",
-              marginTop: "10px",
-              fontSize: "24px",
-            }}
-            placeholder="비밀번호 입력(6자 이상)"
-            required
-          />
+  id="passBox"
+  name="password"
+  type="password"
+  value={form.password}
+  onChange={handleChange}
+  style={{
+    border: form.password.length === 0
+      ? "3px solid rgba(0,0,0,0.3)"
+      : form.password.length < 6
+      ? "3px solid red"
+      : "3px solid rgba(0,0,0,0.3)",
+    width: "569px",
+    lineHeight: "68px",
+    textIndent: "40px",
+    borderRadius: "10px",
+    marginTop: "10px",
+    fontSize: "24px",
+  }}
+  placeholder="비밀번호 입력(6자 이상)"
+  required
+/>
           </div>
 
 
@@ -385,7 +360,6 @@ export default function Join() {
               fontSize: "20px",
               color: "white",
               cursor: "pointer",
-              transform: "translateX(-50%)", 
               position:"absolute",
               bottom:"-80px",
               left:"50%",

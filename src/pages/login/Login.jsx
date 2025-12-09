@@ -170,7 +170,7 @@ useEffect(() => {
         />
         <p id="errorMessage" style={{
         fontSize:"20px",
-        diplay:"block",
+        display:"block",
         position:"absolute",
         left:"50%",
         transform:"translateX(-50%)",
