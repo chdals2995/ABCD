@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import TypeData from "./type_data.jsx";
+import AdminLayout from "../layout/AdminLayout.jsx";
 
 export default function Problems({ alerts = [] }) {
 
@@ -24,6 +25,7 @@ export default function Problems({ alerts = [] }) {
 
   return (
     <div className="w-full h-full p-6">
+      <AdminLayout />
 
       {/* A. 문제 유형 차트 */}
       <div className="mr-[163.17px]">
