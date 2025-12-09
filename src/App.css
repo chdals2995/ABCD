@@ -1,0 +1,14 @@
+*{
+box-sizing:border-box
+}
+
+.phone-input::-webkit-inner-spin-button,
+.phone-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.phone-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

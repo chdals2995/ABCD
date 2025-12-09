@@ -7,7 +7,8 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 // Firestore / RTDB / Auth
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -38,6 +39,10 @@ const secondaryAuth = getAuth(secondaryApp);
 
 // Analytics (지원되는 환경에서만)
 let analytics = null;
+
+// 로그인유지를 위해
+setPersistence( auth , browserLocalPersistence).catch(console.error);
+
 
 if (typeof window !== "undefined") {
   isSupported().then((ok) => {
