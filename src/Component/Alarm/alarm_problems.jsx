@@ -1,79 +1,64 @@
-import cautionIcon from "../../icons/Alert_triangle.png";
-import warningIcon from "../../icons/Alert_triangle_red.png";
-
-// metric → 한글 변환
-const metricMap = {
-  water: "수도",
-  power: "전력",
-  gas: "가스",
-  temp: "온도",
-};
-
-// reason → 설명문 변환
-const reasonMap = {
-  strong_overload_from_caution: "과부하 가능성이 감지되었습니다.",
-};
+import { useState } from "react";
 
 export default function AlarmProblems({ items = [] }) {
-  // UI 섹션 구성
-  const sections = [
-    { level: "경고", icon: warningIcon },
-    { level: "주의", icon: cautionIcon },
-  ];
+  const [sortOrder, setSortOrder] = useState("latest");
 
-  // items는 Alarm.jsx에서 이미 변환된 alerts 목록이 들어올 것
-  const problemList = items.map((a) => ({
-    id: a.id,
-    floor: a.floor,
-    level: a.level, // "문제" | "경고" | "주의"
-    metric: metricMap[a.metric] ?? a.metric,
-    reason: reasonMap[a.reason] ?? a.reason,
-    date: new Date(a.createdAt).toLocaleString(),
-  }));
+  const sorted = [...items].sort((a, b) =>
+    sortOrder === "latest" ? b.createdAt - a.createdAt : a.createdAt - b.createdAt
+  );
 
   return (
-    <div className="w-[335px] min-h-[698px] bg-white px-[15px] py-[10px] text-black">
+    <div className="w-[335px] h-[698px] px-[15px] bg-white pt-[20px]">
 
-      {sections.map((sec, idx) => (
-        <div key={idx} className="mb-6">
+      {/* 정렬 */}
+      <div className="flex justify-end mb-[20px] gap-[10px] text-[14px]">
+        <button
+          onClick={() => setSortOrder("latest")}
+          className={`${sortOrder === "latest" ? "font-bold text-[#054e76]" : "text-gray-500"} hover:underline`}
+        >
+          최신순
+        </button>
 
-          {/* 섹션 제목 */}
-          <div className="flex items-center gap-2 mb-2">
-            <img src={sec.icon} className="w-[18px] h-[18px]" />
-            <span className="text-[20px]">{sec.level}</span>
-          </div>
+        <span className="text-gray-400">|</span>
 
-          {/* 해당 level 알림만 출력 */}
-          {problemList
-            .filter((p) => p.level === sec.level)
-            .map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between border-b border-[#e5e5e5] py-2"
-              >
-                <div className="flex flex-col">
-                  <span className="text-[16px] w-[200px] whitespace-nowrap overflow-hidden text-ellipsis">
-                    [{item.metric}] {item.reason}
-                  </span>
+        <button
+          onClick={() => setSortOrder("old")}
+          className={`${sortOrder === "old" ? "font-bold text-[#054e76]" : "text-gray-500"} hover:underline`}
+        >
+          오래된순
+        </button>
+      </div>
 
-                  <span className="text-[12px] text-gray-400 mt-1">
-                    {item.floor} · {item.date}
-                  </span>
-                </div>
-              </div>
-            ))
-          }
+      {/* 리스트 */}
+      {sorted.map((item, idx) => (
+        <div key={idx} className="flex flex-col gap-1 pb-[18px]">
 
-          {/* 안내문구 */}
-          <div className="w-full flex flex-col items-center py-3">
-            <span className="text-[13px] text-gray-400 mb-1">
-              아래로 스크롤하여 더 보기
+          <div className="flex items-center gap-2">
+
+             {/* 신규 알림일 때만 빨간 점 표시 */}
+              {item.shouldBlink && (
+                <span
+                  className="w-2.5 h-2.5 rounded-full bg-[#FF0004] blink-dot"
+                ></span>
+              )}
+
+
+            <span className="text-[16px] font-medium">
+              [{item.level}] {item.metric}
             </span>
-            <span className="text-[20px] text-gray-400 arrow-bounce">↓</span>
           </div>
+
+          <span className="text-[14px] text-gray-600 ml-[14px]">
+            {item.reason}
+          </span>
+
+          <span className="text-[12px] text-gray-400 ml-[14px]">
+            {item.floor} · {new Date(item.createdAt).toLocaleString()}
+          </span>
 
         </div>
       ))}
+
     </div>
   );
 }

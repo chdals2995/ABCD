@@ -84,8 +84,10 @@ export default function Alarm() {
   };
 
   const reasonMap = {
-    strong_overload_from_caution: "과부하 가능성이 감지되었습니다.",
-  };
+  strong_overload_from_caution: "과부하 가능성이 감지되었습니다.",
+  strong_overload_from_normal: "기준치를 크게 초과한 이상 수치가 감지되었습니다.",  
+};
+
 
   // 변환된 알림 리스트
   const converted = alerts.map((a) => ({
