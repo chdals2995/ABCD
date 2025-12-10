@@ -1,7 +1,8 @@
 import Mdata from "./Mdata";
 import Ddata from "./Ddata";
-import Modal from "../../../assets/Modal";
 import { useState } from "react";
+import DataModal from "../DataModal";
+import CloseButton from "../../../assets/CloseButton";
 
 export default function Sdata(){
 const [isOpen, setIsOpen] = useState(false); // 모달 (여 / 닫힘)
@@ -25,12 +26,26 @@ const closeModal = () => {
 }
 
     return(
-        <div>
-         <h1>Sdata</h1>
-         <button onClick={openDayModal} className="cursor-pointer">단위(일)</button>
-         <button onClick={openMonthModal} className="cursor-pointer">단위(월)</button>
+        <div className="flex h-full flex-col text-sm">
+         <div className="flex items-center justify-between mb-1">
+        <h2 className="font-semibold text-base">Sdata</h2>
+        <div className="space-x-2">
+        <button
+            onClick={openDayModal}
+            className="px-2 py-1 text-xs border rounded"
+          >
+            단위(일)
+          </button>
+          <button
+            onClick={openMonthModal}
+            className="px-2 py-1 text-xs border rounded"
+          >
+            단위(월)
+          </button>
+        </div>
+      </div>
            {/* 🔹 Modal에 isOpen, onClose, children 전달 */}
-      <Modal isOpen={isOpen} onClose={closeModal}>
+      <DataModal isOpen={isOpen} onClose={closeModal}>
         <div className="w-full h-full flex flex-col">
           {/* 상단 헤더 */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-[#054E76]">
@@ -67,13 +82,16 @@ const closeModal = () => {
               </button>
             </div>
 
-            {/* 닫기 버튼 */}
-            <button
+            <CloseButton onClick={closeModal}/>
+
+            
+            {/* <button                       ============================ 닫기버튼 ============================
               onClick={closeModal}
               className="px-2 py-1 border border-[#054E76] rounded text-sm"
             >
               닫기
-            </button>
+            </button> */}
+            
           </div>
 
           {/* 내용 영역 - Ddata / Mdata 중 하나 렌더링 */}
@@ -81,7 +99,7 @@ const closeModal = () => {
             {mode === "day" ? <Ddata /> : <Mdata />}
           </div>
         </div>
-      </Modal>
+      </DataModal>
       <Ddata />
     </div>
         )
