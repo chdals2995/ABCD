@@ -57,8 +57,8 @@ export default function MainBuilding({floors = 10}){
       setFloorGroups(finalGroups);
 
       // 🔥 alerts & requests 저장
-      if (alertsSnapshot.exists()) setAlertList(Object.values(alertsSnapshot.val()));
-      if (reqSnapshot.exists()) setRequestList(Object.values(reqSnapshot.val()));
+      if (alerts.exists()) setAlertList(Object.values(alerts.val()));
+      if (requests.exists()) setRequestList(Object.values(requests.val()));
     };
       
     fetchBuilding();
@@ -69,7 +69,7 @@ export default function MainBuilding({floors = 10}){
   const getGroupCounts = (group) => {
     let warning = 0; // 경고
     let caution = 0; // 주의
-    let request = 0; // 요청
+    let requests = 0; // 요청
 
     // -------------------------
     // ① 경고(alerts) 카운트
@@ -80,15 +80,11 @@ export default function MainBuilding({floors = 10}){
       let floorNumber = 0;
 
       if (group.type === "basement") {
-        // 지하층: floor = "B3" 이런 형식
-        if (a.floor.startsWith("B")) {
-          floorNumber = Number(a.floor.replace("B", ""));
-        } else return;
+        if (!a.floor.startsWith("B")) return;
+        floorNumber = Number(a.floor.replace("B", ""));
       } else {
-        // 지상층: "12F" → 12
-        if (a.floor.endsWith("F")) {
-          floorNumber = Number(a.floor.replace("F", ""));
-        } else return;
+        if (!a.floor.endsWith("F")) return;
+        floorNumber = Number(a.floor.replace("F", ""));
       }
 
       // 그룹 범위 안에 포함되면 카운트
@@ -107,21 +103,19 @@ export default function MainBuilding({floors = 10}){
       let floorNumber = 0;
 
       if (group.type === "basement") {
-        if (r.floor.startsWith("B")) {
-          floorNumber = Number(r.floor.replace("B", ""));
-        } else return;
+        if (!r.floor.startsWith("B")) return;
+        floorNumber = Number(r.floor.replace("B", ""));
       } else {
-        if (r.floor.endsWith("F")) {
-          floorNumber = Number(r.floor.replace("F", ""));
-        } else return;
+        if (!r.floor.endsWith("F")) return;
+        floorNumber = Number(r.floor.replace("F", ""));
       }
 
       if (floorNumber >= group.start && floorNumber <= group.end) {
-        request++;
+        requests++;
       }
     });
 
-    return { caution, warning, request };
+    return { warning, caution, requests };
   };
 
 
@@ -130,7 +124,10 @@ export default function MainBuilding({floors = 10}){
         <div style={{ backgroundImage: `url(${Building})` }}
         className="w-[350px] h-[665px] bg-cover bg-center relative">
             {/* 층분할 */}
-            {floorGroups.map((group) => (
+            {floorGroups.map((group) => {
+                const { warning, caution, requests } = countGroupItems(group);
+
+                return (
                 <div
                     key={`${group.type}-${group.start}-${group.end}`}
                     className="border hover:bg-[#054E76]/50 group relative z-2"
@@ -140,7 +137,7 @@ export default function MainBuilding({floors = 10}){
                     <div className="font-pyeojin group-hover:text-white ml-[10px] mt-[10px]">
                         {/* 지하 */}
                         {group.type === "basement"
-                        ? `${group.labelStart}층 ~ ${group.labelEnd}층`
+                        ? `${group.end}층 ~ ${group.start}층`
                         : `${group.start}층 ~ ${group.end}층`}
                     </div>
                     {/* 아이콘 표시 */}
