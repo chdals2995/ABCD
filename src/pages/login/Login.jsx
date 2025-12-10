@@ -128,7 +128,7 @@ useEffect(() => {
           alt="logo"
         />
 
-        {/* 이메일 입력 */}
+        {/* 아이디 입력 */}
         <input
           id="loginEmail"
           type="text"
@@ -145,7 +145,7 @@ useEffect(() => {
             marginLeft: "50%",
             transform: "translateX(-50%)",
           }}
-          placeholder="이메일"
+          placeholder="아이디"
         /> 
 
         {/* 비밀번호 입력 */}
@@ -174,8 +174,7 @@ useEffect(() => {
         position:"absolute",
         left:"50%",
         transform:"translateX(-50%)",
-        color : emailError ? "red" : "transparent",
-        color : passError ? "red" : "transparent",
+        color : passError || emailError ? "red" : "transparent",
         }}>
         아이디 또는 비밀번호가 틀렸습니다.
         </p>
