@@ -3,19 +3,24 @@ import AlarmRequest from "./alarm_request.jsx";
 import AlarmProblems from "./alarm_problems.jsx";
 import AdminLayout from "../../layout/AdminLayout.jsx";
 
+
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
 
+
 export default function Alarm() {
   const [tab, setTab] = useState("request");
+
 
   // ============================
   //  요청사항 데이터 (requests)
   // ============================
   const [requestList, setRequestList] = useState([]);
 
+
   useEffect(() => {
     const reqRef = ref(rtdb, "requests");
+
 
     return onValue(reqRef, (snapshot) => {
       const data = snapshot.val();
@@ -23,6 +28,7 @@ export default function Alarm() {
         setRequestList([]);
         return;
       }
+
 
       const list = Object.entries(data).map(([id, r]) => ({
         id,
@@ -35,20 +41,25 @@ export default function Alarm() {
         createdAt: r.createdAt || 0,
       }));
 
+
       // 최신순 정렬
       list.sort((a, b) => b.createdAt - a.createdAt);
+
 
       setRequestList(list);
     });
   }, []);
+
 
   // ============================
   //  문제 알림(alerts) 데이터
   // ============================
   const [problemList, setProblemList] = useState([]);
 
+
   useEffect(() => {
     const alertsRef = ref(rtdb, "alerts");
+
 
     return onValue(alertsRef, (snapshot) => {
       const raw = snapshot.val();
@@ -57,9 +68,11 @@ export default function Alarm() {
         return;
       }
 
+
       const arr = [];
       Object.entries(raw).forEach(([floor, items]) => {
         if (!items) return;
+
 
         Object.entries(items).forEach(([dateKey, dayAlerts]) => {
           if (typeof dayAlerts === "object") {
@@ -75,13 +88,16 @@ export default function Alarm() {
         });
       });
 
+
       setProblemList(arr);
     });
   }, []);
 
+
   return (
     <div className="w-full h-full p-6">
       <AdminLayout />
+
 
       <div
         className="
@@ -108,6 +124,7 @@ export default function Alarm() {
               요청
             </div>
 
+
             {/* 문제 탭 */}
             <div
               className={`
@@ -123,6 +140,7 @@ export default function Alarm() {
             </div>
           </div>
 
+
           {/* 내용 영역 */}
           <div className="w-[335px] h-[770px] overflow-y-auto bg-white scrollbar-hide scroll-area">
             {tab === "request" && <AlarmRequest items={requestList} />}
@@ -132,6 +150,7 @@ export default function Alarm() {
       </div>
     </div>
 
-    
+
+   
   );
 }
