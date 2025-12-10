@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../../firebase/config"; // Firebase 설정 파일에서 rtdb 가져오기
-import '../../index.css';
+import '../../index.css'; // CSS 파일에 애니메이션이 정의되어 있어야 합니다.
 
 export default function AlarmRequest() {
   const [items, setItems] = useState([]); // 알람 데이터 저장 상태
@@ -41,8 +41,6 @@ export default function AlarmRequest() {
       : a.createdAt - b.createdAt // 오래된순
   );
 
-  
-
   return (
     <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
       {/* 정렬 버튼 */}
@@ -66,13 +64,17 @@ export default function AlarmRequest() {
 
       {/* 알람 리스트 (SCROLL_CONTAINER 클래스 적용) */}
       <div className="SCROLL_CONTAINER flex flex-col gap-4">
-        {/* 항목들 간 간격을 4로 설정, */}
+        {/* 항목들 간 간격을 4로 설정 */}
         {sorted.map((item) => (
-          <div key={item.id} className="flex justify-between items-center py-2 pb-1 border-b border-gray-300">
+          <div
+            key={item.id}
+            className="flex justify-between items-center py-2 pb-4 border-b border-gray-300"
+          >
             {/* 왼쪽: 제목 및 내용 */}
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 "></span> {/* 상태에 따른 색상 적용 */}
-              <span className="text-[16px] font-medium">
+              {/* 빨간 점 애니메이션 */}
+              {item.status === "접수" && <span className="blink-dot"></span>}
+              <span className="text-[16px] font-medium leading-6">
                 {item.title || item.content} {/* 제목이 없으면 내용 표시 */}
               </span>
             </div>
