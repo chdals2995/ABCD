@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-@import "tailwindcss";
-=======
 *{
 box-sizing:border-box
 }
@@ -15,4 +12,3 @@ box-sizing:border-box
   -moz-appearance: textfield;
   appearance: textfield;
 }
->>>>>>> b0ea8099eabf01cebd25e1e6ec22cea77d1fdd52
