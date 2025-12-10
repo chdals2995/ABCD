@@ -246,18 +246,28 @@ export default function Floors() {
     setSelectedFloor((prev) => (prev === floorName ? null : floorName));
   };
 
+  // 🔸 배경 클릭 시(빨간 박스 바깥 클릭) 선택 해제
+  const handleBackgroundClick = () => {
+    if (selectedFloor) {
+      setSelectedFloor(null);
+    }
+  };
+
   // 🔸 모달 닫기
   const closeLargeChart = () => setLargeChart(null);
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative h-screen w-screen" onClick={handleBackgroundClick}>
       {/* 👉 뒤 배경 (좌/우 패널만) */}
       <div className="absolute inset-0 flex z-0">
         {/* 왼쪽 패널 */}
         <div className="w-[554px] bg-[#E7F3F8] relative">
           {/* 현재 그룹 범위 라벨 (예: 1층-10층 / 종합 데이터) */}
           {!selectedFloor && groupRangeLabel && (
-            <div className="absolute w-[280px] right-0 top-[100px] flex justify-center">
+            <div
+              className="absolute w-[280px] right-0 top-[100px] flex justify-center"
+              onClick={(e) => e.stopPropagation()} // 이 안 클릭해도 선택 유지
+            >
               <div className="text-xl font-bold text-[#054E76] leading-tight text-center">
                 <div>{groupRangeLabel.top}</div>
                 <div>{groupRangeLabel.bottom}</div>
@@ -267,14 +277,21 @@ export default function Floors() {
 
           {/* 선택된 층일 때 라벨: "5층 데이터", "지하 2층 데이터" 등 */}
           {selectedFloor && (
-            <div className="absolute w-[280px] right-0 top-[100px] flex justify-center">
+            <div
+              className="absolute w-[280px] right-0 top-[100px] flex justify-center"
+              onClick={(e) => e.stopPropagation()} // 제목 영역 클릭해도 선택 유지
+            >
               <div className="text-xl font-bold text-[#054E76] leading-tight text-center">
                 {buildSelectedFloorLabel(selectedFloor)}
               </div>
             </div>
           )}
 
-          <div className="absolute w-[411px] right-[47px] top-[170px] flex flex-col gap-[47px]">
+          {/* 🔹 왼쪽 그래프 영역 전체 (빨간 박스 구역) */}
+          <div
+            className="absolute w-[411px] right-[47px] top-[170px] flex flex-col gap-[47px]"
+            onClick={(e) => e.stopPropagation()}
+          >
             {selectedFloor ? (
               <>
                 <ProblemList floor={selectedFloor} />
@@ -307,7 +324,11 @@ export default function Floors() {
 
         {/* 오른쪽 패널 */}
         <div className="w-[554px] bg-[#E7F3F8] relative">
-          <div className="absolute w-[411px] left-[47px] top-[170px] flex flex-col gap-[20px]">
+          {/* 🔹 오른쪽 그래프 영역 전체 (빨간 박스 구역) */}
+          <div
+            className="absolute w-[411px] left-[47px] top-[170px] flex flex-col gap-[20px]"
+            onClick={(e) => e.stopPropagation()}
+          >
             {selectedFloor ? (
               <>
                 <SelectedFloorWaterData floor={selectedFloor} />
@@ -335,7 +356,10 @@ export default function Floors() {
       </div>
 
       {/* 👉 Admin 레이아웃 (메뉴/탑바) */}
-      <div className="relative z-10">
+      <div
+        className="relative z-10"
+        onClick={(e) => e.stopPropagation()} // 레이아웃 클릭해도 선택 안 풀리게
+      >
         <AdminLayout />
       </div>
 
@@ -347,7 +371,10 @@ export default function Floors() {
         {/* 중앙 영역 */}
         <div className="flex-1 flex justify-center items-end">
           {/* 이 블록만 클릭되도록 pointer-events-auto */}
-          <div className="flex flex-col items-center gap-[8px] pb-[45px] pointer-events-auto">
+          <div
+            className="flex flex-col items-center gap-[8px] pb-[45px] pointer-events-auto"
+            onClick={(e) => e.stopPropagation()} // 중앙 빌딩(빨간 박스) 안 클릭은 선택 유지
+          >
             {/* ⬆ 화살표는 중앙, 건물 이름은 왼쪽, 아이콘 설명은 오른쪽 */}
             <div className="relative w-[483px] h-[40px] mb-[4px]">
               {/* 건물 이름 (화살표 기준 왼쪽) */}
@@ -444,7 +471,11 @@ export default function Floors() {
       {/* 🔸 전체 층 그래프 모달 */}
       {largeChart && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-          <div className="relative bg-white rounded-[18px] shadow-lg w-[1100px] max-w-[95vw] h-[650px] max-h-[90vh] px-6 py-5 flex flex-col">
+          {/* 카드 영역 안은 클릭해도 선택 안 풀리게 */}
+          <div
+            className="relative bg-white rounded-[18px] shadow-lg w-[1100px] max-w-[95vw] h-[650px] max-h-[90vh] px-6 py-5 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* 닫기 버튼 */}
             <button
               type="button"
