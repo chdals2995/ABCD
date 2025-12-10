@@ -21,7 +21,7 @@ export default function Menu(){
                     ${open ? "translate-x-0" : "-translate-x-[372px]"} `}>
                     <img src={logo} alt="메뉴안로고" 
                         className='w-[216px] h-[84px] m-auto my-[20px]'/>
-                    <div className='blueBox w-[318px] h-[600px] bg-[#E6EEF2] m-auto p-[15px]
+                    <div className='blueBox w-[318px] h-[600px] bg-[#E7F3F8] m-auto p-[15px]
                         border-[#0888D4] border-2'>
                         {/* 콘텐츠 */}
                         <div className='content'>
