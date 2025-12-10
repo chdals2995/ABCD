@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom";  
 import Alarm from "./Component/Alarm/Alarm";
 import "./App.css";
 import Join from "./pages/login/Join";
@@ -6,24 +6,23 @@ import Login from "./pages/login/Login";
 import AuthStatus from "./components/Login/contexts/AuthStatus";
 import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
-import Master from "./pages/Master"
 
 function App() {
   return (
-    <>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/UserMain" element={<AuthStatus />} />
-            <Route path="/Join" element={<Join />} />
-            <Route path="/main" element={<MainPage />} />
-            <Route path="/Master" element={<Master />} />
+    <AuthProvider>
+      <Routes>
+        {/* 로그인 관련 */}
+        <Route path="/" element={<Login />} />
+        <Route path="/Join" element={<Join />} />
+        <Route path="/UserMain" element={<AuthStatus />} />
 
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </>
+        {/* 메인 페이지 */}
+        <Route path="/main" element={<MainPage />} />
+
+        {/* 알람 페이지 */}
+        <Route path="/alarm" element={<Alarm />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 

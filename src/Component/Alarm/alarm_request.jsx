@@ -1,24 +1,23 @@
-// src/Component/Alarm/AlarmRequest.jsx
-
 import { useEffect, useState } from "react";
-import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
+import { rtdb } from "../../firebase/config"; // Firebase 설정 파일에서 rtdb 가져오기
 
 export default function AlarmRequest() {
-  
-  const [items, setItems] = useState([]);
-  const [sortOrder, setSortOrder] = useState("latest");
+  const [items, setItems] = useState([]); // 알람 데이터 저장 상태
+  const [sortOrder, setSortOrder] = useState("latest"); // 정렬 순서 상태
 
   useEffect(() => {
-    const requestsRef = ref(rtdb, "requests");
+    const requestsRef = ref(rtdb, "requests"); // Firebase의 'requests' 경로에서 데이터 읽기
 
+    // 데이터 실시간 구독 (변경될 때마다 자동으로 실행)
     return onValue(requestsRef, (snapshot) => {
-      const data = snapshot.val();
+      const data = snapshot.val(); // 데이터 가져오기
       if (!data) {
-        setItems([]);
+        setItems([]); // 데이터가 없으면 빈 배열로 설정
         return;
       }
 
+      // 데이터를 원하는 형태로 가공
       const list = Object.entries(data).map(([id, v]) => ({
         id,
         title: v.title || "",
@@ -26,24 +25,24 @@ export default function AlarmRequest() {
         status: v.status || "접수",
         floor: v.floor || "",
         room: v.room || "",
-        type: v.type || "",
-        createdAt: Number(v.createdAt) || 0,
+        createdAt: Number(v.createdAt) || 0, // createdAt 값이 없으면 0으로 처리
       }));
 
-      setItems(list);
+      setItems(list); // 상태에 데이터 저장
     });
   }, []);
 
+  // 정렬 로직 (최신순, 오래된순)
   const sorted = [...items].sort((a, b) =>
-    sortOrder === "latest"
+    sortOrder === "latest" // 최신순
       ? b.createdAt - a.createdAt
-      : a.createdAt - b.createdAt
+      : a.createdAt - b.createdAt // 오래된순
   );
 
   return (
     <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
 
-      {/* 정렬 */}
+      {/* 정렬 버튼 */}
       <div className="flex justify-end mb-[10px] gap-[10px] text-[14px]">
         <button
           onClick={() => setSortOrder("latest")}
@@ -62,18 +61,19 @@ export default function AlarmRequest() {
         </button>
       </div>
 
-      {/* 리스트 */}
+      {/* 알람 리스트 */}
       {sorted.map((item) => (
         <div key={item.id} className="flex justify-between items-center pb-[15px] border-b border-gray-300">
 
+          {/* 왼쪽: 제목 및 내용 */}
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0004]"></span>
-
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF0004]"></span> {/* 상태에 따른 색상 적용 */}
             <span className="text-[16px] font-medium">
-              {item.title || item.content}
+              {item.title || item.content} {/* 제목이 없으면 내용 표시 */}
             </span>
           </div>
 
+          {/* 오른쪽: 상태별 색상 */}
           <span
             className={`text-[14px] font-semibold
               ${item.status === "접수" ? "text-green-600" : ""}
@@ -81,7 +81,7 @@ export default function AlarmRequest() {
               ${item.status === "완료" ? "text-blue-600" : ""}
             `}
           >
-            {item.status}
+            {item.status} {/* 상태 값 표시 */}
           </span>
         </div>
       ))}
