@@ -11,7 +11,7 @@ import {
   onValue,
 } from "firebase/database";
 
-const MAX_POINTS = 60;
+const MAX_POINTS = 30;
 
 function formatDateKey(date) {
   const y = date.getFullYear();
@@ -37,6 +37,15 @@ function getYAxisRange(values) {
   let yMax = maxVal + range / 3;
   if (yMin < 0) yMin = 0;
   return { yMin, yMax };
+}
+
+// "HH:mm" → 분만 추출
+function getMinuteFromLabel(label) {
+  if (!label) return null;
+  const parts = String(label).split(":");
+  if (parts.length < 2) return null;
+  const minute = Number(parts[1]);
+  return Number.isFinite(minute) ? minute : null;
 }
 
 export default function SelectedFloorGasData({ floor }) {
@@ -75,7 +84,7 @@ export default function SelectedFloorGasData({ floor }) {
 
           const value = v.gasAvg ?? v.gasSum ?? v.gas ?? 0;
 
-          labels.push(key.slice(0, 5));
+          labels.push(key.slice(0, 5)); // "HH:mm"
           values.push(Number(value) || 0);
         });
 
@@ -124,33 +133,43 @@ export default function SelectedFloorGasData({ floor }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y ?? 0;
-            return ` ${v.toLocaleString()} ℓ`;
+            return ` ${v.toLocaleString()} kWh`;
           },
         },
       },
     },
     scales: {
       x: {
-        title: { display: true, text: "시간 (분 단위)" },
+        title: { display: true, text: "시간 (10분 단위)" },
+        ticks: {
+          autoSkip: false, // ✅ 자동 건너뛰기 끄기
+          callback: function (value) {
+            // ✅ 실제 라벨 문자열을 안전하게 가져오기
+            const label = this.getLabelForValue(value);
+            const minute = getMinuteFromLabel(label);
+            if (minute == null || minute % 10 !== 0) return ""; // 10분 단위만 표시
+            return label;
+          },
+        },
       },
       y: {
         min: yMin,
         max: yMax,
         beginAtZero: false,
-        title: { display: true, text: "가스 사용량 (ℓ)" },
+        title: { display: true, text: "전기 사용량 (kWh)" },
       },
     },
   };
 
   return (
-    <div className="w-full border border-gray-200 rounded-[10px] bg-white px-4 py-3 h-[220px]">
+    <div className="w-full h-full border border-gray-200 rounded-[10px] bg-white px-4 py-3">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold">{floor} 가스 사용 (실시간)</h2>
         {loading && (
           <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
         )}
       </div>
-      <div className="w-full h-[160px]">
+      <div className="w-full h-[260px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
             실시간 가스 데이터가 없습니다.

@@ -77,6 +77,47 @@ function buildAllFloors(upCount, downCount) {
   return floors;
 }
 
+// 🔹 현재 그룹이 몇 층~몇 층인지 텍스트(위/아래 두 줄)로 만들어 주는 함수
+function buildGroupRangeLabel(currentFloors) {
+  const floors = (currentFloors || []).filter(Boolean);
+  if (!floors.length) return null;
+
+  const parsed = floors
+    .map((name) => {
+      if (typeof name !== "string") return null;
+
+      // 지하: "B3" → { type: "basement", n: 3 }
+      if (name.startsWith("B")) {
+        const n = parseInt(name.slice(1), 10);
+        if (!Number.isFinite(n)) return null;
+        return { type: "basement", n };
+      }
+
+      // 지상: "10F" → { type: "ground", n: 10 }
+      const n = parseInt(name.replace(/[^0-9]/g, ""), 10);
+      if (!Number.isFinite(n)) return null;
+      return { type: "ground", n };
+    })
+    .filter(Boolean);
+
+  if (!parsed.length) return null;
+
+  const type = parsed[0].type;
+  const nums = parsed.filter((p) => p.type === type).map((p) => p.n);
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+
+  // 위 줄 / 아래 줄
+  if (type === "ground") {
+    const top = min === max ? `${min}층` : `${min}층-${max}층`;
+    return { top, bottom: "종합 데이터" };
+  }
+
+  // basement
+  const top = min === max ? `지하 ${min}층` : `지하 ${min}층-지하 ${max}층`;
+  return { top, bottom: "종합 데이터" };
+}
+
 export default function Floors() {
   const [groupIndex, setGroupIndex] = useState(0);
   const [floorGroups, setFloorGroups] = useState([]);
@@ -104,6 +145,7 @@ export default function Floors() {
         }
 
         const data = snap.val() || {};
+
         const ids = Object.keys(data);
         if (!ids.length) {
           if (!isMounted) return;
@@ -157,6 +199,12 @@ export default function Floors() {
   const currentFloors = floorGroups[groupIndex] || [];
   const rows = Array.from({ length: 10 }, (_, i) => currentFloors[i] ?? null);
 
+  // 🔹 "1층-10층 / 종합 데이터" 두 줄 텍스트
+  const groupRangeLabel = useMemo(
+    () => buildGroupRangeLabel(currentFloors),
+    [currentFloors]
+  );
+
   // 🔹 그래프용으로는 "전체 층 리스트 순서"를 유지하면서, 현재 그룹에 속한 층만 사용
   const groupFloorsForCharts = useMemo(() => {
     if (!allFloors.length || !currentFloors.length) return [];
@@ -193,9 +241,20 @@ export default function Floors() {
       <div className="absolute inset-0 flex z-0">
         {/* 왼쪽 패널 */}
         <div className="w-[554px] bg-[#E7F3F8] relative">
+          {/* 현재 그룹 범위 라벨 (예: 1층-10층 / 종합 데이터) */}
+          {!selectedFloor && groupRangeLabel && (
+            <div className="absolute w-[280px] right-0 top-[100px] flex justify-center">
+              <div className="text-xl font-bold text-[#054E76] leading-tight text-center">
+                <div>{groupRangeLabel.top}</div>
+                <div>{groupRangeLabel.bottom}</div>
+              </div>
+            </div>
+          )}
+
           <div className="absolute w-[411px] right-[47px] top-[170px] flex flex-col gap-[47px]">
             {selectedFloor ? (
               <>
+                <ProblemList floor={selectedFloor} />
                 <SelectedFloorElecData floor={selectedFloor} />
                 <SelectedFloorTempData floor={selectedFloor} />
               </>
@@ -230,7 +289,6 @@ export default function Floors() {
               <>
                 <SelectedFloorWaterData floor={selectedFloor} />
                 <SelectedFloorGasData floor={selectedFloor} />
-                <ProblemList floor={selectedFloor} />
               </>
             ) : (
               <>

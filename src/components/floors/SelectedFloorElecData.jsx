@@ -11,7 +11,7 @@ import {
   onValue,
 } from "firebase/database";
 
-const MAX_POINTS = 60; // 최근 60분 정도
+const MAX_POINTS = 30; // 최근 30개 분 데이터
 
 function formatDateKey(date) {
   const y = date.getFullYear();
@@ -37,6 +37,15 @@ function getYAxisRange(values) {
   let yMax = maxVal + range / 3;
   if (yMin < 0) yMin = 0;
   return { yMin, yMax };
+}
+
+// "HH:mm" 라벨에서 분만 뽑는 헬퍼
+function getMinuteFromLabel(label) {
+  if (!label) return null;
+  const parts = String(label).split(":");
+  if (parts.length < 2) return null;
+  const minute = Number(parts[1]);
+  return Number.isFinite(minute) ? minute : null;
 }
 
 export default function SelectedFloorElecData({ floor }) {
@@ -73,10 +82,10 @@ export default function SelectedFloorElecData({ floor }) {
           const key = child.key || "";
           const v = child.val() || {};
 
-          // 어떤 필드 이름이든 우선순위대로 사용
+          const timeLabel = key.slice(0, 5); // "HH:mm"
           const value = v.elecAvg ?? v.elecSum ?? v.elec ?? 0;
 
-          labels.push(key.slice(0, 5)); // "HH:mm"
+          labels.push(timeLabel);
           values.push(Number(value) || 0);
         });
 
@@ -132,7 +141,17 @@ export default function SelectedFloorElecData({ floor }) {
     },
     scales: {
       x: {
-        title: { display: true, text: "시간 (분 단위)" },
+        title: { display: true, text: "시간 (10분 단위)" },
+        ticks: {
+          autoSkip: false, // ✅ 자동 건너뛰기 끄기
+          callback: function (value) {
+            // ✅ 실제 라벨 문자열을 안전하게 가져오기
+            const label = this.getLabelForValue(value);
+            const minute = getMinuteFromLabel(label);
+            if (minute == null || minute % 10 !== 0) return ""; // 10분 단위만 표시
+            return label;
+          },
+        },
       },
       y: {
         min: yMin,
@@ -151,7 +170,7 @@ export default function SelectedFloorElecData({ floor }) {
           <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
         )}
       </div>
-      <div className="w-full h-[260px]">
+      <div className="w-full h-[160px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
             실시간 전기 데이터가 없습니다.

@@ -28,7 +28,8 @@ const METRIC_LABEL = {
 
 /**
  * RTDB에 저장된 reason 코드 → 한글 설명
- * 필요하면 여기 케이스를 계속 추가하면 됨
+ * energyAlertService.js의 코드 기준
+ * (이전에 쓰던 코드들도 호환용으로 같이 둠)
  */
 function getReasonText(reason, metric) {
   if (!reason) return "";
@@ -36,21 +37,40 @@ function getReasonText(reason, metric) {
   const metricLabel = METRIC_LABEL[metric] || "";
 
   switch (reason) {
+    // ---------------- 새 alert 로직 기준 코드들 ----------------
     case "strong_overload_from_normal":
-      // 예: 전기 사용량이 한계를 훨씬 넘었을 때
-      return `${metricLabel} 사용량이 기준 대비 심하게 과다합니다.`;
-
-    case "overload_from_normal":
-      // 예: 기준치를 초과했을 때
-      return `${metricLabel} 사용량이 기준치를 초과했습니다.`;
+      // normal → warning (강한 과부하)
+      return `${metricLabel} 사용량이 기준 대비 크게 증가하여 경고 단계로 전환되었습니다.`;
 
     case "sustained_caution_from_normal":
-      // 예: caution 상태가 오래 지속
-      return `${metricLabel} 주의 상태가 일정 시간 이상 지속되었습니다.`;
+      // normal → caution (주의 구간이 일정 시간 유지)
+      return `${metricLabel} 사용량이 기준치를 초과한 상태가 지속되어 주의 단계로 전환되었습니다.`;
 
+    case "strong_overload_from_caution":
+      // caution → warning (이미 주의였는데 더 심해짐)
+      return `${metricLabel} 사용량이 더 증가하여 경고 단계로 격상되었습니다.`;
+
+    case "long_caution_escalation":
+      // caution 상태가 너무 오래 유지되어 warning으로 승격
+      return `${metricLabel} 주의 상태가 장시간 지속되어 경고 단계로 격상되었습니다.`;
+
+    case "caution_cleared":
+      // caution → normal
+      return `${metricLabel} 사용량이 다시 기준 범위로 돌아와 주의 상태가 해제되었습니다.`;
+
+    case "downgraded_from_warning":
+      // warning → caution
+      return `${metricLabel} 경고 상태가 완화되어 주의 단계로 내려갔습니다.`;
+
+    // ---------------- 예전/호환용 코드들 ----------------
+    case "overload_from_normal":
+      return `${metricLabel} 사용량이 기준치를 초과했습니다.`;
+
+    case "sustained_caution_from_normal_old":
+    case "sustained_caution_from_normal_v1":
+    case "sustained_caution_from_normal_legacy":
     case "sustained_warning_from_normal":
-      // 예: warning 상태가 오래 지속
-      return `${metricLabel} 경고 상태가 일정 시간 이상 지속되었습니다.`;
+      return `${metricLabel} 주의/경고 상태가 일정 시간 이상 지속되었습니다.`;
 
     case "back_to_normal_from_caution":
       return `${metricLabel}가(이) 주의 상태에서 정상으로 복귀했습니다.`;
@@ -121,13 +141,25 @@ export default function ProblemList({ floor }) {
   const levelColor = (level) => {
     if (level === "warning") return "bg-[#FF7070]";
     if (level === "caution") return "bg-[#FFD85E]";
+    // normal 또는 기타
     return "bg-[#88C5F7]";
   };
 
-  const levelText = (level) => {
+  const levelText = (level, reason) => {
     if (level === "warning") return "경고";
     if (level === "caution") return "주의";
-    return "요청";
+    // normal인데 해제 계열 이유면 '해제'라고 표시해도 됨
+    if (level === "normal") {
+      if (
+        reason === "caution_cleared" ||
+        reason === "back_to_normal_from_caution" ||
+        reason === "back_to_normal_from_warning"
+      ) {
+        return "해제";
+      }
+      return "정상";
+    }
+    return "";
   };
 
   return (
@@ -157,7 +189,7 @@ export default function ProblemList({ floor }) {
                     item.level
                   )} text-white text-[10px] px-2 py-[2px] rounded-full whitespace-nowrap`}
                 >
-                  {levelText(item.level)}
+                  {levelText(item.level, item.reason)}
                 </div>
 
                 {/* 메트릭 / 시간 / 이유 */}

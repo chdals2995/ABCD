@@ -11,14 +11,12 @@ import {
   onValue,
 } from "firebase/database";
 
-const MAX_POINTS = 60;
+const MAX_POINTS = 30;
 
 function formatDateKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate() + 0)
-    .toString()
-    .padStart(2, "0");
+  const d = String(date.getDate()).toString().padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
@@ -38,6 +36,15 @@ function getYAxisRange(values) {
   let yMin = minVal - range / 3;
   let yMax = maxVal + range / 3;
   return { yMin, yMax };
+}
+
+// "HH:mm" → 분만 추출
+function getMinuteFromLabel(label) {
+  if (!label) return null;
+  const parts = String(label).split(":");
+  if (parts.length < 2) return null;
+  const minute = Number(parts[1]);
+  return Number.isFinite(minute) ? minute : null;
 }
 
 export default function SelectedFloorTempData({ floor }) {
@@ -76,7 +83,6 @@ export default function SelectedFloorTempData({ floor }) {
 
           let temp = v.tempAvg ?? v.temp ?? null;
 
-          // 혹시 tempSum / count 형태라면
           if (
             temp == null &&
             typeof v.tempSum === "number" &&
@@ -86,7 +92,7 @@ export default function SelectedFloorTempData({ floor }) {
             temp = v.tempSum / v.count;
           }
 
-          labels.push(key.slice(0, 5));
+          labels.push(key.slice(0, 5)); // "HH:mm"
           values.push(temp != null ? Number(temp) : 0);
         });
 
@@ -135,20 +141,30 @@ export default function SelectedFloorTempData({ floor }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y ?? 0;
-            return ` ${v.toLocaleString()} ℃`;
+            return ` ${v.toLocaleString()} kWh`;
           },
         },
       },
     },
     scales: {
       x: {
-        title: { display: true, text: "시간 (분 단위)" },
+        title: { display: true, text: "시간 (10분 단위)" },
+        ticks: {
+          autoSkip: false, // ✅ 자동 건너뛰기 끄기
+          callback: function (value) {
+            // ✅ 실제 라벨 문자열을 안전하게 가져오기
+            const label = this.getLabelForValue(value);
+            const minute = getMinuteFromLabel(label);
+            if (minute == null || minute % 10 !== 0) return ""; // 10분 단위만 표시
+            return label;
+          },
+        },
       },
       y: {
         min: yMin,
         max: yMax,
         beginAtZero: false,
-        title: { display: true, text: "온도 (℃)" },
+        title: { display: true, text: "전기 사용량 (kWh)" },
       },
     },
   };
@@ -161,7 +177,7 @@ export default function SelectedFloorTempData({ floor }) {
           <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
         )}
       </div>
-      <div className="w-full h-[260px]">
+      <div className="w-full h-[160px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
             실시간 온도 데이터가 없습니다.
