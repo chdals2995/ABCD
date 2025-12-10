@@ -1,5 +1,6 @@
 import Mdata from "./Mdata";
 import Ddata from "./Ddata";
+import DataTable from "./DataTable";
 import { useState } from "react";
 import DataModal from "../DataModal";
 import CloseButton from "../../../assets/CloseButton";
@@ -95,10 +96,11 @@ const closeModal = () => {
           </div>
 
           {/* 내용 영역 - Ddata / Mdata 중 하나 렌더링 */}
-          <div className="flex-1 p-4 overflow-auto bg-white">
-            {mode === "day" ? <Ddata /> : <Mdata />}
+          <div className="flex-1 p-4 overflow-hidden bg-white">
+             {mode === "day" ? (<> <Ddata /><DataTable /> </>) : (<Mdata />)}
           </div>
         </div>
+        {/* ✅ 아래에 가로형 표 붙이기 */}
       </DataModal>
       <Ddata />
     </div>
