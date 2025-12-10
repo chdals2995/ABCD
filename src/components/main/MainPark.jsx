@@ -1,6 +1,9 @@
+import Park from "../../assets/imgs/park.png";
+
 export default function MainPark(){
     return(
-        <div className="w-[350px] h-[665px] bg-[url(./assets/imgs/park.png)] bg-cover bg-center 
+        <div style={{ backgroundImage: `url(${Park})` }} 
+            className="w-[350px] h-[665px] bg-cover bg-center 
             ">
 
         </div>
