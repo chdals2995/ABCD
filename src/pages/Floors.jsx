@@ -1,5 +1,5 @@
 // src/pages/Floors.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import FloorsElecData from "../components/floors/FloorsElecData";
 import FloorsGasData from "../components/floors/FloorsGasData";
@@ -26,7 +26,7 @@ import questionIcon from "../assets/icons/iconQuestion.png"; // 파란 원
 import { rtdb } from "../firebase/config";
 import { ref, get } from "firebase/database";
 
-// 🔹 up/down 값으로 10개씩 끊어서 그룹 만들기
+// 🔹 up/down 값으로 10개씩 끊어서 그룹 만들기 (빌딩 중앙 10층 스택용)
 function buildFloorGroups(upCount, downCount) {
   const GROUP_SIZE = 10;
   const up = Number(upCount) || 0;
@@ -47,7 +47,7 @@ function buildFloorGroups(upCount, downCount) {
 
   const groups = [];
 
-  // 지하층 B1 ~ B{down} (있으면 첫 번째 그룹으로 넣기)
+  // 지하층 B1 ~ B{down} (있으면 첫 번째 그룹으로 넣기) — B1이 가장 위에 보이도록
   if (down > 0) {
     const basementFloors = [];
     for (let b = 1; b <= down; b++) {
@@ -62,13 +62,32 @@ function buildFloorGroups(upCount, downCount) {
   return groups;
 }
 
+// 🔹 그래프용 전체 층 리스트 (B1, B2, ..., 1F, 2F, ...)
+function buildAllFloors(upCount, downCount) {
+  const up = Number(upCount) || 0;
+  const down = Number(downCount) || 0;
+
+  const floors = [];
+  for (let b = 1; b <= down; b++) {
+    floors.push(`B${b}`);
+  }
+  for (let f = 1; f <= up; f++) {
+    floors.push(`${f}F`);
+  }
+  return floors;
+}
+
 export default function Floors() {
   const [groupIndex, setGroupIndex] = useState(0);
   const [floorGroups, setFloorGroups] = useState([]);
+  const [allFloors, setAllFloors] = useState([]); // 🔸 전체 층 리스트 (그래프용)
   const [buildingName, setBuildingName] = useState("");
   const [selectedFloor, setSelectedFloor] = useState(null); // ⬅ 선택된 층
 
-  // 🔹 RTDB buildings에서 up/down 읽어서 그룹 생성
+  // 🔸 어떤 그래프를 크게 볼지 ("elec" | "temp" | "water" | "gas" | null)
+  const [largeChart, setLargeChart] = useState(null);
+
+  // 🔹 RTDB buildings에서 up/down 읽어서 그룹 + 전체 층 리스트 생성
   useEffect(() => {
     let isMounted = true;
 
@@ -77,7 +96,10 @@ export default function Floors() {
         const snap = await get(ref(rtdb, "buildings"));
         if (!snap.exists()) {
           if (!isMounted) return;
-          setFloorGroups(buildFloorGroups(20, 0));
+          const fallbackGroups = buildFloorGroups(20, 0);
+          const fallbackAll = buildAllFloors(20, 0);
+          setFloorGroups(fallbackGroups);
+          setAllFloors(fallbackAll);
           return;
         }
 
@@ -85,7 +107,10 @@ export default function Floors() {
         const ids = Object.keys(data);
         if (!ids.length) {
           if (!isMounted) return;
-          setFloorGroups(buildFloorGroups(20, 0));
+          const fallbackGroups = buildFloorGroups(20, 0);
+          const fallbackAll = buildAllFloors(20, 0);
+          setFloorGroups(fallbackGroups);
+          setAllFloors(fallbackAll);
           return;
         }
 
@@ -96,14 +121,19 @@ export default function Floors() {
         const down = Number(building.down || 0);
 
         const groups = buildFloorGroups(up, down);
+        const all = buildAllFloors(up, down);
 
         if (!isMounted) return;
         setBuildingName(building.name || "");
         setFloorGroups(groups);
+        setAllFloors(all);
       } catch (err) {
         console.error("Floors: buildings 정보 로드 실패:", err);
         if (!isMounted) return;
-        setFloorGroups(buildFloorGroups(20, 0));
+        const fallbackGroups = buildFloorGroups(20, 0);
+        const fallbackAll = buildAllFloors(20, 0);
+        setFloorGroups(fallbackGroups);
+        setAllFloors(fallbackAll);
       }
     }
 
@@ -127,23 +157,35 @@ export default function Floors() {
   const currentFloors = floorGroups[groupIndex] || [];
   const rows = Array.from({ length: 10 }, (_, i) => currentFloors[i] ?? null);
 
+  // 🔹 그래프용으로는 "전체 층 리스트 순서"를 유지하면서, 현재 그룹에 속한 층만 사용
+  const groupFloorsForCharts = useMemo(() => {
+    if (!allFloors.length || !currentFloors.length) return [];
+    const set = new Set(currentFloors);
+    return allFloors.filter((f) => set.has(f));
+  }, [allFloors, currentFloors]);
+
   const canGoUp = groupIndex < floorGroups.length - 1; // 위(더 높은 층)로
   const canGoDown = groupIndex > 0; // 아래(지하쪽)로
 
   const handleUp = () => {
     if (!canGoUp) return;
     setGroupIndex((prev) => prev + 1);
+    setSelectedFloor(null); // 그룹 바꿀 때 선택층 해제
   };
 
   const handleDown = () => {
     if (!canGoDown) return;
     setGroupIndex((prev) => prev - 1);
+    setSelectedFloor(null); // 그룹 바꿀 때 선택층 해제
   };
 
   // 층 선택 / 해제
   const handleSelectFloor = (floorName) => {
     setSelectedFloor((prev) => (prev === floorName ? null : floorName));
   };
+
+  // 🔸 모달 닫기
+  const closeLargeChart = () => setLargeChart(null);
 
   return (
     <div className="relative h-screen w-screen">
@@ -159,8 +201,20 @@ export default function Floors() {
               </>
             ) : (
               <>
-                <FloorsElecData />
-                <FloorsTempData />
+                {/* 🔹 작은 카드: 현재 그룹에 포함된 층만 그래프에 사용 */}
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setLargeChart("elec")}
+                >
+                  <FloorsElecData floorIds={groupFloorsForCharts} />
+                </div>
+
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setLargeChart("temp")}
+                >
+                  <FloorsTempData floorIds={groupFloorsForCharts} />
+                </div>
               </>
             )}
           </div>
@@ -180,8 +234,19 @@ export default function Floors() {
               </>
             ) : (
               <>
-                <FloorsWaterData />
-                <FloorsGasData />
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setLargeChart("water")}
+                >
+                  <FloorsWaterData floorIds={groupFloorsForCharts} />
+                </div>
+
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setLargeChart("gas")}
+                >
+                  <FloorsGasData floorIds={groupFloorsForCharts} />
+                </div>
               </>
             )}
           </div>
@@ -206,7 +271,7 @@ export default function Floors() {
             <div className="relative w-[483px] h-[40px] mb-[4px]">
               {/* 건물 이름 (화살표 기준 왼쪽) */}
               {buildingName && (
-                <div className="absolute right-1/2 -translate-x-[180px] top-1/2 -translate-y-1/2 text-xs font-semibold text-[#054E76] text-right whitespace-nowrap">
+                <div className="absolute right-1/2 -translate-x-[180px] top-1/2 -translate-y-1/2 text-s font-semibold text-[#054E76] text-right whitespace-nowrap">
                   {buildingName}
                 </div>
               )}
@@ -228,7 +293,7 @@ export default function Floors() {
               </button>
 
               {/* 아이콘 설명 (화살표 기준 오른쪽) */}
-              <div className="absolute left-1/2 translate-x-[60px] top-1/2 -translate-y-1/2 flex items-center gap-[12px] text-[11px] text-[#054E76]">
+              <div className="absolute left-5/8 translate-x-[60px] top-1/2 -translate-y-1/2 flex items-center gap-[12px] text-[11px] text-[#054E76]">
                 <div className="flex flex-col items-center">
                   <img
                     src={warningIcon}
@@ -294,6 +359,70 @@ export default function Floors() {
         {/* 오른쪽 여백 */}
         <div className="w-[554px]" />
       </div>
+
+      {/* 🔸 전체 층 그래프 모달 */}
+      {largeChart && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+          <div className="relative bg-white rounded-[18px] shadow-lg w-[1100px] max-w-[95vw] h-[650px] max-h-[90vh] px-6 py-5 flex flex-col">
+            {/* 닫기 버튼 */}
+            <button
+              type="button"
+              onClick={closeLargeChart}
+              className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 text-lg leading-none hover:bg-gray-100"
+            >
+              ×
+            </button>
+
+            {/* 제목 */}
+            <div className="mb-3 pr-10">
+              {largeChart === "elec" && (
+                <h2 className="text-base font-semibold text-[#054E76]">
+                  {buildingName
+                    ? `${buildingName} 전체 층 전기 사용량 (오늘 누적)`
+                    : "전체 층 전기 사용량 (오늘 누적)"}
+                </h2>
+              )}
+              {largeChart === "temp" && (
+                <h2 className="text-base font-semibold text-[#054E76]">
+                  {buildingName
+                    ? `${buildingName} 전체 층 평균 온도 (오늘)`
+                    : "전체 층 평균 온도 (오늘)"}
+                </h2>
+              )}
+              {largeChart === "water" && (
+                <h2 className="text-base font-semibold text-[#054E76]">
+                  {buildingName
+                    ? `${buildingName} 전체 층 수도 사용량 (오늘 누적)`
+                    : "전체 층 수도 사용량 (오늘 누적)"}
+                </h2>
+              )}
+              {largeChart === "gas" && (
+                <h2 className="text-base font-semibold text-[#054E76]">
+                  {buildingName
+                    ? `${buildingName} 전체 층 가스 사용량 (오늘 누적)`
+                    : "전체 층 가스 사용량 (오늘 누적)"}
+                </h2>
+              )}
+            </div>
+
+            {/* 큰 그래프 영역 */}
+            <div className="flex-1 w-full min-h-0">
+              {largeChart === "elec" && (
+                <FloorsElecData floorIds={allFloors} tall />
+              )}
+              {largeChart === "temp" && (
+                <FloorsTempData floorIds={allFloors} tall />
+              )}
+              {largeChart === "water" && (
+                <FloorsWaterData floorIds={allFloors} tall />
+              )}
+              {largeChart === "gas" && (
+                <FloorsGasData floorIds={allFloors} tall />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

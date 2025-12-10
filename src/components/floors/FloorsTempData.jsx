@@ -1,24 +1,9 @@
-// src/components/adminpage/FloorsTempData.jsx
+// src/components/floors/FloorsTempData.jsx
 import { useEffect, useState } from "react";
 import "chart.js/auto";
 import { Bar } from "react-chartjs-2";
 import { rtdb } from "../../firebase/config";
 import { ref, get } from "firebase/database";
-
-function buildFloorIds(basementFloors, totalFloors) {
-  const floors = [];
-
-  for (let b = basementFloors; b >= 1; b--) {
-    floors.push(`B${b}`);
-  }
-
-  const groundFloors = totalFloors - basementFloors;
-  for (let f = 1; f <= groundFloors; f++) {
-    floors.push(`${f}F`);
-  }
-
-  return floors;
-}
 
 function formatDateKey(date) {
   const y = date.getFullYear();
@@ -58,12 +43,14 @@ function getYAxisRange(values) {
   return { yMin, yMax };
 }
 
-export default function FloorsTempData() {
+export default function FloorsTempData({ floorIds = [], tall = false }) {
   const [state, setState] = useState({
     loading: true,
     labels: [],
     values: [],
   });
+
+  const chartHeightClass = tall ? "h-[420px]" : "h-[260px]";
 
   useEffect(() => {
     let isMounted = true;
@@ -71,23 +58,20 @@ export default function FloorsTempData() {
 
     async function fetchData() {
       try {
-        const todayKey = formatDateKey(new Date());
+        if (!isMounted) return;
+        setState((prev) => ({ ...prev, loading: true }));
 
-        const configSnap = await get(ref(rtdb, "simConfig/default"));
-        if (!configSnap.exists()) {
+        const todayKey = formatDateKey(new Date());
+        const ids = Array.isArray(floorIds) ? floorIds : [];
+
+        if (!ids.length) {
           if (!isMounted) return;
-          console.warn("simConfig/default 없음");
           setState({ loading: false, labels: [], values: [] });
           return;
         }
 
-        const config = configSnap.val() || {};
-        const basementFloors = config.basementFloors ?? 0;
-        const totalFloors = config.totalFloors ?? 0;
-        const floorIds = buildFloorIds(basementFloors, totalFloors);
-
         const results = await Promise.all(
-          floorIds.map(async (floorId) => {
+          ids.map(async (floorId) => {
             const daySnap = await get(
               ref(rtdb, `aggDay/${floorId}/${todayKey}`)
             );
@@ -136,7 +120,7 @@ export default function FloorsTempData() {
       isMounted = false;
       clearInterval(timerId);
     };
-  }, []);
+  }, [floorIds]);
 
   const { loading, labels, values } = state;
 
@@ -182,7 +166,7 @@ export default function FloorsTempData() {
   };
 
   return (
-    <div className="w-full h-full border border-gray-200 rounded-[10px] bg-white px-4 py-3">
+    <div className="w-full h-full border border-gray-200 rounded-[10px] bg-white px-4 py-3 flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold">층별 평균 온도 (오늘)</h2>
         {loading && (
@@ -190,7 +174,7 @@ export default function FloorsTempData() {
         )}
       </div>
 
-      <div className="w-full h-[260px]">
+      <div className={`w-full ${chartHeightClass}`}>
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
             오늘 온도 데이터가 없습니다.
