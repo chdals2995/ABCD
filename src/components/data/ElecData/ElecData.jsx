@@ -1,4 +1,10 @@
 import { Link } from "react-router-dom";
+import ElecError from "./ElecError";
+import Tdata from "./Tdata";
+import Pdata from "./Pdata";
+import Sdata from "./Sdata";
+import MaxData from "./MaxData";
+import EmData from "./EmData";
 
 export default function ElecData(){
      return(
@@ -46,6 +52,7 @@ export default function ElecData(){
       position:"relative",
       marginRight:"8px",
       }}>
+      <ElecError></ElecError>
      </div>
 
      <div style={{
@@ -54,9 +61,9 @@ export default function ElecData(){
       height:"390px",
       position:"relative"
       }}>
-      
-      
+      <Sdata></Sdata>
      </div>
+
      <div style={{
       backgroundColor:"#ffffff",
       width:"529px",
@@ -64,9 +71,7 @@ export default function ElecData(){
       position:"relative",
       marginLeft:"8px",
       }}>
-      
-       
-      
+      <Tdata></Tdata>
      </div>
 
       </div>
@@ -90,7 +95,7 @@ export default function ElecData(){
       marginRight:"8px",
       marginTop:"3px"
       }}>
-      
+      <Pdata></Pdata>
      </div>
      <div style={{
       backgroundColor:"#ffffff",
@@ -99,7 +104,7 @@ export default function ElecData(){
       position:"relative",
       marginTop:"3px"
       }}>
-           
+      <EmData></EmData> 
      </div>
      <div style={{
       backgroundColor:"#ffffff",
@@ -109,7 +114,7 @@ export default function ElecData(){
       marginLeft:"8px",
       marginTop:"3px"
       }}>
-        
+      <MaxData></MaxData>
      </div>
 
       </div>
