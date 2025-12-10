@@ -51,6 +51,7 @@ html {
   padding: 0 !important;
 }
 
+<<<<<<< HEAD
 @config "../tailwind.config.js";
 
 
@@ -154,3 +155,8 @@ html {
 }  
 
 
+=======
+input{
+  border: 2px solid #D3D3D3;
+}
+>>>>>>> edcf48a0bbac5a0853a3ff25285bf5be6ccab60b

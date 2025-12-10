@@ -5,7 +5,7 @@ import addIcon from "../../assets/icons/add.png";
 import Modal from "../../assets/Modal";
 
 // 🔹 Firebase
-import { rtdb, auth, secondaryAuth } from "../../firebase/config";
+import { rtdb, secondaryAuth } from "../../firebase/config";
 import {
   ref,
   onValue,
@@ -16,11 +16,7 @@ import {
   orderByChild,
   equalTo,
 } from "firebase/database";
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import CloseButton from "../../assets/CloseButton";
 
 // 숫자만 받아서 010-1234-5678 형태로 포맷
@@ -59,25 +55,7 @@ export default function MemberList() {
     role: "none",
   });
 
-  // 🔐 마스터 계정으로 자동 로그인 + 현재 로그인 유저 콘솔에 찍기
-  useEffect(() => {
-    const ADMIN_EMAIL = "rutc1118@abcd.local";
-    const ADMIN_PASSWORD = "000408";
-
-    signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD)
-      .then((cred) => {
-        console.log("마스터 자동 로그인 완료:", cred.user);
-      })
-      .catch((err) => {
-        console.error("마스터 자동 로그인 실패:", err);
-      });
-
-    const unsub = onAuthStateChanged(auth, (user) => {
-      console.log("현재 로그인 유저:", user);
-    });
-
-    return unsub;
-  }, []);
+  // 🔐 (자동 로그인 로직 제거됨)
 
   // ✅ users 경로에서 실시간으로 읽어오기
   useEffect(() => {
@@ -445,9 +423,9 @@ export default function MemberList() {
             </div>
 
             <div className="flex items-center gap-4">
-              <label className="w-[80px] text-right">ID</label>
+              <label htmlFor="userId" className="w-[80px] text-right">ID</label>
               <input
-                name="userId"
+                id="userId"
                 value={editForm.userId}
                 readOnly
                 className="flex-1 h-[40px] bg-[#F4F4F4] px-3 shadow-[0_2px_3px_rgba(0,0,0,0.25)] outline-none"
@@ -466,9 +444,9 @@ export default function MemberList() {
             </div>
 
             <div className="flex items-center gap-4">
-              <label className="w-[80px] text-right">권한</label>
+              <label htmlFor="role" className="w-[80px] text-right">권한</label>
               <select
-                name="role"
+                id="role"
                 value={editForm.role}
                 onChange={handleEditChange}
                 className="flex-1 h-[40px] bg-white px-3 shadow-[0_2px_3px_rgba(0,0,0,0.25)] outline-none"
