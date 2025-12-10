@@ -118,6 +118,21 @@ function buildGroupRangeLabel(currentFloors) {
   return { top, bottom: "종합 데이터" };
 }
 
+// 🔹 선택된 단일 층 텍스트
+function buildSelectedFloorLabel(floorName) {
+  if (!floorName || typeof floorName !== "string") return "";
+
+  if (floorName.startsWith("B")) {
+    const n = parseInt(floorName.slice(1), 10);
+    if (!Number.isFinite(n)) return `${floorName} 데이터`;
+    return `지하 ${n}층 데이터`;
+  }
+
+  const n = parseInt(floorName.replace(/[^0-9]/g, ""), 10);
+  if (!Number.isFinite(n)) return `${floorName} 데이터`;
+  return `${n}층 데이터`;
+}
+
 export default function Floors() {
   const [groupIndex, setGroupIndex] = useState(0);
   const [floorGroups, setFloorGroups] = useState([]);
@@ -145,7 +160,6 @@ export default function Floors() {
         }
 
         const data = snap.val() || {};
-
         const ids = Object.keys(data);
         if (!ids.length) {
           if (!isMounted) return;
@@ -247,6 +261,15 @@ export default function Floors() {
               <div className="text-xl font-bold text-[#054E76] leading-tight text-center">
                 <div>{groupRangeLabel.top}</div>
                 <div>{groupRangeLabel.bottom}</div>
+              </div>
+            </div>
+          )}
+
+          {/* 선택된 층일 때 라벨: "5층 데이터", "지하 2층 데이터" 등 */}
+          {selectedFloor && (
+            <div className="absolute w-[280px] right-0 top-[100px] flex justify-center">
+              <div className="text-xl font-bold text-[#054E76] leading-tight text-center">
+                {buildSelectedFloorLabel(selectedFloor)}
               </div>
             </div>
           )}
