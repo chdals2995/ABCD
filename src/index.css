@@ -52,3 +52,7 @@ html {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+input{
+  border: 2px solid #D3D3D3;
+}

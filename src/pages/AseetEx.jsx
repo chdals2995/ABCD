@@ -34,7 +34,10 @@ export default function AssetEx() {
 
       <Button onClick={() => setOpen(true)}>모달 열기</Button>
 
-      <Modal isOpen={open} onClose={() => setOpen(false)}>
+      <Modal
+        isOpen={open}
+        onClose={() => setOpen(false)} 
+      >
         <div className="border-b px-6 py-3 font-semibold text-sm">
           커스텀 모달
         </div>
