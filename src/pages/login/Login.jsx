@@ -128,7 +128,7 @@ useEffect(() => {
           alt="logo"
         />
 
-        {/* 이메일 입력 */}
+        {/* 아이디 입력 */}
         <input
           id="loginEmail"
           type="text"
@@ -145,7 +145,7 @@ useEffect(() => {
             marginLeft: "50%",
             transform: "translateX(-50%)",
           }}
-          placeholder="이메일"
+          placeholder="아이디"
         /> 
 
         {/* 비밀번호 입력 */}
