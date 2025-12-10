@@ -18,7 +18,7 @@
 @font-face {
   font-family: "Pretendard";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2")
-    format("woff2");
+  format("woff2");
   font-weight: 600;
   font-display: swap;
 }
@@ -26,10 +26,11 @@
 @font-face {
   font-family: "PyeojinGothic";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2504-1@1.0/PyeojinGothic-Bold.woff2")
-    format("woff2");
+  format("woff2");
   font-weight: 700;
   font-display: swap;
 }
+
 /* tailwind.config.js를 명시적으로 로드 */
 @config "../tailwind.config.js";
 
@@ -46,7 +47,8 @@ body {
   box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
   margin: 0 !important;
   padding: 0 !important;
 }
