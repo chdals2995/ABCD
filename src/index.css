@@ -55,3 +55,14 @@ html {
 input{
   border: 2px solid #D3D3D3;
 }
+
+.SCROLL_CONTAINER {
+    overflow-x: hidden; /* 수평 스크롤만 숨기기 */
+}
+
+
+
+
+
+
+

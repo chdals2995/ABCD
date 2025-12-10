@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../../firebase/config"; // Firebase 설정 파일에서 rtdb 가져오기
-
+import '../../index.css';
 
 export default function AlarmRequest() {
   const [items, setItems] = useState([]); // 알람 데이터 저장 상태
   const [sortOrder, setSortOrder] = useState("latest"); // 정렬 순서 상태
 
-
   // Firebase에서 데이터를 실시간으로 읽어오는 useEffect
   useEffect(() => {
     const requestsRef = ref(rtdb, "requests"); // Firebase의 'requests' 경로에서 데이터 읽기
-
 
     // Firebase에서 실시간으로 데이터 읽기
     return onValue(requestsRef, (snapshot) => {
@@ -20,7 +18,6 @@ export default function AlarmRequest() {
         setItems([]); // 데이터가 없으면 빈 배열로 설정
         return;
       }
-
 
       // 데이터를 원하는 형태로 가공
       const list = Object.entries(data).map(([id, v]) => ({
@@ -33,11 +30,9 @@ export default function AlarmRequest() {
         createdAt: Number(v.createdAt) || 0, // createdAt 값이 없으면 0으로 처리
       }));
 
-
       setItems(list); // 상태에 데이터 저장
     });
   }, []); // 빈 배열을 넣어서 컴포넌트 마운트 시 한 번만 실행
-
 
   // 정렬 로직 (최신순, 오래된순)
   const sorted = [...items].sort((a, b) =>
@@ -46,6 +41,7 @@ export default function AlarmRequest() {
       : a.createdAt - b.createdAt // 오래된순
   );
 
+  
 
   return (
     <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
@@ -58,9 +54,7 @@ export default function AlarmRequest() {
           최신순
         </button>
 
-
         <span className="text-gray-400">|</span>
-
 
         <button
           onClick={() => setSortOrder("old")}
@@ -70,11 +64,11 @@ export default function AlarmRequest() {
         </button>
       </div>
 
-
-      {/* 알람 리스트 */}
-      <div className="flex flex-col gap-4"> {/* 항목들 간 간격을 4로 설정 */}
+      {/* 알람 리스트 (SCROLL_CONTAINER 클래스 적용) */}
+      <div className="SCROLL_CONTAINER flex flex-col gap-4">
+        {/* 항목들 간 간격을 4로 설정, */}
         {sorted.map((item) => (
-          <div key={item.id} className="flex justify-between items-center py-3 border-b border-gray-300">
+          <div key={item.id} className="flex justify-between items-center py-2 pb-1 border-b border-gray-300">
             {/* 왼쪽: 제목 및 내용 */}
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 "></span> {/* 상태에 따른 색상 적용 */}
@@ -82,7 +76,6 @@ export default function AlarmRequest() {
                 {item.title || item.content} {/* 제목이 없으면 내용 표시 */}
               </span>
             </div>
-
 
             {/* 오른쪽: 상태별 색상 */}
             <span
