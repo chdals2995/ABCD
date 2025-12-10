@@ -10,7 +10,7 @@ export default function AlarmProblems() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    const requestsRef = ref(rtdb, "requests");
+    const requestsRef = ref(rtdb, "alerts");
 
     return onValue(requestsRef, (snapshot) => {
       const data = snapshot.val();
@@ -69,7 +69,8 @@ export default function AlarmProblems() {
               </span>
 
               <span className="text-[13px] text-[#555]">
-                {item.floor}층 {item.room}호
+                {new Date(item.createdAt).toLocaleDateString()}
+                {/* 날짜 표시  */}
               </span>
             </div>
           ))}
