@@ -1,10 +1,11 @@
+// MainBuilding
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, get } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
 import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
-import Circle from "../../assets/icons/circle.png"
+import Circle from "../../assets/icons/circle.png";
 
 
 
@@ -138,43 +139,50 @@ export default function MainBuilding({floors = 10}){
                     className="hover:bg-[#054E76]/50 group relative z-10"
                     style={{ height: `${665/floorGroups.length}px`}}
                 >
-                    {/* 층수표시 */}
-                    <div className="font-pyeojin group-hover:text-white ml-[10px] mt-[10px]">
+                    {/* 층수 표기 */}
+                    <div className="font-pyeojin group-hover:text-white ml-[10px] pt-[10px]">
                         {/* 지하 포함*/}
                         {group.type === "basement"
                         ? `B${group.end}층 ~ B${group.start}층`
                         : `${group.start}층 ~ ${group.end}층`}
                     </div>
                     {/* 아이콘 표시 */}
-                    <div className="absolute right-2 top-2 flex justify-around bg-white rounded-[10px]">
+                    <div className="absolute w-[238px] h-[55px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                      flex justify-around items-center bg-white rounded-[10px]">
                         {/* 경고 */}
-                        {warning > 0 && (
+                        {warning >= 0 && (
                         <div className="relative">
-                          <img src={Warning} alt="경고"/>
-                          <p className="absolute left-2 top-2 z-20">{warning}</p>
+                          <img src={Warning} alt="경고" className="w-[50px] h-[50px] relative"/>
+                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 
+                            font-pyeojin text-[28px] text-[#054E76]"
+                            >{warning}</p>
                         </div>
                         )}
                         {/* 주의 */}
-                        {caution > 0 && (
+                        {caution >= 0 && (
                         <div className="relative">
-                          <img src={Caution} alt="주의"/>
-                          <p className="absolute left-2 top-2 z-20">{caution}</p>
+                          <img src={Caution} alt="주의" className="w-[50px] h-[50px] relative"/>
+                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20
+                            font-pyeojin text-[28px] text-[#054E76]"
+                            >{caution}</p>
                         </div>
                         )}
                         {/* 요청 */}
-                        {requests > 0 && (
+                        {requests >= 0 && (
                         <div className="relative">
-                          <img src={Circle} alt="요청"/>
-                          <p className="absolute left-2 top-2 z-20">{requests}</p>
+                          <img src={Circle} alt="요청" className="w-[45px] h-[45px] relative"/>
+                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 
+                            font-pyeojin text-[28px] text-[#054E76]"
+                            >{requests}</p>
                         </div>
                         )}
                     </div>
                 </div>
             )})}
             {/* 건물 이름 */}
-            <div className="bg-white rounded-[10px] absolute bottom-[18px] left-1/2 -translate-x-1/2
-                w-[130px] h-[44px]
-                font-pyeojin text-[32px] text-center">
+            <div className="bg-white rounded-[10px] absolute bottom-[10px] left-1/2 -translate-x-1/2
+                w-[100px] h-[32px]
+                font-pyeojin text-[24px] text-center">
                 {buildingName}
             </div>
         </div>

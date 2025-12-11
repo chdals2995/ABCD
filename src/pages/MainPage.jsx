@@ -1,3 +1,4 @@
+// MainPage
 import AdminLayout from "../layout/AdminLayout";
 import MainBuilding from "../components/main/MainBuilding";
 import MainPark from "../components/main/MainPark";
