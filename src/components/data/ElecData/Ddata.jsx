@@ -24,12 +24,32 @@ export default function Ddata() {
     return <p className="text-xs text-gray-500">데이터가 없습니다.</p>;
   }
 
+  // 막대 값 + 색상
+  const values = dailyData.map((d) => {
+    const v = Number(d.elecSum);
+    if (Number.isNaN(v)) return 0;
+    return Math.floor(v);
+  });
+
+  const barColors = values.map((v) => {
+    if (v > 30000000) {
+      return "#414141";           // 위험
+    } else if (v >= 20000000 && v <= 30000000) {
+      return "#E54138";           // 주의
+    } else {
+      return "#F3D21B";           // 정상
+    }
+  });
+
   const data = {
     labels,
     datasets: [
       {
         label: "일별 전력 사용량 (kWh)",
-        data: dailyData.map((d) => d.elecSum),
+        data: values,
+        backgroundColor: barColors,
+        borderColor: barColors,
+        borderWidth: 1,
       },
     ],
   };
@@ -38,19 +58,29 @@ export default function Ddata() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
-      title: { display: true, text: "최근 7일 전력 사용량" },
+      legend: { display: false },     // 범례는 우리가 따로 만듦
+      title: { display: false },      // 제목도 바깥에 넣을 거라 끔
+      tooltip: { enabled: true },
     },
     scales: {
-      y: { beginAtZero: true },
+      x: {
+        grid: { display: false },
+      },
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "단위(kWh)",
+          align:"end",
+          padding: {top:0, bottom:10}
+        },
+      },
     },
   };
 
   return (
-    <div className="flex w-4/5 h-2/3 flex-col ml-[50%] translate-x-[-50%]">
-      <div className="flex-1 min-h-0">
-        <Bar data={data} options={options} />
-      </div>
+    <div className="w-full h-full">
+      <Bar data={data} options={options} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/pages/data/ElecData/Sdata.jsx
 import Mdata from "./Mdata";
 import Ddata from "./Ddata";
 import DataTable from "./DataTable";
@@ -5,33 +6,28 @@ import { useState } from "react";
 import DataModal from "../DataModal";
 import CloseButton from "../../../assets/CloseButton";
 
-export default function Sdata(){
-const [isOpen, setIsOpen] = useState(false); // 모달 (여 / 닫힘)
-const [mode, setMode] = useState("day"); // "day" 또는 "month"
+export default function Sdata() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [mode, setMode] = useState("day"); // "day" | "month"
 
-// "단위(일)" 버튼 클릭 시 발생
-const openDayModal = () => {
+  const openDayModal = () => {
     setMode("day");
     setIsOpen(true);
-};
+  };
 
-// "단위(월)" 버튼 클릭 시 발생
-const openMonthModal = () => {
+  const openMonthModal = () => {
     setMode("month");
     setIsOpen(true);
-};
+  };
 
+  const closeModal = () => setIsOpen(false);
 
-const closeModal = () => {
-    setIsOpen(false);
-}
-
-    return(
-        <div className="flex h-full flex-col text-sm">
-         <div className="flex items-center justify-between mb-1">
+  return (
+    <div className="flex h-full flex-col text-sm p-10">
+      <div className="flex items-center justify-between mb-1">
         <h2 className="font-semibold text-base">Sdata</h2>
         <div className="space-x-2">
-        <button
+          <button
             onClick={openDayModal}
             className="px-2 py-1 text-xs border rounded"
           >
@@ -45,64 +41,93 @@ const closeModal = () => {
           </button>
         </div>
       </div>
-           {/* 🔹 Modal에 isOpen, onClose, children 전달 */}
+
+      {/* 모달 */}
       <DataModal isOpen={isOpen} onClose={closeModal}>
-        <div className="w-full h-full flex flex-col">
-          {/* 상단 헤더 */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-[#054E76]">
-          {/* 탭 영역 */}
-            <div className="flex gap-2">
+        
+        {/* 💙 바깥 하늘색 카드 */}
+        <div className="w-[1000px] h-[620px] bg-transparent flex flex-col ml-[50%] transform -translate-x-1/2 mt-[50px]">
+        <div className= "absolute right-[-55px] top-[-30px]">
+         <CloseButton onClick={closeModal} />
+        </div>
+          {/* 상단 탭 + 닫기 */}
+          <div className="flex items-start justify-between px-6 pt-4">
+            <div className="flex">
               <button
                 type="button"
                 onClick={() => setMode("day")}
                 className={`
-                  px-3 py-1 text-sm font-semibold rounded-t
-                  ${
-                    mode === "day"
-                      ? "bg-white text-[#054E76] border border-b-0 border-[#054E76]"
-                      : "bg-transparent text-gray-500 border-b-2 border-transparent hover:text-[#054E76]"
-                  }
+                  px-6 py-2 text-sm font-semibold
+                  border border-[#054E76]
+                  rounded-t-md
+                  ${mode === "day"
+                    ? "bg-white text-[#054E76] border-white"
+                    : "bg-[#054E76] text-[#FFFFFF] border-[#054E76]"}
                 `}
               >
                 일별
               </button>
-
               <button
                 type="button"
                 onClick={() => setMode("month")}
                 className={`
-                  px-3 py-1 text-sm font-semibold rounded-t
-                  ${
-                    mode === "month"
-                      ? "bg-white text-[#054E76] border border-b-0 border-[#054E76]"
-                      : "bg-transparent text-gray-500 border-b-2 border-transparent hover:text-[#054E76]"
-                  }
+                  px-6 py-2 text-sm font-semibold
+                  border border-[#054E76]
+                  rounded-t-md -ml-[1px]
+                  ${mode === "month"
+                    ? "bg-white text-[#054E76] border-white"
+                    : "bg-[#054E76] text-[#FFFFFF] border-[#054E76]"}
                 `}
               >
                 월별
               </button>
             </div>
-
-            <CloseButton onClick={closeModal}/>
-
-            
-            {/* <button                       ============================ 닫기버튼 ============================
-              onClick={closeModal}
-              className="px-2 py-1 border border-[#054E76] rounded text-sm"
-            >
-              닫기
-            </button> */}
-            
           </div>
 
-          {/* 내용 영역 - Ddata / Mdata 중 하나 렌더링 */}
-          <div className="flex-1 p-4 overflow-hidden bg-white">
-             {mode === "day" ? (<> <Ddata /><DataTable /> </>) : (<Mdata />)}
+          {/* 안쪽 흰 박스 */}
+          <div className="flex-1 px-6 pb-6 bg-transparent">
+            <div className="bg-[#ffffff] w-full h-full px-8 pt-6 pb-4 flex flex-col">
+              {/* 제목 */}
+              <h3 className="text-lg font-semibold mb-4">
+                {mode === "day"
+                  ? "일별 전력 사용량 그래프(주 단위)"
+                  : "월별 전력 사용량 그래프(월 단위)"}
+              </h3>
+
+              {/* 차트 + 범례 */}
+              <div className="flex gap-10">
+                {/* 범례 */}
+                <div className="text-sm mt-4">
+                  <div className="mb-2 font-semibold">범례</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="inline-block w-4 h-4 bg-[#414141]" />
+                    <span>위험</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="inline-block w-4 h-4 bg-[#E54138]" />
+                    <span>주의</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-4 h-4 bg-[#F3D21B]" />
+                    <span>정상</span>
+                  </div>
+                </div>
+
+                {/* 차트 영역 */}
+                <div className="flex-1 h-[325px]">
+                  {mode === "day" ? <Ddata /> : <Mdata />}
+                </div>
+              </div>
+
+              {/* 표 영역 */}
+              {mode === "day" && <DataTable />}
+            </div>
           </div>
         </div>
-        {/* ✅ 아래에 가로형 표 붙이기 */}
       </DataModal>
+
+      {/* 페이지 안에 작은 차트도 계속 보여주고 싶으면 유지 */}
       <Ddata />
     </div>
-        )
-    }
+  );
+}

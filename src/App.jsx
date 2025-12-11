@@ -3,10 +3,11 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
 import AuthStatus from "./components/Login/contexts/AuthStatus";
-import Data from "./pages/Data";
 import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
-import Master from "./pages/Master"
+import Floors from "./pages/Floors";
+import AdminPage from "./pages/AdminPage";
+import Data from "./pages/Data";
 
 
 function App() {
@@ -19,9 +20,9 @@ function App() {
             <Route path="/UserMain" element={<AuthStatus />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
-            <Route path="/Master" element={<Master />} />
-            <Route path="/Data/*" element={<Data/>}/>
-
+            <Route path="/floors" element={<Floors />} />
+            <Route path="/AdminPage" element={<AdminPage />} />
+            <Route path="/data/*" element={<Data/>} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

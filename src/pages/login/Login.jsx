@@ -174,7 +174,7 @@ useEffect(() => {
         position:"absolute",
         left:"50%",
         transform:"translateX(-50%)",
-        color : passError || emailError ? "red" : "transparent",
+        color : emailError || passError ? "red" : "transparent",
         }}>
         아이디 또는 비밀번호가 틀렸습니다.
         </p>

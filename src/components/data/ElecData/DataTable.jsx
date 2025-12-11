@@ -1,24 +1,27 @@
-// src/pages/data/DataTable.jsx  (혹은 네가 둔 위치)
+// src/pages/data/ElecData/DataTable.jsx
 
 import { ElecDdata } from "../../../hooks/dataPage/EelecDdata";
-
-ElecDdata
 
 export default function DataTable() {
   const { dailyData, labels, loading } = ElecDdata();
 
   if (loading || !dailyData.length) {
-    return null; // 또는 "로딩중..." 한 줄 표시
+    return null;
   }
 
   return (
-    <div className="ml-[50%] mt-[20px] translate-x-[-50%] w-full">
-      <table className="text-[11px] border-collapse w-full">
+    <div className="w-full mt-6">
+      <table className="w-full border-collapse text-[12px]">
         <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-[5px] py-[10px] text-center w-20 text-[15px]">구분</th>
+          <tr className="bg-[#B5DCF3]">
+            <th className="border w-[100px] py-[15px] text-center">
+              단위(요일)
+            </th>
             {labels.map((label) => (
-              <th key={label} className="border px-[5px] py-[10px] text-center text-[15px]">
+              <th
+                key={label}
+                className="border w-[100px] py-[15px] text-center"
+              >
                 {label}
               </th>
             ))}
@@ -26,18 +29,15 @@ export default function DataTable() {
         </thead>
         <tbody>
           <tr>
-            <td className="border px-[5px] py-[10px] text-center text-[15px]">
-              전력 사용량 (kWh)
+            <td className="border w-[100px] py-[15px] text-center bg-[#B5DCF3] font-semibold">
+              사용량 (kWh)
             </td>
             {dailyData.map((row) => (
               <td
                 key={row.date}
-                className="border px-[5px] py-[10px] text-center text-[15px] whitespace-nowrap"
+                className="border w-[100px] py-[15px] text-center whitespace-nowrap"
               >
-                {row.elecSum.toLocaleString(undefined, {
-                  maximumFractionDigits: 2,
-                })}{" "}
-                kWh
+                {Math.floor(row.elecSum).toLocaleString()} kWh
               </td>
             ))}
           </tr>
