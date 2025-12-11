@@ -1,55 +1,48 @@
 // AlarmL.jsx
 import choiceIcon from "../../icons/choice_icon.png";
 
-export default function AlarmL({ row, checked, toggleRow, editMode }) {
+export default function AlarmL({ row, index, checked, toggleRow, editMode }) {
   return (
     <div
       className="
         grid
-        grid-cols-[60px_80px_200px_1fr_200px_150px]
-        text-[22px]
+        grid-cols-[60px_60px_180px_1.2fr_180px_120px]
+        text-[20px]
         py-3
         border-b
         items-center
         w-full
       "
     >
+      {/* No — Firebase ID 말고 실제 index */}
+      <div className="text-center">{index + 1}</div>
 
-      {/* No */}
-      <div className="text-center">{row.id}</div>
-
-      {/* 체크박스 — 수정 모드일 때만 표시 */}
+      {/* 체크박스 */}
       <div className="flex justify-center">
         {editMode && (
-          <div
-            className="cursor-pointer"
-            onClick={toggleRow}
-          >
-            <div
-              className="
-                w-[25px] h-[25px] 
-                rounded-[3px]
-                bg-[#C8C8C8]
-                flex items-center justify-center
-              "
-            >
-              {checked && (
-                <img src={choiceIcon} className="w-[14px] h-[14px]" />
-              )}
+          <div className="cursor-pointer" onClick={toggleRow}>
+            <div className="w-[25px] h-[25px] bg-[#C8C8C8] rounded-[3px] flex items-center justify-center">
+              {checked && <img src={choiceIcon} className="w-[14px] h-[14px]" />}
             </div>
           </div>
         )}
       </div>
 
-      {/* 아이디 */}
-      <div className="text-center truncate">{row.user}</div>
-
-      {/* 내용 */}
-      <div className="pl-2 whitespace-nowrap overflow-hidden">
-        {row.content || ""}
+      {/* 아이디  */}
+      <div className="flex items-center justify-center text-center break-all leading-tight">
+        {row.user || row.id}
       </div>
 
-      {/* 등록일 */}
+      {/* 내용 */}
+      <div className="
+        w-[440px]
+        pl-10 overflow-hidden 
+        text-center
+        truncate">
+          {row.content}
+      </div>
+
+      {/* 날짜 */}
       <div className="text-center">{row.date}</div>
 
       {/* 상태 */}
