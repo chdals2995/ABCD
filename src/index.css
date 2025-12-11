@@ -31,8 +31,7 @@
   font-display: swap;
 }
 
-/* tailwind.config.js를 명시적으로 로드 */
-@config "../tailwind.config.js";
+
 
 /* Tailwind 불러오기 (v4 방식) */
 @import "tailwindcss";
@@ -55,7 +54,11 @@ html {
   padding: 0 !important;
 }
 
-<<<<<<< HEAD
+input{
+  border: 2px solid #D3D3D3;
+}
+
+
 /* ===================================================================
                      여기서부턴 내가 추가한 영역  
 ================================================================= */
@@ -177,8 +180,5 @@ html {
   margin-bottom: 0 !important;
 }
 
-=======
-input{
-  border: 2px solid #D3D3D3;
-}
->>>>>>> a2881fa7d07b7f3d1f4371e96ab01417ef69c738
+
+
