@@ -1,6 +1,6 @@
 // src/pages/ParkingStatus.jsx
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import AdminLayout from "../layout/AdminLayout";
 import { rtdb } from "../firebase/config";
@@ -46,6 +46,7 @@ function isSlotOccupied(raw) {
 
 export default function ParkingStatus() {
   const { lotId } = useParams(); // 예: /parking/PARKING_1
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -144,6 +145,30 @@ export default function ParkingStatus() {
 
       <AdminLayout />
 
+      {/* 🔹 건물 보기 버튼 (Floors 페이지 이동) */}
+      <button
+        type="button"
+        onClick={() => navigate("/floors")}
+        className="
+          fixed
+          left-[180px]
+          top-[180px]
+          z-20
+          bg-[#0888D4]
+          text-white
+          text-sm
+          font-semibold
+          px-4
+          py-2
+          rounded-[8px]
+          shadow
+          hover:bg-[#054E76]
+          transition
+        "
+      >
+        건물 보기
+      </button>
+
       {/* 🔹 실제 내용: 위쪽은 레이아웃 높이만큼 띄우기 */}
       <div className="min-h-screen pt-[120px] pb-10">
         <div className="max-w-[1200px] mx-auto flex gap-8 items-start justify-center">
@@ -159,7 +184,10 @@ export default function ParkingStatus() {
               {parkingType === "flat" ? (
                 <ParkingFlatView slots={slots} />
               ) : (
-                <ParkingTower slots={slots} />
+                <ParkingTower
+                  slots={slots}
+                  slotsPerFloor={slotsPerFloor || 2} // ⬅ 여기!
+                />
               )}
 
               {/* 🔹 오른쪽: 요약 정보 (폭 줄이기) */}
