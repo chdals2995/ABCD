@@ -40,11 +40,11 @@ export default function AlarmL({
         {row.user || row.id}
       </div>
 
-      {/* 🔥 내용(클릭 시 RequestArrival 열림) */}
+      {/* 내용(클릭 시 RequestArrival 열림) */}
       <div
         className="
           w-[440px]
-          pl-10 
+          pl-15 
           overflow-hidden 
           text-center
           truncate

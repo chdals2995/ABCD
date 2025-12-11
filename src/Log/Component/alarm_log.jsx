@@ -93,12 +93,11 @@ export default function AlarmLog() {
   const [selectedRow, setSelectedRow] = useState(null);
 
   const openArrival = (row) => {
-    if (editMode) return; // 수정 모드일 땐 클릭 막기
+    if (editMode) return;
     setSelectedRow(row);
     setShowArrival(true);
   };
 
-  // 수신창에서 “보내기” 눌렀을 때 (필요하면 나중에 수정)
   const handleNext = (newStatus) => {
     update(ref(rtdb, `requests/${selectedRow.id}`), { status: newStatus });
     setShowArrival(false);
@@ -112,7 +111,7 @@ export default function AlarmLog() {
     setTimeout(() => setToast(""), 2000);
   };
 
-  // 상태 변경 (옵션 → 바로 DB 반영)
+  // 상태 변경
   const changeStatus = (newStatus) => {
     let changed = 0;
 
@@ -137,7 +136,6 @@ export default function AlarmLog() {
 
       {/* 필터 */}
       <div className="flex justify-between items-center mb-4 text-[18px]">
-        {/* 왼쪽 필터 */}
         <div className="flex items-center gap-4">
           <button
             className="text-[#054E76] font-semibold hover:text-[#033854]"
@@ -170,7 +168,6 @@ export default function AlarmLog() {
           />
         </div>
 
-        {/* 상태 필터 + 구분선 */}
         <div className="flex items-center gap-4 text-[18px]">
           {["접수", "처리중", "완료"].map((t, idx) => (
             <div key={t} className="flex items-center gap-4">
@@ -225,10 +222,14 @@ export default function AlarmLog() {
         />
       ))}
 
-      {/* 페이징 + 수정 */}
-      <div className="flex justify-between items-center my-6">
-        {/* 페이징 */}
-        <div className="flex flex-1 justify-center gap-3 text-[18px]">
+      {/*  ▼▼▼ 페이지네이션 + 수정 버튼 통합본 (중앙 완벽고정) ▼▼▼ */}
+      <div className="flex justify-between items-center my-6 w-full">
+
+        {/* 왼쪽 공간 */}
+        <div className="w-[120px]"></div>
+
+        {/* 페이지네이션 중앙 */}
+        <div className="flex justify-center items-center gap-3 text-[18px]">
           <button onClick={() => setPage(1)}>{"<<"}</button>
           <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
@@ -246,8 +247,8 @@ export default function AlarmLog() {
           <button onClick={() => setPage(totalPages)}>{">>"}</button>
         </div>
 
-        {/* 수정 / 옵션 / 완료 */}
-        <div className="flex items-center gap-3 mr-5">
+        {/* 오른쪽 버튼 영역 */}
+        <div className="flex items-center gap-3 w-[120px] justify-end mr-5">
           {!editMode && (
             <button
               className="px-4 py-2 bg-[#054E76] text-white rounded hover:opacity-80"
@@ -304,7 +305,9 @@ export default function AlarmLog() {
             </>
           )}
         </div>
+
       </div>
+      {/* ▲▲▲ 페이지네이션 + 수정 버튼 통합본 끝 ▲▲▲ */}
 
       {/* 수신 모달 */}
       {showArrival && selectedRow && (

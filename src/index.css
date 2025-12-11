@@ -31,8 +31,7 @@
   font-display: swap;
 }
 
-/* tailwind.config.js를 명시적으로 로드 */
-@config "../tailwind.config.js";
+
 
 /* Tailwind 불러오기 (v4 방식) */
 @import "tailwindcss";
