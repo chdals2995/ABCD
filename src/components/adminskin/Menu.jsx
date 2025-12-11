@@ -1,5 +1,5 @@
 import logoW from '../../assets/logos/logoW.png';
-import logo from '../../assets/logos/logo.png';
+import logo from '../../assets/logos/mainlogo.png';
 import { useState } from 'react';
 
 export default function Menu({customLogo, logoClass}){
