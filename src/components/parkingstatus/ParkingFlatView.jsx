@@ -40,7 +40,7 @@ export default function ParkingFlatView({ slots }) {
         <div
           key={`empty-${idx}`}
           className={`
-            h-[50px] flex items-center justify-center text-xs
+            h-[50px] flex items-center justify-start px-2
             border-[#0888D4]
             ${isFirstRow ? "" : "border-t"}
             ${isFirstCol ? "" : "border-l"}
@@ -56,14 +56,17 @@ export default function ParkingFlatView({ slots }) {
       <div
         key={slot.id}
         className={`
-          h-[50px] flex items-center justify-center text-xs font-semibold text-[#054E76]
-          border-[#0888D4]
+          h-[50px] flex items-center justify-start px-2 border-[#0888D4]
           ${isFirstRow ? "" : "border-t"}
           ${isFirstCol ? "" : "border-l"}
         `}
       >
-        <div className={`w-3 h-3 rounded-full ${colorClass}`} />
-        {label && <span className="ml-1">{label}</span>}
+        <div className={`w-4 h-4 rounded-full ${colorClass}`} />
+        {label && (
+          <span className="ml-2 text-xl font-semibold text-[#054E76]">
+            {label}
+          </span>
+        )}
       </div>
     );
   };

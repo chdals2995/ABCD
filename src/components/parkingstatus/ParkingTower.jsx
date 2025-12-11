@@ -32,7 +32,8 @@ export default function ParkingTower({ slots }) {
     }
 
     const colorClass = slot.occupied ? "bg-[#F1593A]" : "bg-[#0FA958]";
-    const label = slot.carCode || "";
+    // 🔹 차량번호 뒤 4자리만 표시
+    const label = slot.occupied ? slot.carCode?.slice(-4) : "";
 
     return (
       <div
@@ -40,8 +41,8 @@ export default function ParkingTower({ slots }) {
         className={`flex items-center justify-start px-2 ${ROW_HEIGHT_CLASS}`}
       >
         <div className={`w-4 h-4 rounded-full ${colorClass}`} />
-        {slot.occupied && label && (
-          <span className="ml-2 text-xs font-semibold text-[#054E76]">
+        {label && (
+          <span className="ml-2 text-xl font-semibold text-[#054E76]">
             {label}
           </span>
         )}
