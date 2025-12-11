@@ -32,9 +32,9 @@ export default function Ddata() {
   });
 
   const barColors = values.map((v) => {
-    if (v > 30000000) {
+    if (v > 3500) {
       return "#414141";           // 위험
-    } else if (v >= 20000000 && v <= 30000000) {
+    } else if (v >= 2000 && v <= 3500) {
       return "#E54138";           // 주의
     } else {
       return "#F3D21B";           // 정상
@@ -64,9 +64,12 @@ export default function Ddata() {
     },
     scales: {
       x: {
+        ticks: {font:{size:"11px"}},
         grid: { display: false },
       },
       y: {
+        min:0,
+        max:4000,
         beginAtZero: true,
         title: {
           display: true,

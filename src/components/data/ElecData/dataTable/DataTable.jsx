@@ -1,4 +1,4 @@
-// src/pages/data/ElecData/DataTable.jsx
+// src/pages/data/ElecData/dataTable/DataTable.jsx
 import { ElecDdata } from "../../../../hooks/dataPage/ElecDdata";
 
 export default function DataTable() {
@@ -36,7 +36,7 @@ export default function DataTable() {
                 key={row.date}
                 className="border w-[100px] py-[12px] text-center whitespace-nowrap"
               >
-                {Math.floor(row.elecSum).toLocaleString()} kWh
+                {Math.floor(row.elecSum).toLocaleString()}만
               </td>
             ))}
           </tr>

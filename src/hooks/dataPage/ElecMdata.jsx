@@ -32,9 +32,13 @@ export function ElecMdata() {
           const key = child.key;     // 예: "2025-12"
           const val = child.val() || {};
 
+          const rawElec = Number(val.elecSum ?? 0);
+          const elec10k = Math.round(rawElec / 10000);
+
           rows.push({
             monthKey: key,
-            elecSum: Number(val.elecSum ?? 0),
+            elecSum: elec10k,
+            elecSumRaw: rawElec,
 
             // 나중에 쓰일 수 있게 같이 넣어두기 (eventCounts 안에 있음)
             alarmCount: Number(val.alarmCount ?? 0),

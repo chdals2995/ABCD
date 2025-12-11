@@ -10,7 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { ElecDdata } from "../../../hooks/dataPage/ElecDdata";
+import { ElecDdata } from "../../../../hooks/dataPage/ElecDdata";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -32,9 +32,9 @@ export default function ModalDdata() {
   });
 
   const barColors = values.map((v) => {
-    if (v > 30000000) {
+    if (v > 3500) {
       return "#414141";           // 위험
-    } else if (v >= 20000000 && v <= 30000000) {
+    } else if (v >= 2000 && v <= 3500) {
       return "#E54138";           // 주의
     } else {
       return "#F3D21B";           // 정상
@@ -63,17 +63,12 @@ export default function ModalDdata() {
       tooltip: { enabled: true },
     },
     scales: {
-    x: {
-      grid: { display: false },
-      ticks: {                    // ✅ ticks 안에!
-        font: {
-          size: 10,                // 여기서 x축 라벨 폰트 크기
-          // weight: "bold",
-          // family: "'Pretendard', sans-serif",
-        },
+      x: {
+        grid: { display: false },
       },
-    },
       y: {
+        min:0,
+        max:4000,
         beginAtZero: true,
         title: {
           display: true,

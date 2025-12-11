@@ -1,11 +1,13 @@
 // src/pages/data/ElecData/Sdata.jsx
-import Mdata from "./Mdata";
+import Mdata from "./modal/Mdata";
+import ModalDdata from "./modal/ModalDdata";
 import Ddata from "./Ddata";
-import DataTable from "./dataTable/DataTable";
 import { useState } from "react";
 import DataModal from "../DataModal";
 import CloseButton from "../../../assets/CloseButton";
-import ModalDdata from "./ModalDdata";
+import DataTable from "./dataTable/DataTable";
+import MataTable from "./dataTable/MataTable";
+
 
 export default function Sdata() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,13 +34,13 @@ export default function Sdata() {
         <div className="space-x-2 absolute top-[20px] right-[10px]">
           <button
             onClick={openDayModal}
-            className="px-[10px] py-[8px] text-xs border-0 rounded bg-[#FFEE69] text-[16px] rounded-[10px] shadow-[rgba(0,0,0,0.2)] shadow-md"
+            className="px-[10px] py-[8px] text-xs border-0 rounded bg-[#FFEE69] text-[16px] rounded-[10px] shadow-[rgba(0,0,0,0.2)] shadow-md font-medium"
           >
             단위(일)
           </button>
           <button
             onClick={openMonthModal}
-            className="px-[10px] py-[8px] text-xs border-0 rounded bg-[#FFEE69] text-[16px] rounded-[10px] shadow-[rgba(0,0,0,0.2)] shadow-md"
+            className="px-[10px] py-[8px] text-xs border-0 rounded bg-[#FFEE69] text-[16px] rounded-[10px] shadow-[rgba(0,0,0,0.2)] shadow-md font-medium"
           >
             단위(월)
           </button>
@@ -93,7 +95,7 @@ export default function Sdata() {
 
           {/* 안쪽 흰 박스 */}
           <div className="flex-1 px-3 md:px-6 pb-2 md:pb-3 bg-transparent">
-            <div className="bg-[#ffffff] w-full h-5/6 px-4 md:px-8 pt-4 md:pt-6 pb-4 flex flex-col overflow-y-auto">
+            <div className="bg-[#ffffff] w-full h-8/9 px-4 md:px-8 pt-4 md:pt-6 pb-4 flex flex-col overflow-y-auto">
               {/* 제목 */}
               <h3 className="text-base md:text-lg font-semibold mb-4">
                 {mode === "day"
@@ -122,12 +124,13 @@ export default function Sdata() {
 
                 {/* 차트 영역 */}
                 <div className="flex-1 h-[220px] md:h-[280px] lg:h-[325px]">
-                  {mode === "day" ? <Ddata /> : <Mdata />}
+                  {mode === "day" ? <ModalDdata /> : <Mdata />}
                 </div>
               </div>
 
               {/* 표 영역 */}
               {mode === "day" && <DataTable />}
+              {mode === "month" && <MataTable />}
             </div>
           </div>
         </div>
@@ -135,7 +138,7 @@ export default function Sdata() {
 
       {/* 페이지 안에 작은 차트: 모달 열려 있을 때는 안 보이게 */}
       <div className="w-[450px] h-[300px] mt-[30px] ml-[-10px]">
-       {!isOpen && <ModalDdata />}
+       {!isOpen && <Ddata />}
       </div>
     </div>
   );

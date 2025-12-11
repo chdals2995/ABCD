@@ -29,9 +29,14 @@ export function ElecDdata() {
         snap.forEach((child) => {
           const key = child.key;
           const val = child.val();
+
+          const rawElec = Number(val.elecSum ?? 0);
+          const elec10k = Math.round(rawElec / 10000);
           rows.push({
             date: key,
-            elecSum: val.elecSum ?? 0,
+            elecSum: elec10k,
+            elecSumRaw : rawElec,
+  
           });
         });
 

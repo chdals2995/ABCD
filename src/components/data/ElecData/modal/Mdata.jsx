@@ -9,7 +9,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { ElecMdata } from "../../../hooks/dataPage/ElecMdata";
+import { ElecMdata } from "../../../../hooks/dataPage/ElecMdata";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -21,6 +21,16 @@ export default function ModalMdata() {
 
   const values = monthData.map((m) => Math.floor(m.elecSum)); // 월별 전력 합계
 
+  const barColors = values.map((v) => {
+    if (v > 90000) {
+      return "#414141";           // 위험
+    } else if (v >= 80000 && v <= 90000) {
+      return "#E54138";           // 주의
+    } else {
+      return "#F3D21B";           // 정상
+    }
+  });
+
   const data = {
     labels,
     datasets: [
@@ -28,6 +38,9 @@ export default function ModalMdata() {
         label: "월별 전력 사용량 (kWh)",
         data: values,
         backgroundColor: "#2563EB",
+        backgroundColor: barColors,
+        borderColor: barColors,
+        borderWidth: 1,
       },
     ],
   };
@@ -49,6 +62,8 @@ export default function ModalMdata() {
       },
       y: {
         beginAtZero: true,
+        min:0,
+        max:110000,
         title: {
           display: true,
           text: "단위(kWh)",
