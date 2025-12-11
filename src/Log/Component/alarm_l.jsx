@@ -1,7 +1,14 @@
 // AlarmL.jsx
 import choiceIcon from "../../icons/choice_icon.png";
 
-export default function AlarmL({ row, index, checked, toggleRow, editMode }) {
+export default function AlarmL({
+  row,
+  index,
+  checked,
+  toggleRow,
+  editMode,
+  onClickContent,   // ← 추가됨
+}) {
   return (
     <div
       className="
@@ -14,7 +21,7 @@ export default function AlarmL({ row, index, checked, toggleRow, editMode }) {
         w-full
       "
     >
-      {/* No — Firebase ID 말고 실제 index */}
+      {/* No */}
       <div className="text-center">{index + 1}</div>
 
       {/* 체크박스 */}
@@ -28,18 +35,25 @@ export default function AlarmL({ row, index, checked, toggleRow, editMode }) {
         )}
       </div>
 
-      {/* 아이디  */}
+      {/* 아이디 */}
       <div className="flex items-center justify-center text-center break-all leading-tight">
         {row.user || row.id}
       </div>
 
-      {/* 내용 */}
-      <div className="
-        w-[440px]
-        pl-10 overflow-hidden 
-        text-center
-        truncate">
-          {row.content}
+      {/* 🔥 내용(클릭 시 RequestArrival 열림) */}
+      <div
+        className="
+          w-[440px]
+          pl-10 
+          overflow-hidden 
+          text-center
+          truncate
+          cursor-pointer
+          hover:underline
+        "
+        onClick={onClickContent}
+      >
+        {row.content}
       </div>
 
       {/* 날짜 */}
