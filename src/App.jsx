@@ -5,11 +5,8 @@ import Login from "./pages/login/Login";
 import Data from "./pages/Data";
 import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
-<<<<<<< HEAD
-import UserMain from "./pages/UserMain";
-=======
 import Master from "./pages/Master"
->>>>>>> 380f18a53ece296211dbafbf3a49faf7cbb4debf
+import UserMain from "./pages/UserMain"
 
 function App() {
   return (
@@ -20,12 +17,9 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
-<<<<<<< HEAD
-            <Route path="/UserMain" element={<UserMain/>} />
-=======
             <Route path="/Master" element={<Master />} />
-
->>>>>>> 380f18a53ece296211dbafbf3a49faf7cbb4debf
+            <Route path="/data" element={<Data />} />
+            <Route path="/userMain" element={<UserMain />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
