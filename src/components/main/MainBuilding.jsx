@@ -22,7 +22,25 @@ export default function MainBuilding({floors = 10}){
 
     const alerts = await get(ref(rtdb, "alerts"));
     const requests= await get(ref(rtdb, "requests"));
+    
+    if (alerts.exists()) {
+      const raw = alerts.val();
+      const list = [];
 
+      Object.values(raw).forEach((byFloor) => {
+        Object.values(byFloor).forEach((byDate) => {
+          Object.values(byDate).forEach((alertItem) => {
+            list.push(alertItem);
+          });
+        });
+      });
+
+      setAlertList(list);
+    }
+
+    if (requests.exists()) {
+      setRequestList(Object.values(requests.val()));
+    }
     if (!snapshot.exists()) return;
 
       const data = snapshot.val();
@@ -62,14 +80,40 @@ export default function MainBuilding({floors = 10}){
 
       setFloorGroups(finalGroups);
 
-      // 🔥 alerts & requests 저장
-      if (alerts.exists()) setAlertList(Object.values(alerts.val()));
+      // 🔥 requests 저장
       if (requests.exists()) setRequestList(Object.values(requests.val()));
     };
       
     fetchBuilding();
   }, []);
 
+  // 🔥 층 문자열 파싱 함수 (10F, 1층, B1 → 모두 처리)
+  const parseFloor = (str) => {
+    if (!str) return null;
+    const s = str.trim();
+
+    // B2, B10 → 지하층
+    if (s.startsWith("B")) {
+      return { type: "basement", number: Number(s.replace(/[^0-9]/g, "")) };
+    }
+
+    // 10F, 3F → 지상층
+    if (s.endsWith("F")) {
+      return { type: "ground", number: Number(s.replace(/[^0-9]/g, "")) };
+    }
+
+    // 1층, 10층 → 지상층
+    if (s.includes("층")) {
+      return { type: "ground", number: Number(s.replace(/[^0-9]/g, "")) };
+    }
+
+    // 숫자만 있는 경우 → 지상층
+    if (!isNaN(Number(s))) {
+      return { type: "ground", number: Number(s) };
+    }
+
+    return null;
+  };
 
 //   아이콘
   const getGroupCounts = (group) => {
@@ -81,44 +125,31 @@ export default function MainBuilding({floors = 10}){
     // ① 경고(alerts) 카운트
     // -------------------------
     alertList.forEach((a) => {
-      if (!a.floor) return;
+      const parsed = parseFloor(a.floor);
+      if (!parsed) return;
 
-      let floorNumber = 0;
+      // 지하/지상 구분
+      if (parsed.type !== group.type) return;
 
-      if (group.type === "basement") {
-        if (!a.floor.startsWith("B")) return;
-        floorNumber = Number(a.floor.replace("B", ""));
-      } else {
-        if (!a.floor.endsWith("F")) return;
-        floorNumber = Number(a.floor.replace("F", ""));
-      }
+      // 범위 안인지 체크
+      if (parsed.number < group.start || parsed.number > group.end) return;
 
-      // 그룹 범위 안에 포함되면 카운트
-      if (floorNumber >= group.start && floorNumber <= group.end) {
-        if (a.level === "warning") warning++;
-        if (a.level === "caution") caution++;
-      }
+      if (a.level === "warning") warning++;
+      if (a.level === "caution") caution++;
     });
 
     // -------------------------
     // ② 요청(requests) 카운트
     // -------------------------
     requestList.forEach((r) => {
-      if (!r.floor) return;
+      const parsed = parseFloor(r.floor);
+      if (!parsed) return;
 
-      let floorNumber = 0;
+      if (parsed.type !== group.type) return;
 
-      if (group.type === "basement") {
-        if (!r.floor.startsWith("B")) return;
-        floorNumber = Number(r.floor.replace("B", ""));
-      } else {
-        if (!r.floor.endsWith("F")) return;
-        floorNumber = Number(r.floor.replace("F", ""));
-      }
+      if (parsed.number < group.start || parsed.number > group.end) return;
 
-      if (floorNumber >= group.start && floorNumber <= group.end) {
-        requests++;
-      }
+      requests++;
     });
 
     return { warning, caution, requests };
@@ -152,27 +183,27 @@ export default function MainBuilding({floors = 10}){
                         {/* 경고 */}
                         {warning >= 0 && (
                         <div className="relative">
-                          <img src={Warning} alt="경고" className="w-[50px] h-[50px] relative"/>
-                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 
-                            font-pyeojin text-[28px] text-[#054E76]"
+                          <img src={Warning} alt="경고" className="w-[50px] relative"/>
+                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-10px] z-20 
+                            font-pyeojin text-[21px] text-[#054E76]"
                             >{warning}</p>
                         </div>
                         )}
                         {/* 주의 */}
                         {caution >= 0 && (
                         <div className="relative">
-                          <img src={Caution} alt="주의" className="w-[50px] h-[50px] relative"/>
-                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20
-                            font-pyeojin text-[28px] text-[#054E76]"
+                          <img src={Caution} alt="주의" className="w-[50px] relative"/>
+                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-10px] z-20
+                            font-pyeojin text-[21px] text-[#054E76]"
                             >{caution}</p>
                         </div>
                         )}
                         {/* 요청 */}
                         {requests >= 0 && (
                         <div className="relative">
-                          <img src={Circle} alt="요청" className="w-[45px] h-[45px] relative"/>
+                          <img src={Circle} alt="요청" className="w-[45px] relative"/>
                           <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 
-                            font-pyeojin text-[28px] text-[#054E76]"
+                            font-pyeojin text-[21px] text-[#054E76]"
                             >{requests}</p>
                         </div>
                         )}
