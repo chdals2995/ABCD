@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
-import CheckL from "./CheckL.jsx";
+import CheckL from "../../Log/Component/CheckL.jsx";
 import SearchIcon from "../../icons/Search_icon.png";
 import CalendarIcon from "../../icons/calendar_icon.png";
-import CheckForm from "./CheckForm.jsx";
+import CheckForm from "../../Log/Component/CheckForm.jsx";
 
 import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
