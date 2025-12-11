@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import CheckL from "../../Log/Component/CheckL.jsx";
 import SearchIcon from "../../icons/Search_icon.png";
 import CalendarIcon from "../../icons/calendar_icon.png";
@@ -8,7 +8,8 @@ import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { ref, push, update } from "firebase/database";
+// Firebase
+import { ref, onValue, push, update } from "firebase/database";
 import { rtdb } from "../../firebase/config";
 
 // 날짜 유틸
@@ -29,13 +30,11 @@ function todayDot() {
 }
 
 export default function CheckLog() {
-  const [data, setData] = useState([
-    { id: 1, title: "전기 점검", content: "배전반 점검 필요", date: "2025-06-05", status: "완료" },
-    { id: 2, title: "냉난방 점검", content: "에어컨 필터 교체", date: "2019-04-02", status: "완료" },
-    { id: 3, title: "수도/배관 점검", content: "배관 누수 확인", date: "2022-05-12", status: "미완료" },
-    { id: 4, title: "가스 점검", content: "누출 테스트 필요", date: "2025-11-16", status: "완료" },
-    { id: 5, title: "건물 내부 기본 점검", content: "계단 조명 교체", date: "2024-12-08", status: "미완료" },
-  ]);
+  // Firebase에서 읽어올 실제 데이터
+  const [data, setData] = useState([]);
+
+  // 저장 완료 토스트
+  const [saved, setSaved] = useState(false);
 
   /* 날짜 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
@@ -50,46 +49,49 @@ export default function CheckLog() {
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const [saved, setSaved] = useState(false);
+  // Firebase에서 점검기록 불러오기 (새로고침 유지)
+  useEffect(() => {
+    const checkRef = ref(rtdb, "Check");
 
+    return onValue(checkRef, (snapshot) => {
+      const val = snapshot.val();
+
+      if (!val) {
+        setData([]);
+        return;
+      }
+
+      const list = Object.entries(val).map(([id, v]) => ({
+        id,
+        ...v,
+      }));
+
+      setData(list);
+    });
+  }, []);
 
   /* 입력 저장 */
   const handleFormSave = async (payload) => {
-  if (formMode === "create") {
-    const newItem = {
-      title: payload.title,
-      content: payload.content,
-      date: formatDate(new Date()),
-      status: "미완료",
-    };
+    if (formMode === "create") {
+      const newItem = {
+        title: payload.title,
+        content: payload.content,
+        date: formatDate(new Date()),
+        status: "미완료",
+      };
 
-    const newRef = await push(ref(rtdb, "Check"), newItem);
+      // Firebase에만 저장, state는 onValue가 알아서 반영
+      await push(ref(rtdb, "Check"), newItem);
+    } else if (formMode === "edit" && payload.id) {
+      await update(ref(rtdb, `Check/${payload.id}`), {
+        title: payload.title,
+        content: payload.content,
+      });
+    }
 
-    setData((prev) => [
-      ...prev,
-      { id: newRef.key, ...newItem }
-    ]);
-
-  } else if (formMode === "edit" && payload.id) {
-    await update(ref(rtdb, `Check/${payload.id}`), {
-      title: payload.title,
-      content: payload.content,
-    });
-
-    setData((prev) =>
-      prev.map((item) =>
-        item.id === payload.id
-          ? { ...item, title: payload.title, content: payload.content }
-          : item
-      )
-    );
-  }
-
-  // 🔥 저장 성공 토스트
-  setSaved(true);
-  setTimeout(() => setSaved(false), 2000);
-};
-
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   /* 항목 클릭 */
   const handleItemClick = (row) => {
@@ -123,7 +125,6 @@ export default function CheckLog() {
       {/* 상단 필터 영역 */}
       <div className="flex justify-between items-center mb-5 text-[18px]">
 
-        {/* 왼쪽: 전체 | 날짜 | 검색 */}
         <div className="flex items-center gap-4">
           <button
             className="text-[#054E76] font-semibold cursor-pointer"
@@ -244,16 +245,18 @@ export default function CheckLog() {
         />
       )}
 
+      {/* 저장 완료 토스트 */}
       {saved && (
-        <div className="
-          fixed bottom-10 left-1/2 -translate-x-1/2 
-          bg-black text-white px-6 py-3 rounded-lg text-[18px]
-          shadow-lg z-[9999]
-        ">
+        <div
+          className="
+            fixed bottom-10 left-1/2 -translate-x-1/2
+            bg-black text-white px-6 py-3 rounded-lg text-[18px]
+            shadow-lg z-[9999]
+          "
+        >
           저장되었습니다.
         </div>
       )}
-
     </div>
   );
 }
