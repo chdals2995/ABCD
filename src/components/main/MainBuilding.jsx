@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
 import { ref, get } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
+import Warning from "../../assets/icons/warning.png";
+import Caution from "../../assets/icons/caution.png";
+import Circle from "../../assets/icons/circle.png"
 
 
 
@@ -54,7 +57,7 @@ export default function MainBuilding({floors = 10}){
       );
 
       // 🔥 화면에서는 위 → 아래 순으로 표시해야 하므로 reverse
-      const finalGroups = [...groundGroups, ...basementGroup].reverse();
+      const finalGroups = [...groundGroups.reverse(), ...basementGroup];
 
       setFloorGroups(finalGroups);
 
@@ -127,19 +130,19 @@ export default function MainBuilding({floors = 10}){
         className="w-[350px] h-[665px] bg-cover bg-center relative">
             {/* 층분할 */}
             {floorGroups.map((group) => {
-                const { warning, caution, requests } = countGroupItems(group);
+                const { warning, caution, requests } = getGroupCounts(group);
 
                 return (
                 <div
                     key={`${group.type}-${group.start}-${group.end}`}
-                    className="border hover:bg-[#054E76]/50 group relative z-2"
+                    className="hover:bg-[#054E76]/50 group relative z-10"
                     style={{ height: `${665/floorGroups.length}px`}}
                 >
                     {/* 층수표시 */}
                     <div className="font-pyeojin group-hover:text-white ml-[10px] mt-[10px]">
                         {/* 지하 포함*/}
                         {group.type === "basement"
-                        ? `${group.end}층 ~ ${group.start}층`
+                        ? `B${group.end}층 ~ B${group.start}층`
                         : `${group.start}층 ~ ${group.end}층`}
                     </div>
                     {/* 아이콘 표시 */}
@@ -147,20 +150,22 @@ export default function MainBuilding({floors = 10}){
                         {/* 경고 */}
                         {warning > 0 && (
                         <div className="relative">
-                          <img src={warning} alt="경고"/>
-                          <p className="absolute left-2 top-2">{warning}</p>
+                          <img src={Warning} alt="경고"/>
+                          <p className="absolute left-2 top-2 z-20">{warning}</p>
                         </div>
                         )}
                         {/* 주의 */}
                         {caution > 0 && (
-                        <div>
-                        
+                        <div className="relative">
+                          <img src={Caution} alt="주의"/>
+                          <p className="absolute left-2 top-2 z-20">{caution}</p>
                         </div>
                         )}
                         {/* 요청 */}
                         {requests > 0 && (
-                        <div>
-                        
+                        <div className="relative">
+                          <img src={Circle} alt="요청"/>
+                          <p className="absolute left-2 top-2 z-20">{requests}</p>
                         </div>
                         )}
                     </div>
