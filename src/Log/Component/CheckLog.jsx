@@ -8,6 +8,9 @@ import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
+import { ref, push, update } from "firebase/database";
+import { rtdb } from "../../firebase/config";
+
 // 날짜 유틸
 function formatDate(d) {
   if (!d) return null;
@@ -47,28 +50,46 @@ export default function CheckLog() {
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [selectedRow, setSelectedRow] = useState(null);
 
+  const [saved, setSaved] = useState(false);
+
+
   /* 입력 저장 */
-  const handleFormSave = (payload) => {
-    if (formMode === "create") {
-      const newId = data.length ? Math.max(...data.map((d) => d.id)) + 1 : 1;
-      const newItem = {
-        id: newId,
-        title: payload.title,
-        content: payload.content,
-        date: formatDate(new Date()), // 오늘 날짜 저장
-        status: "미완료",
-      };
-      setData((prev) => [...prev, newItem]);
-    } else if (formMode === "edit" && payload.id) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === payload.id
-            ? { ...item, title: payload.title, content: payload.content }
-            : item
-        )
-      );
-    }
-  };
+  const handleFormSave = async (payload) => {
+  if (formMode === "create") {
+    const newItem = {
+      title: payload.title,
+      content: payload.content,
+      date: formatDate(new Date()),
+      status: "미완료",
+    };
+
+    const newRef = await push(ref(rtdb, "Check"), newItem);
+
+    setData((prev) => [
+      ...prev,
+      { id: newRef.key, ...newItem }
+    ]);
+
+  } else if (formMode === "edit" && payload.id) {
+    await update(ref(rtdb, `Check/${payload.id}`), {
+      title: payload.title,
+      content: payload.content,
+    });
+
+    setData((prev) =>
+      prev.map((item) =>
+        item.id === payload.id
+          ? { ...item, title: payload.title, content: payload.content }
+          : item
+      )
+    );
+  }
+
+  // 🔥 저장 성공 토스트
+  setSaved(true);
+  setTimeout(() => setSaved(false), 2000);
+};
+
 
   /* 항목 클릭 */
   const handleItemClick = (row) => {
@@ -222,6 +243,17 @@ export default function CheckLog() {
           onSave={handleFormSave}
         />
       )}
+
+      {saved && (
+        <div className="
+          fixed bottom-10 left-1/2 -translate-x-1/2 
+          bg-black text-white px-6 py-3 rounded-lg text-[18px]
+          shadow-lg z-[9999]
+        ">
+          저장되었습니다.
+        </div>
+      )}
+
     </div>
   );
 }
