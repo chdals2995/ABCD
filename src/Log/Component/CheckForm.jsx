@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AttachmentIcon from "../../icons/attachment_icon.png";
 import Button from "../../assets/Button";
-import CloseIcon from "../../assets/icons/";
+import CloseIcon from "../../assets/icons/close.png";
 
 
 export default function CheckForm({
