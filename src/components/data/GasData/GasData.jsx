@@ -3,18 +3,6 @@ import { Link } from "react-router-dom";
 export default function GasData() {
   return (
     <div className="min-h-screen flex flex-col bg-[rgba(5,78,118,0.1)] overflow-auto">
-      {/* 상단 네비 */}
-      <nav style={{ padding: "10px 20px" }}>
-        <Link style={{ marginRight: "20px" }} to="/Data/ElecData">
-          전력
-        </Link>
-        <Link style={{ marginRight: "20px" }} to="/Data/TempData">
-          온도
-        </Link>
-        <Link style={{ marginRight: "20px" }} to="/Data/WaterData">
-          수도
-        </Link>
-      </nav>
 
       {/* 나머지 영역 전체에 카드들 가운데 배치 */}
       <div className="flex-1 flex justify-center items-center">

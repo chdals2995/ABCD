@@ -8,20 +8,9 @@ import EmData from "./EmData";
 
 export default function ElecData() {
   return (
-    <div className="min-h-screen flex flex-col overflow-auto">
+    <div className="min-h-screen flex flex-col overflow-auto bg-[rgba(5,78,118,0.1)]">
       {/* 상단 네비 */}
-      <nav className="px-5 py-2.5 position top-[50px] left-[100px] z-99">
-        <Link className="mr-5" to="/Data/WaterData">
-          온도
-        </Link>
-        <Link className="mr-5" to="/Data/TempData">
-          수도
-        </Link>
-        <Link className="mr-5" to="/Data/GasData">
-          가스
-        </Link>
-      </nav>
-
+    
       {/* 나머지 영역 전체에 카드들 가운데 배치 */}
       <div className="flex-1 flex justify-center items-center">
         <div className="relative w-[1619px] h-[810px] bg-transparent">

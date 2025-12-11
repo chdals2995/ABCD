@@ -1,18 +1,33 @@
+// src/pages/Data.jsx
 import ElecData from "../components/data/ElecData/ElecData";
 import GasData from "../components/data/GasData/GasData";
 import TempData from "../components/data/TempData/TempData";
 import WaterData from "../components/data/WaterData/WaterData";
-import {Routes, Route} from "react-router-dom";
+import {Routes, Route, Link} from "react-router-dom";
 import AdminLayout from "../layout/AdminLayout";
 
 export default function Data(){
 
    return(
-   <div className="bg-transparent bg-center">
-    <div className="mb-[-100px]">
+   <div>
+      <div className="mb-[-100px]">
      <AdminLayout/>
     </div>
-   <div className="absolute z-[-10] left-[50%] transform -translate-x-1/2 bg-[rgba(5,78,118,0.1)] w-full h-full">
+    <nav className="absolute left-[50%] top-[50px] z-99 translate-x-[-50%]">
+              <Link className="mr-10 text-[32px]" to="/Data/ElecData">
+                전력
+              </Link>
+              <Link className="mr-10 text-[32px]"  to="/Data/WaterData">
+                온도
+              </Link>
+              <Link className="mr-10 text-[32px]" to="/Data/TempData">
+                수도
+              </Link>
+              <Link className="mr-10 text-[32px]" to="/Data/GasData">
+                가스
+              </Link>
+            </nav>
+   <div className="w-full h-full bg-[rgba(5,78,118,0.1) bg-center">
      <Routes>   
       <Route path="ElecData" element={<ElecData/>}/>
       <Route path="WaterData" element={<WaterData/>}/>
@@ -20,6 +35,7 @@ export default function Data(){
       <Route path="GasData" element={<GasData/>}/>      
      </Routes>
    </div>
+    
    </div>
    )
 } 

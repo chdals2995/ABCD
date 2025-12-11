@@ -7,10 +7,10 @@ import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
+import ParkingStatus from "./pages/ParkingStatus";
 import Data from "./pages/Data";
 
-
-function App() {
+export default function App() {
   return (
     <>
       <AuthProvider>
@@ -22,6 +22,7 @@ function App() {
             <Route path="/main" element={<MainPage />} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
+            <Route path="/parking/:lotId" element={<ParkingStatus />} />
             <Route path="/data/*" element={<Data/>} />
           </Routes>
         </BrowserRouter>
@@ -30,4 +31,3 @@ function App() {
   );
 }
 
-export default App;
