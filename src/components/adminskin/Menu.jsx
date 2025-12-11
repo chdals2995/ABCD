@@ -1,8 +1,8 @@
 import logoW from '../../assets/logos/logoW.png';
-import logo from '../../assets/logos/logo.png';
+import logo from '../../assets/logos/mainlogo.png';
 import { useState } from 'react';
 
-export default function Menu(){
+export default function Menu({customLogo, logoClass}){
     const [open, setOpen] = useState(false);
 
     const show = () => {
@@ -12,7 +12,7 @@ export default function Menu(){
     return(
         <>
             <div className='pt-[13px]'>
-                <img src={logo} alt="홈" className='logo w-[216px] h-[84px] ml-[38px]'/>
+                <img src={customLogo || logo} alt="홈" className={logoClass || 'w-[216px] h-[84px] ml-[38px]'}/>
             </div>
             <div className='wrap flex w-[450px]'>
                 {/* 메뉴박스 */}
@@ -21,7 +21,7 @@ export default function Menu(){
                     ${open ? "translate-x-0" : "-translate-x-[372px]"} `}>
                     <img src={logo} alt="메뉴안로고" 
                         className='w-[216px] h-[84px] m-auto my-[20px]'/>
-                    <div className='blueBox w-[318px] h-[600px] bg-[#E6EEF2] m-auto p-[15px]
+                    <div className='blueBox w-[318px] h-[600px] bg-[#E7F3F8] m-auto p-[15px]
                         border-[#0888D4] border-2'>
                         {/* 콘텐츠 */}
                         <div className='content'>
