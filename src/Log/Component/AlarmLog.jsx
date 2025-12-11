@@ -32,7 +32,7 @@ function todayDot() {
 export default function AlarmLog() {
   const [data, setData] = useState([]);
 
-  // ✔ Firebase 데이터 받아오기
+  // Firebase 데이터 로드
   useEffect(() => {
     const requestsRef = ref(rtdb, "requests");
 
@@ -52,59 +52,48 @@ export default function AlarmLog() {
       }));
 
       list.sort((a, b) => (a.date > b.date ? -1 : 1));
-
       setData(list);
     });
   }, []);
 
-  /* 체크박스 (id 기준) */
   const [checkedRows, setCheckedRows] = useState({});
   const [editMode, setEditMode] = useState(false);
 
-  /* 날짜 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
 
-  /* 상태 필터 */
   const [statusFilter, setStatusFilter] = useState(null);
 
-  /* 토스트 */
   const [toastMsg, setToastMsg] = useState("");
   const [showToast, setShowToast] = useState(false);
 
-  /* 드롭다운 */
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  /* 필터 적용 */
+  // 필터 적용
   let filteredData = [...data];
   if (formattedDate) filteredData = filteredData.filter((r) => r.date === formattedDate);
   if (statusFilter) filteredData = filteredData.filter((r) => r.status === statusFilter);
 
-  /* 페이징 */
+  // 페이징
   const itemsPerPage = 6;
   const [page, setPage] = useState(1);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const shown = filteredData.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  /* 👉 필터 바뀌면 페이지를 1로 초기화 */
   useEffect(() => {
     setTimeout(() => setPage(1), 0);
   }, [statusFilter, selectedDate]);
 
-
-  /* 👉 페이지가 범위를 벗어나면 자동 보정 */
   useEffect(() => {
-  if (page > totalPages && totalPages > 0) {
-    setTimeout(() => setPage(totalPages), 0);
-  }
-  if (totalPages === 0) {
-    setTimeout(() => setPage(1), 0);
-  }
+    if (page > totalPages && totalPages > 0) {
+      setTimeout(() => setPage(totalPages), 0);
+    }
+    if (totalPages === 0) {
+      setTimeout(() => setPage(1), 0);
+    }
   }, [page, totalPages]);
 
-
-  /* 체크박스 토글 (id 사용) */
   const toggleRow = (id) => {
     setCheckedRows((prev) => ({
       ...prev,
@@ -112,7 +101,6 @@ export default function AlarmLog() {
     }));
   };
 
-  /* 현재 페이지 전체 선택 */
   const toggleAllCurrentPage = () => {
     setCheckedRows((prev) => {
       const allChecked = shown.every((row) => prev[row.id]);
@@ -124,7 +112,6 @@ export default function AlarmLog() {
     });
   };
 
-  /* 상태 변경 + Firebase 업데이트 */
   const changeStatus = (newStatus) => {
     const updated = data.map((item) =>
       checkedRows[item.id] ? { ...item, status: newStatus } : item
@@ -132,9 +119,7 @@ export default function AlarmLog() {
     setData(updated);
 
     Object.entries(checkedRows).forEach(([id, checked]) => {
-      if (checked) {
-        update(ref(rtdb, `requests/${id}`), { status: newStatus });
-      }
+      if (checked) update(ref(rtdb, `requests/${id}`), { status: newStatus });
     });
 
     setToastMsg(`상태가 '${newStatus}'로 변경되었습니다.`);
@@ -147,9 +132,10 @@ export default function AlarmLog() {
 
       {/* 상단 필터 */}
       <div className="flex justify-between items-center mb-4 text-[18px]">
+
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold cursor-pointer"
+            className="text-[#054E76] font-semibold"
             onClick={() => {
               setSelectedDate(null);
               setStatusFilter(null);
@@ -160,7 +146,6 @@ export default function AlarmLog() {
 
           <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
-          {/* 날짜 */}
           <div
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => datePickerRef.current.setOpen(true)}
@@ -181,7 +166,6 @@ export default function AlarmLog() {
           />
         </div>
 
-        {/* 상태 필터 */}
         <div className="flex items-center gap-4 text-[18px]">
           <button
             className={statusFilter === "접수" ? "text-[#25C310] font-bold" : ""}
@@ -189,6 +173,7 @@ export default function AlarmLog() {
           >
             접수
           </button>
+
           <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
           <button
@@ -197,6 +182,7 @@ export default function AlarmLog() {
           >
             처리중
           </button>
+
           <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
           <button
@@ -217,14 +203,14 @@ export default function AlarmLog() {
       >
         <div className="text-center">No.</div>
 
-        {/* 전체 체크 */}
         <div className="flex justify-center">
           {editMode && (
             <div onClick={toggleAllCurrentPage} className="cursor-pointer">
               <div className="w-[25px] h-[25px] bg-[#C8C8C8] rounded-[3px] flex items-center justify-center">
-                {shown.length > 0 && shown.every((r) => checkedRows[r.id]) && (
-                  <img src={choiceIcon} className="w-[14px] h-[14px]" />
-                )}
+                {shown.length > 0 &&
+                  shown.every((r) => checkedRows[r.id]) && (
+                    <img src={choiceIcon} className="w-[14px] h-[14px]" />
+                  )}
               </div>
             </div>
           )}
@@ -248,11 +234,11 @@ export default function AlarmLog() {
         />
       ))}
 
-      {/* 페이지 + 수정 */}
-      <div className="flex justify-between items-center my-6">
+      {/* 🔥 페이지 중앙 + 수정 버튼 오른쪽 */}
+      <div className="flex justify-between items-center my-6 ">
 
-        {/* 페이지 */}
-        <div className="flex-1 flex justify-center gap-3 text-[18px]">
+        {/* 페이지 (중앙 정렬) */}
+        <div className="flex flex-1 justify-center gap-3 text-[18px]">
           <button onClick={() => setPage(1)}>{"<<"}</button>
           <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
@@ -266,12 +252,14 @@ export default function AlarmLog() {
             </button>
           ))}
 
-          <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
+          <button onClick={() => page < totalPages && setPage(page + 1)}>
+            {">"}
+          </button>
           <button onClick={() => setPage(totalPages)}> {">>"} </button>
         </div>
 
-        {/* 수정모드 */}
-        <div className="flex items-center gap-3">
+        {/* 수정 버튼들 */}
+        <div className="flex items-center gap-3 ml-4 mr-5">
           {!editMode && <Button onClick={() => setEditMode(true)}>수정</Button>}
 
           {editMode && (
@@ -285,6 +273,7 @@ export default function AlarmLog() {
 
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-1 bg-white border shadow rounded w-[80px] text-center">
+
                     <div
                       className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[#25C310]"
                       onClick={() => {
@@ -326,9 +315,9 @@ export default function AlarmLog() {
       {showToast && (
         <div
           className="
-          fixed bottom-8 left-1/2 -translate-x-1/2
-          bg-black text-white px-5 py-3 rounded-xl shadow-lg text-[16px] opacity-90
-        "
+            fixed bottom-8 left-1/2 -translate-x-1/2
+            bg-black text-white px-5 py-3 rounded-xl shadow-lg text-[16px] opacity-90
+          "
         >
           {toastMsg}
         </div>
