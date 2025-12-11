@@ -1,75 +1,85 @@
-// 전체 문제 로그(Resolved + Unresolved)
-// ProblemsLog.jsx
+import { useState } from "react";
+import Report from "./Report.jsx"; // 문제 입력 모달 컴포넌트
+import PlusIcon from "../icons/plus_icon.png"; // 파일명 너에 맞게
 
-import React from "react";
 
-
-export default function ProblemsLog({ items, onSelectProblem }) {
-  if (!items || items.length === 0) {
-    return (
-      <div className="text-center text-gray-500 mt-6">
-        기록된 문제가 없습니다.
-      </div>
-    );
-  }
+export default function ProblemsLog({ problems, onSelect }) {
+  const [openReport, setOpenReport] = useState(false);
 
   return (
-    <div className="w-full mt-12">
-      {/* 타이틀 */}
-      <h2 className="text-[22px] font-bold mb-4">전체 문제 로그</h2>
+    <div className="mt-10 border rounded p-4 w-full max-w-[950px] mx-auto">
 
-      {/* 로그 리스트 */}
-      <div className="flex flex-col gap-3">
-        {items.map((item) => {
-          const isUnresolved = item.status === "unresolved";
+      {/* 제목 + (+) 버튼 */}
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-semibold">원인내역(타입별)</h3>
 
-          return (
-            <div
-              key={item.id}
-              className={`
-                w-full border p-4 rounded-md bg-white cursor-pointer
-                hover:bg-gray-50 transition 
-                ${isUnresolved ? "border-red-400" : "border-gray-200"}
-              `}
-              onClick={() => onSelectProblem(item.id)}
-            >
-              {/* 상단: 층 + 유형 */}
-              <div className="flex justify-between items-center">
-                <span className="text-[18px] font-bold">{item.floor}</span>
-
-                <span
-                  className={`text-[16px] font-semibold ${
-                    isUnresolved ? "text-red-600" : "text-blue-600"
-                  }`}
-                >
-                  {item.metric}
-                </span>
-              </div>
-
-              {/* 문제 내용 */}
-              <div className="text-[15px] text-gray-700 mt-1">
-                {item.reason}
-              </div>
-
-              {/* 상태 표시 */}
-              <div className="text-[13px] mt-1">
-                <span
-                  className={`px-2 py-0.5 rounded-md text-white text-[12px]
-                    ${isUnresolved ? "bg-red-500" : "bg-gray-400"}
-                  `}
-                >
-                  {isUnresolved ? "미해결" : "해결됨"}
-                </span>
-              </div>
-
-              {/* 날짜 */}
-              <div className="text-[13px] text-gray-500 mt-2">
-                {new Date(item.createdAt).toLocaleString("ko-KR")}
-              </div>
-            </div>
-          );
-        })}
+        <button
+          onClick={() => setOpenReport(true)}
+          className="w-8 h-8 rounded-full shadow-md flex items-center justify-center bg-white hover:bg-gray-100"
+        >
+        <img src={PlusIcon} alt="add" className="w-4 h-4" />
+      </button>
       </div>
+
+      {/* 상단 구분선 */}
+      <div className="w-full border-t border-gray-400 mb-3"></div>
+
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b text-left">
+            <th className="p-2">타입</th>
+            <th className="p-2">호수</th>
+            <th className="p-2">발생일시</th>
+            <th className="p-2">내용</th>
+            <th className="p-2">상태</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {problems.map((p) => (
+            <tr
+              key={p.id}
+              className="border-b cursor-pointer hover:bg-gray-100"
+              onClick={() => onSelect(p)}
+            >
+              <td className="p-2">{p.type}</td>
+              <td className="p-2">{p.room}</td>
+              <td className="p-2">
+                {p.createdAt
+                  ? new Date(p.createdAt).toLocaleString()
+                  : "-"}
+              </td>
+              <td className="p-2">{p.content}</td>
+
+              <td className="p-2">
+                {p.status === "완료" ? (
+                  <span className="text-blue-500">완료</span>
+                ) : (
+                  <span className="text-red-500">미완료</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* 문제 입력 모달 (Report) */}
+      {openReport && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[600px] relative">
+            <button
+              onClick={() => setOpenReport(false)}
+              className="absolute right-4 top-4 text-xl"
+            >
+              ✕
+            </button>
+
+            {/* ★ 문제 입력 모달 본체 = Report */}
+            <Report />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
