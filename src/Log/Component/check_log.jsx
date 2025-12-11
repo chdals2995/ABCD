@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from "react";
-import CheckL from "../../Log/Component/CheckL.jsx";
+import CheckL from "../Component/check_l.jsx";
 import SearchIcon from "../../icons/Search_icon.png";
 import CalendarIcon from "../../icons/calendar_icon.png";
-import CheckForm from "../../Log/Component/CheckForm.jsx";
+import CheckForm from "../Component/check_form.jsx";
 
 import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
 import { ref, onValue, push, update } from "firebase/database";
-import { rtdb } from "../../firebase/config";
+import { rtdb } from "../../firebase/config.js";
 
   // 날짜 유틸
   function formatDate(d) {
