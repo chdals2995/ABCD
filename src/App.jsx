@@ -109,7 +109,6 @@ export default function App() {
   return (
     <>
       <AuthProvider>
-        <BrowserRouter>
           <Routes>
             {/* ✅ 공개 */}
             <Route path="/" element={<Login />} />
@@ -214,7 +213,6 @@ export default function App() {
             {/* ✅ 없는 경로는 로그인으로 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
       </AuthProvider>
     </>
   );
