@@ -1,4 +1,4 @@
-// src/compopnent/data/Smodal.jsx
+// src/component/data/DataModal.jsx
 export default function DataModal({
   isOpen,
   onClose,
@@ -20,17 +20,20 @@ export default function DataModal({
       />
 
       {/* 가운데 정렬 컨테이너 */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none px-2">
         <div
-          className={`
+          className="
             pointer-events-auto
-             border-[3px] border-[#054E76]
+            border-[3px] border-[#054E76]
             bg-[#E7F3F8]
             flex flex-col
-            max-w-[calc(100vw-40px)]
-            max-h-[calc(100vh-40px)]
-            w-[1154.16px] h-[749px]
-          `}
+            w-full
+            max-w-[1154.16px]   /* PC에서 기존 크기 유지 */
+            h-[90vh]
+            max-height-[749px]
+            max-h-[749px]
+            overflow-hidden
+          "
         >
           {children}
         </div>

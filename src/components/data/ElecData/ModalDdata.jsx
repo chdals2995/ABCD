@@ -14,7 +14,7 @@ import { ElecDdata } from "../../../hooks/dataPage/ElecDdata";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function Ddata() {
+export default function ModalDdata() {
   const { dailyData, labels, loading } = ElecDdata();
 
   if (loading) {
@@ -63,9 +63,16 @@ export default function Ddata() {
       tooltip: { enabled: true },
     },
     scales: {
-      x: {
-        grid: { display: false },
+    x: {
+      grid: { display: false },
+      ticks: {                    // ✅ ticks 안에!
+        font: {
+          size: 10,                // 여기서 x축 라벨 폰트 크기
+          // weight: "bold",
+          // family: "'Pretendard', sans-serif",
+        },
       },
+    },
       y: {
         beginAtZero: true,
         title: {
