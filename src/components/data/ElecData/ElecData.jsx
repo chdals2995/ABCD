@@ -8,9 +8,9 @@ import EmData from "./EmData";
 
 export default function ElecData() {
   return (
-    <div className="min-h-screen flex flex-col bg-[rgba(5,78,118,0.1)] overflow-auto">
+    <div className="min-h-screen flex flex-col overflow-auto">
       {/* 상단 네비 */}
-      <nav className="px-5 py-2.5">
+      <nav className="px-5 py-2.5 position top-[50px] left-[100px] z-99">
         <Link className="mr-5" to="/Data/WaterData">
           온도
         </Link>
