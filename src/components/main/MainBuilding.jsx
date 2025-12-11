@@ -3,6 +3,8 @@ import { rtdb } from "../../firebase/config";
 import { ref, get } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
 
+
+
 export default function MainBuilding({floors = 10}){
     const [floorGroups, setFloorGroups] = useState([]);
     const [buildingName, setBuildingName] = useState("");
@@ -135,28 +137,35 @@ export default function MainBuilding({floors = 10}){
                 >
                     {/* 층수표시 */}
                     <div className="font-pyeojin group-hover:text-white ml-[10px] mt-[10px]">
-                        {/* 지하 */}
+                        {/* 지하 포함*/}
                         {group.type === "basement"
                         ? `${group.end}층 ~ ${group.start}층`
                         : `${group.start}층 ~ ${group.end}층`}
                     </div>
                     {/* 아이콘 표시 */}
-                    <div>
+                    <div className="absolute right-2 top-2 flex justify-around bg-white rounded-[10px]">
                         {/* 경고 */}
-                        <div>
-
+                        {warning > 0 && (
+                        <div className="relative">
+                          <img src={warning} alt="경고"/>
+                          <p className="absolute left-2 top-2">{warning}</p>
                         </div>
+                        )}
                         {/* 주의 */}
+                        {caution > 0 && (
                         <div>
-
+                        
                         </div>
+                        )}
                         {/* 요청 */}
+                        {requests > 0 && (
                         <div>
-
+                        
                         </div>
+                        )}
                     </div>
                 </div>
-            ))}
+            )})}
             {/* 건물 이름 */}
             <div className="bg-white rounded-[10px] absolute bottom-[18px] left-1/2 -translate-x-1/2
                 w-[130px] h-[44px]
