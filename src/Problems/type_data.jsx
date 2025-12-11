@@ -6,18 +6,18 @@ ChartJS.register(ArcElement, Tooltip);
 
 export default function TypeData({ data, selectedMetric }) {
   const colors = {
-    전력: "#4A90E2",
-    온도: "#FF6B6B",
-    수도: "#4CD2C7",
-    가스: "#FFA726",
+    전력: "#c2edff",
+    온도: "#6ee6fb",
+    수도: "#61a5ff",
+    가스: "#52b7ff",
   };
 
   // 데이터 필터링
   const filteredData = {
-    전력: selectedMetric === "전력" ? data.전력 : 0,
-    온도: selectedMetric === "온도" ? data.온도 : 0,
-    수도: selectedMetric === "수도" ? data.수도 : 0,
-    가스: selectedMetric === "가스" ? data.가스 : 0,
+    전력: selectedMetric === "전력" ? data.전력 : 30,
+    온도: selectedMetric === "온도" ? data.온도 : 60,
+    수도: selectedMetric === "수도" ? data.수도 : 20,
+    가스: selectedMetric === "가스" ? data.가스 : 20,
   };
 
   const chartData = {
