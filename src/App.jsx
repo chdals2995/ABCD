@@ -16,7 +16,7 @@ function App() {
   return (
     <>
       <AuthProvider>
-        <BrowserRouter>
+        
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/UserMain" element={<AuthStatus />} />
@@ -32,7 +32,7 @@ function App() {
             {/* 요청 폼 페이지 */}
             <Route path="/add-request" element={<AddRequest />} />
           </Routes>
-        </BrowserRouter>
+        
       </AuthProvider>
     </>
   );
