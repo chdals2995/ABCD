@@ -10,13 +10,11 @@ export default function TopMenu() {
   const [alertCount, setAlertCount] = useState(0); // 경고/주의 개수
   const [requestCount, setRequestCount] = useState(0); // 요청 개수
   const [notification, setNotification] = useState(null); // 알림팝업 데이터
-  
-
-  
 
   // 이전 카운트 저장용
   const prevAlertCount = useRef(0);
   const prevRequestCount = useRef(0);
+  const notificationTimer = useRef(null);
 
   const METRIC_LABEL = {
     elec: "전기",
@@ -73,6 +71,7 @@ export default function TopMenu() {
     let count = 0;
     let newAlert = null;
 
+
     const raw = snapshot.val();
     Object.values(raw).forEach((byFloor) => {
       Object.values(byFloor).forEach((byDate) => {
@@ -84,6 +83,7 @@ export default function TopMenu() {
       // 새 알림이 이전 카운트보다 많으면 가장 최근 alert 가져오기
             if (count > prevAlertCount.current) {
               newAlert = alertItem;
+              
             }
           }
         });
@@ -93,17 +93,12 @@ export default function TopMenu() {
     setAlertCount(count);
 
     if (newAlert) {
-      const message = newAlert.reason
-        ? getReasonText(newAlert.reason, newAlert.metric)
-        : "새로운 경고/주의가 등록되었습니다.";
-      setNotification({ type: "alert", message });
-      if (notificationTimer.current) clearTimeout(notificationTimer.current);
-      notificationTimer.current = setTimeout(() => setNotification(null), 3000);
+    setNotification({ type: "alert", message: getReasonText(newAlert.reason, newAlert.metric) });
+    if (notificationTimer.current) clearTimeout(notificationTimer.current);
+    notificationTimer.current = setTimeout(() => setNotification(null), 3000);
     }
-
     prevAlertCount.current = count;
   };
-
 
     const handleRequests = (snapshot) => {
     const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
@@ -118,18 +113,16 @@ export default function TopMenu() {
     prevRequestCount.current = count;
   };
 
-  const notificationTimer = { current: null };
+  const unsubscribeAlerts = onValue(alertsRef, handleAlerts);
+    const unsubscribeRequests = onValue(requestsRef, handleRequests);
 
-  onValue(alertsRef, handleAlerts);
-  onValue(requestsRef, handleRequests);
-
-  return () => {
-    // cleanup
-    off(alertsRef);
-    off(requestsRef);
-    if (notificationTimer.current) clearTimeout(notificationTimer.current);
-  };
-}, []);
+    return () => {
+      // cleanup
+      unsubscribeAlerts();
+      unsubscribeRequests();
+      if (notificationTimer.current) clearTimeout(notificationTimer.current);
+    };
+  }, []);
     
   return (
     <div>
@@ -138,43 +131,11 @@ export default function TopMenu() {
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 z-50
                     bg-white shadow-lg p-3 rounded-lg border border-gray-300 
-                    animate-[fadeIn_0.2s_ease-out]"
-        >
-                <div className="w-full h-[180px] border border-gray-200 rounded-[10px] bg-white px-4 py-3 overflow-hidden">
-                    <div className="flex items-center justify-between mb-2">
-                    </div>
-        
-                    <div className="w-full h-[130px] overflow-y-auto text-xs">
-                
-                    <ul className="space-y-1">
-                    {items.map(item => (
-                        <li
-                        key={item.id}
-                        className="flex items-center gap-2 px-2 py-1 rounded-[6px] bg-[#F5F7F9]"
-                        >
-        
-                        {/* 메트릭 / 시간 / 이유 */}
-                        <div className="flex-1 flex flex-col">
-                            <div className="flex justify-between">
-                            <span className="font-semibold">
-                                {METRIC_LABEL[item.metric] || item.metric || "기타"}
-                            </span>
-                            </div>
-                            {item.reason && 
-                            <div className="text-[10px] text-gray-600 truncate">
-                                {getReasonText(item.reason, item.metric)}
-                            </div>
-                            }
-                        </div>
-                        </li>
-                    ))}
-                    </ul>
-                
-                </div>
-        </div>
+                    animate-[fadeIn_0.2s_ease-out]">
           <p className="font-pyeojin text-[#054E76]">{notification.message}</p>
         </div>
       )}
+      {/* TopMenu */}
       <div
         className="TopMenu w-[372px] h-[68px] px-[74px] bg-[#0888D4] 
                 absolute top-0 right-0 flex items-center justify-between "
