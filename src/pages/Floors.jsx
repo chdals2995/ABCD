@@ -1,6 +1,6 @@
 // src/pages/Floors.jsx
 import { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import FloorsElecData from "../components/floors/FloorsElecData";
 import FloorsGasData from "../components/floors/FloorsGasData";
@@ -181,9 +181,7 @@ function buildSelectedFloorLabel(floorName) {
 
 export default function Floors() {
   const location = useLocation();
-  const navigate = useNavigate();
-
-  // 🔹 Menu에서 navigate("/floors", { state: { floorTarget } })로 보낸 정보
+  // 🔹 Main에서 navigate("/floors", { state: { floorTarget } })로 보낸 정보
   const floorTarget = location.state?.floorTarget || null;
 
   const [groupIndex, setGroupIndex] = useState(0);
