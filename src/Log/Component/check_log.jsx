@@ -190,7 +190,8 @@ export default function CheckLog() {
         </div>
 
         <button
-          className="px-12 py-1 text-[20px] font-extrabold text-[#054E76]"
+          className="px-12 py-1 text-[20px] font-extrabold text-[#054E76]
+          cursor-pointer"
           onClick={() => {
             setFormMode("create");
             setSelectedRow(null);
