@@ -81,10 +81,10 @@ export default function AlarmRequest() {
 
             {/* 오른쪽: 상태별 색상 */}
             <span
-              className={`text-[14px] font-semibold
-                ${item.status === "접수" ? "text-green-600" : ""}
-                ${item.status === "처리중" ? "text-orange-500" : ""}
-                ${item.status === "완료" ? "text-blue-600" : ""}
+              className={`text-[17px] font-semibold
+                ${item.status === "접수" ? "text-[#25C310]" : ""}
+                ${item.status === "처리중" ? "text-[#FF3B3B]" : ""}
+                ${item.status === "완료" ? "text-[#367CFF]" : ""}
               `}
             >
               {item.status} {/* 상태 값 표시 */}
