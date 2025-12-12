@@ -6,6 +6,7 @@ import { rtdb } from "../../firebase/config";
 import CalendarIcon from "../../icons/calendar_icon.png";
 import AlarmL from "../Component/alarm_l.jsx";
 import RequestArrival from "../Component/request_arrival.jsx";
+import Button from "../../assets/Button.jsx";
 
 import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
@@ -30,7 +31,7 @@ function todayDot() {
 export default function AlarmLog() {
   const [data, setData] = useState([]);
 
-  // DB 로드
+  /* ================= DB 로드 ================= */
   useEffect(() => {
     const requestsRef = ref(rtdb, "requests");
 
@@ -51,7 +52,7 @@ export default function AlarmLog() {
     });
   }, []);
 
-  // 필터
+  /* ================= 필터 ================= */
   const [selectedDate, setSelectedDate] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
   const datePickerRef = useRef(null);
@@ -62,16 +63,19 @@ export default function AlarmLog() {
   if (formattedDate) filtered = filtered.filter((r) => r.date === formattedDate);
   if (statusFilter) filtered = filtered.filter((r) => r.status === statusFilter);
 
-  // 수정모드
+  /* ================= 수정모드 ================= */
   const [editMode, setEditMode] = useState(false);
   const [checkedRows, setCheckedRows] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // ⭐ 임시 상태 (완료 누르기 전까지 DB 반영 ❌)
+  const [pendingStatus, setPendingStatus] = useState(null);
 
   const toggleRow = (id) => {
     setCheckedRows((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // 페이징
+  /* ================= 페이징 ================= */
   const itemsPerPage = 6;
   const [page, setPage] = useState(1);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -80,15 +84,11 @@ export default function AlarmLog() {
   const toggleAllCurrentPage = () => {
     const allOn = shown.every((r) => checkedRows[r.id]);
     const next = { ...checkedRows };
-
-    shown.forEach((r) => {
-      next[r.id] = !allOn;
-    });
-
+    shown.forEach((r) => (next[r.id] = !allOn));
     setCheckedRows(next);
   };
 
-  // 수신창
+  /* ================= 수신창 ================= */
   const [showArrival, setShowArrival] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -98,47 +98,60 @@ export default function AlarmLog() {
     setShowArrival(true);
   };
 
-  const handleNext = (newStatus) => {
-    update(ref(rtdb, `requests/${selectedRow.id}`), { status: newStatus });
-    setShowArrival(false);
-  };
-
-  // 토스트
+  /* ================= 토스트 ================= */
   const [toast, setToast] = useState("");
-
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(""), 2000);
   };
 
-  // 상태 변경
+  /* ================= 상태 선택  ================= */
   const changeStatus = (newStatus) => {
+    setPendingStatus(newStatus);
+    setDropdownOpen(false);
+    showToast(`상태 '${newStatus}' 로 변경하시려면 완료버튼을 누르세요.`);
+  };
+
+  /* ================= 완료 클릭 (최종 반영) ================= */
+  const applyChanges = () => {
+    if (!pendingStatus) {
+      showToast("변경할 상태를 선택하세요.");
+      return;
+    }
+
     let changed = 0;
 
     Object.entries(checkedRows).forEach(([id, checked]) => {
       if (checked) {
         changed += 1;
-        update(ref(rtdb, `requests/${id}`), { status: newStatus });
+        update(ref(rtdb, `requests/${id}`), {
+          status: pendingStatus,
+        });
       }
     });
 
     if (changed === 0) {
       showToast("선택된 항목이 없습니다.");
-    } else {
-      showToast(`상태가 '${newStatus}'(으)로 변경되었습니다.`);
+      return;
     }
 
+    showToast("수정이 완료되었습니다.");
+
+    // 리셋
+    setPendingStatus(null);
+    setEditMode(false);
+    setCheckedRows({});
     setDropdownOpen(false);
   };
 
   return (
     <div className="w-full max-w-[1100px] mx-auto mt-[30px] mb-[40px]">
 
-      {/* 필터 */}
+      {/* ================= 필터 ================= */}
       <div className="flex justify-between items-center mb-4 text-[18px]">
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold hover:text-[#033854]"
+            className="text-[#054E76] font-semibold"
             onClick={() => {
               setSelectedDate(null);
               setStatusFilter(null);
@@ -150,7 +163,7 @@ export default function AlarmLog() {
           <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
           <div
-            className="flex items-center gap-2 cursor-pointer hover:opacity-70"
+            className="flex items-center gap-2 cursor-pointer"
             onClick={() => datePickerRef.current.setOpen(true)}
           >
             <span>
@@ -173,7 +186,7 @@ export default function AlarmLog() {
             <div key={t} className="flex items-center gap-4">
               <button
                 onClick={() => setStatusFilter(t)}
-                className={`hover:opacity-70 ${
+                className={`cursor-pointer ${
                   statusFilter === t &&
                   (t === "접수"
                     ? "text-[#25C310] font-bold"
@@ -190,10 +203,9 @@ export default function AlarmLog() {
         </div>
       </div>
 
-      {/* 헤더 */}
+      {/* ================= 헤더 ================= */}
       <div className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px] h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
         <div className="text-center">No.</div>
-
         <div className="flex justify-center">
           {editMode && (
             <div
@@ -202,14 +214,13 @@ export default function AlarmLog() {
             />
           )}
         </div>
-
         <div className="text-center">아이디</div>
         <div className="text-center">내용</div>
         <div className="text-center">등록일</div>
         <div className="text-center">상태</div>
       </div>
 
-      {/* 리스트 */}
+      {/* ================= 리스트 ================= */}
       {shown.map((row, idx) => (
         <AlarmL
           key={row.id}
@@ -222,17 +233,13 @@ export default function AlarmLog() {
         />
       ))}
 
-      {/*  ▼▼▼ 페이지네이션 + 수정 버튼 통합본 (중앙 완벽고정) ▼▼▼ */}
+      {/* ================= 페이지네이션 + 버튼 ================= */}
       <div className="flex justify-between items-center my-6 w-full">
+        <div className="w-[120px]" />
 
-        {/* 왼쪽 공간 */}
-        <div className="w-[120px]"></div>
-
-        {/* 페이지네이션 중앙 */}
         <div className="flex justify-center items-center gap-3 text-[18px]">
           <button onClick={() => setPage(1)}>{"<<"}</button>
           <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
-
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
@@ -242,31 +249,23 @@ export default function AlarmLog() {
               {n}
             </button>
           ))}
-
           <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
           <button onClick={() => setPage(totalPages)}>{">>"}</button>
         </div>
 
-        {/* 오른쪽 버튼 영역 */}
         <div className="flex items-center gap-3 w-[120px] justify-end mr-5">
           {!editMode && (
-            <button
-              className="px-4 py-2 bg-[#054E76] text-white rounded hover:opacity-80"
-              onClick={() => setEditMode(true)}
-            >
-              수정
-            </button>
+            <Button onClick={() => setEditMode(true)}>
+              <span className="whitespace-nowrap">수정</span>
+            </Button>
           )}
 
           {editMode && (
             <>
               <div className="relative">
-                <button
-                  className="px-4 py-2 bg-[#054E76] text-white rounded hover:opacity-80"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                >
-                  옵션 ▼
-                </button>
+                <Button onClick={() => setDropdownOpen(!dropdownOpen)}>
+                  <span className="whitespace-nowrap">옵션 ▼</span>
+                </Button>
 
                 {dropdownOpen && (
                   <div className="absolute right-0 bg-white border shadow w-[90px] text-center">
@@ -292,33 +291,23 @@ export default function AlarmLog() {
                 )}
               </div>
 
-              <button
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:opacity-80"
-                onClick={() => {
-                  setEditMode(false);
-                  setCheckedRows({});
-                  setDropdownOpen(false);
-                }}
-              >
-                완료
-              </button>
+              <Button onClick={applyChanges}>
+                <span className="w-[79px]">완료</span>
+              </Button>
             </>
           )}
         </div>
-
       </div>
-      {/* ▲▲▲ 페이지네이션 + 수정 버튼 통합본 끝 ▲▲▲ */}
 
-      {/* 수신 모달 */}
+      {/* ================= 수신 모달 ================= */}
       {showArrival && selectedRow && (
         <RequestArrival
           data={selectedRow}
           onClose={() => setShowArrival(false)}
-          onNext={handleNext}
         />
       )}
 
-      {/* 토스트 */}
+      {/* ================= 토스트 ================= */}
       {toast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-xl shadow-lg text-[16px] opacity-90">
           {toast}
