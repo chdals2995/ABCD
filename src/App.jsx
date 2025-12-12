@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import Alarm from "./Component/Alarm/Alarm";
 import Log from "./Log/Component/Log";
 import AdminLayout from "./layout/AdminLayout";
 
@@ -32,9 +30,6 @@ function App() {
             <Route path="/main" element={<MainPage />} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
-
-            {/* 알람 페이지 */}
-            <Route path="/alarm" element={<Alarm />} />
 
             {/* 로그 페이지 */}
             <Route path="/log" element={<Log />} />
