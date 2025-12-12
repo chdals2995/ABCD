@@ -11,6 +11,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ref, onValue, push, update } from "firebase/database";
 import { rtdb } from "../../firebase/config.js";
 
+import Button from "../../assets/Button.jsx";
+
 /* 날짜 유틸 */
 function formatDate(d) {
   if (!d) return null;
@@ -34,9 +36,10 @@ export default function CheckLog() {
 
   /* 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState(null); // ⭐ 상시 / 정기
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
-  const [search, setSearch] = useState("");
 
   /* 폼 */
   const [formOpen, setFormOpen] = useState(false);
@@ -57,7 +60,12 @@ export default function CheckLog() {
 
       const list = Object.entries(val).map(([id, v]) => ({
         id,
-        ...v,
+        title: v.title,
+        content: v.content,
+        date: v.date,
+        status: v.status ?? "미완료",
+        checkType: v.checkType ?? "정기", // ⭐ 기본값 보정
+        createdAt: v.createdAt ?? 0,
       }));
 
       setData(list);
@@ -67,32 +75,27 @@ export default function CheckLog() {
 
   /* 저장 */
   const handleFormSave = async (payload) => {
-    // create 시 날짜 필수
     if (formMode === "create" && !payload.date) {
       alert("점검 날짜를 선택해주세요.");
       return;
     }
 
     if (formMode === "create") {
-      const newItem = {
+      await push(ref(rtdb, "Check"), {
         title: payload.title,
         content: payload.content,
         date: payload.date,
         status: "미완료",
         checkType: payload.checkType ?? "상시",
         createdAt: Date.now(),
-      };
-
-      await push(ref(rtdb, "Check"), newItem);
+      });
     } else {
       const updateData = {
         title: payload.title,
         content: payload.content,
-        status: payload.status,
         checkType: payload.checkType ?? "상시",
       };
 
-      // 날짜를 실제로 바꿨을 때만
       if (payload.date && payload.date !== selectedRow?.date) {
         updateData.date = payload.date;
       }
@@ -110,7 +113,7 @@ export default function CheckLog() {
     setFormOpen(true);
   };
 
-  /* 필터 */
+  /* 필터 적용 */
   let filtered = data;
 
   if (formattedDate) {
@@ -122,6 +125,12 @@ export default function CheckLog() {
       (row) =>
         row.title?.includes(search) ||
         row.content?.includes(search)
+    );
+  }
+
+  if (typeFilter) {
+    filtered = filtered.filter(
+      (row) => row.checkType === typeFilter
     );
   }
 
@@ -144,12 +153,14 @@ export default function CheckLog() {
 
       {/* 상단 필터 */}
       <div className="flex justify-between items-center mb-5 text-[18px]">
+        {/* 좌측 */}
         <div className="flex items-center gap-4">
           <button
             className="text-[#054E76] font-semibold"
             onClick={() => {
               setSelectedDate(null);
               setSearch("");
+              setTypeFilter(null);
             }}
           >
             전체
@@ -189,17 +200,29 @@ export default function CheckLog() {
           </div>
         </div>
 
-        <button
-          className="px-12 py-1 text-[20px] font-extrabold text-[#054E76]
-          cursor-pointer"
-          onClick={() => {
-            setFormMode("create");
-            setSelectedRow(null);
-            setFormOpen(true);
-          }}
-        >
-          글쓰기
-        </button>
+        {/* 우측 필터 (알림기록과 동일 위치) */}
+        <div className="flex items-center gap-4">
+          {["상시", "정기"].map((t, idx) => (
+            <div key={t} className="flex items-center gap-4">
+              <button
+                onClick={() => setTypeFilter(t)}
+                className={`cursor-pointer transition-colors ${
+                typeFilter === t
+                  ? "text-[#054E76] font-bold"
+                  : "text-gray-400"
+              } ${
+                t === "정기"
+                  ? "hover:text-[#0E5FF0]"   // 정기 hover 색
+                  : "hover:text-[#054E76]"   // 상시 hover 색
+              }`}
+
+              >
+                {t} 점검
+              </button>
+              {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 헤더 */}
@@ -222,24 +245,43 @@ export default function CheckLog() {
         />
       ))}
 
-      {/* 페이징 */}
-      <div className="flex justify-center gap-3 text-[18px] my-8">
-        <button onClick={() => setPage(1)}>{"<<"}</button>
-        <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
+      {/* 페이징 + 글쓰기 */}
+<div className="flex justify-between items-center my-8">
+  {/* 왼쪽 여백 맞춤용 */}
+  <div className="w-[120px]" />
 
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-          <button
-            key={n}
-            onClick={() => setPage(n)}
-            className={page === n ? "font-bold text-[#054E76]" : ""}
-          >
-            {n}
-          </button>
-        ))}
+  {/* 페이징 */}
+  <div className="flex justify-center gap-3 text-[18px]">
+    <button onClick={() => setPage(1)}>{"<<"}</button>
+    <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
-        <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
-        <button onClick={() => setPage(totalPages)}>{">>"}</button>
-      </div>
+    {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+      <button
+        key={n}
+        onClick={() => setPage(n)}
+        className={page === n ? "font-bold text-[#054E76]" : ""}
+      >
+        {n}
+      </button>
+    ))}
+
+    <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
+    <button onClick={() => setPage(totalPages)}>{">>"}</button>
+  </div>
+
+  {/* 글쓰기 버튼 (오른쪽 고정) */}
+  <div className="w-[120px] flex justify-end mr-8 mb-1">
+    <Button
+      onClick={() => {
+        setFormMode("create");
+        setSelectedRow(null);
+        setFormOpen(true);
+      }}
+    >
+      글쓰기
+    </Button>
+  </div>
+</div>
 
       {/* 폼 */}
       {formOpen && (
