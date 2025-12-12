@@ -23,9 +23,7 @@ export default function CheckForm({
     mode === "edit" ? row?.content : ""
   );
 
-  const [status, setStatus] = useState(
-    mode === "edit" ? row?.status : "미완료"
-  );
+
 
   // ✅ 상시 / 정기
   const [checkType, setCheckType] = useState(
@@ -111,8 +109,6 @@ export default function CheckForm({
           </div>
 
 
-          <div className="mt-4 ml-1 flex items-end gap-6">
-
             {/* 점검 구분 */}
             <div>
               <p className="text-[18px] mb-1">점검</p>
@@ -127,23 +123,7 @@ export default function CheckForm({
               </select>
             </div>
 
-            {/* 상태 */}
-            {mode === "edit" && (
-              <div>
-                <p className="text-[18px] mb-1">상태</p>
-                <select
-                  className="border px-3 py-2 text-[17px] bg-white w-[120px]"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  disabled={!isEditing}
-                >
-                  <option value="미완료">미완료</option>
-                  <option value="완료">완료</option>
-                </select>
-              </div>
-            )}
-
-          </div>
+   
           {/* 내용 */}
           <textarea
             className="
