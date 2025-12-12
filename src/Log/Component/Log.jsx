@@ -1,6 +1,7 @@
+// Log.jsx (기록 페이지)
 import { useState } from "react";
 import AlarmLog from "../Component/alarm_log.jsx";
-import AdminLayout from "../../layout/AdminLayout.jsx";
+import AdminLayout from "../../../layout/AdminLayout.jsx";
 import CheckLog from "../Component/check_log.jsx";
 
 export default function Log() {
@@ -10,6 +11,7 @@ export default function Log() {
     <div className="w-full h-full bg-white p-6">
       <AdminLayout />
 
+      {/* 상단 탭 */}
       <div className="flex justify-center gap-6 mb-6 text-[36px] font-bold">
         <button
           className={tab === "alarm" ? "text-[#054E76]" : "text-gray-400"}
@@ -26,6 +28,7 @@ export default function Log() {
         </button>
       </div>
 
+      {/* 탭 콘텐츠 */}
       {tab === "alarm" && <AlarmLog />}
       {tab === "check" && <CheckLog />}
     </div>
