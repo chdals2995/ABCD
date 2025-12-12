@@ -1,5 +1,5 @@
 import "./App.css";
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom"
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
 import AuthStatus from "./components/Login/contexts/AuthStatus";
@@ -8,12 +8,15 @@ import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import ParkingStatus from "./pages/ParkingStatus";
+import Log from "./Log/Log";
+
 
 function App() {
   return (
+
+  
     <>
       <AuthProvider>
-        <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/UserMain" element={<AuthStatus />} />
@@ -21,11 +24,17 @@ function App() {
             <Route path="/main" element={<MainPage />} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
+
+            {/* 로그 페이지 */}
+            <Route path="/log" element={<Log />} />
+
             <Route path="/parking/:lotId" element={<ParkingStatus />} />
+            <Route path="/log" element={<Log />} />
+
           </Routes>
-        </BrowserRouter>
       </AuthProvider>
     </>
+
   );
 }
 

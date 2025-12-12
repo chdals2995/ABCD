@@ -12,7 +12,6 @@ box-sizing:border-box
   -moz-appearance: textfield;
   appearance: textfield;
 }
-
 /* 🔒 전체 요소 텍스트 선택 비활성화 */
 * {
   -webkit-user-select: none; /* 크롬, 사파리 */
