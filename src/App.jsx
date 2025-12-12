@@ -1,7 +1,3 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Log from "./Log/Component/Log";
-import AdminLayout from "./layout/AdminLayout";
-
 import "./App.css";
 
 import Join from "./pages/login/Join";
