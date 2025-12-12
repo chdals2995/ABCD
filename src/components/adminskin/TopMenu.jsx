@@ -9,15 +9,14 @@ import alarm from "../../assets/icons/alarm.png";
 export default function TopMenu() {
   const [alertCount, setAlertCount] = useState(0); // 경고/주의 개수
   const [requestCount, setRequestCount] = useState(0); // 요청 개수
-
   const [notification, setNotification] = useState(null); // 알림팝업 데이터
-  const [items, setItems] = useState([]);
+  
 
   
 
   // 이전 카운트 저장용
-  const prevAlertIds = useRef(new Set());
-  const prevRequestIds = useRef(new Set());
+  const prevAlertCount = useRef(0);
+  const prevRequestCount = useRef(0);
 
   const METRIC_LABEL = {
     elec: "전기",
@@ -65,113 +64,72 @@ export default function TopMenu() {
 
   useEffect(() => {
     // 🔥 alerts 실시간 감지
-    const alertRef = ref(rtdb, "alerts");
-    onValue(alertRef, (snapshot) => {
-      let count = 0;
+    const alertsRef = ref(rtdb, "alerts");
+    const requestsRef = ref(rtdb, "requests");
 
-      if (snapshot.exists()) {
-        const raw = snapshot.val();
+    const handleAlerts = (snapshot) => {
+    if (!snapshot.exists()) return;
 
-        Object.values(raw).forEach((byFloor) => {
-          Object.values(byFloor).forEach((byDate) => {
-            Object.values(byDate).forEach((alertItem) => {
-              // level: warning / caution
-              if (
-                alertItem.level === "warning" ||
-                alertItem.level === "caution"
-              ) {
-                count++;
-              }
-            });
-          });
+    let count = 0;
+    let newAlert = null;
+
+    const raw = snapshot.val();
+    Object.values(raw).forEach((byFloor) => {
+      Object.values(byFloor).forEach((byDate) => {
+        Object.values(byDate).forEach((alertItem) => {
+          if (alertItem.level === "warning" || alertItem.level === "caution") {
+            count++;
+
+      
+      // 새 알림이 이전 카운트보다 많으면 가장 최근 alert 가져오기
+            if (count > prevAlertCount.current) {
+              newAlert = alertItem;
+            }
+          }
         });
-      }
-      // 새 알림 여부 판단
-      if (count > prevAlert.current) {
-        setNotification({
-          type: "alert",
-          message: "새로운 경고/주의가 등록되었습니다.",
-        });
-
-        // 3초 뒤 자동 닫기
-        setTimeout(() => setNotification(null), 3000);
-      }
-
-      prevAlert.current = count;
-      setAlertCount(count);
+      });
     });
 
-    // 🔥 requests 실시간 감지
-    const reqRef = ref(rtdb, "requests");
-    onValue(reqRef, (snapshot) => {
-      if (!snapshot.exists()) {
-        setRequestCount(0);
-        // 알림 비교용 prev도 업데이트
-        prevRequest.current = 0;
-        return;
-      }
+    setAlertCount(count);
 
-      // snapshot.val() 구조가 중첩되어 있을 수 있으므로 안전하게 전체 leaf 개수를 센다
-      const raw = snapshot.val();
-      const count = Object.keys(raw).length;
+    if (newAlert) {
+      const message = newAlert.reason
+        ? getReasonText(newAlert.reason, newAlert.metric)
+        : "새로운 경고/주의가 등록되었습니다.";
+      setNotification({ type: "alert", message });
+      if (notificationTimer.current) clearTimeout(notificationTimer.current);
+      notificationTimer.current = setTimeout(() => setNotification(null), 3000);
+    }
 
-      setRequestCount(count);
+    prevAlertCount.current = count;
+  };
 
-      // 이전 카운트와 비교해서 새 알림 토스트 띄우기
-      if (count > prevRequest.current) {
-        setNotification({
-          type: "request",
-          message: "새로운 요청이 접수되었습니다.",
-        });
-        setTimeout(() => setNotification(null), 3000);
-      }
 
-      prevRequest.current = count;
-    });
-  }, []);
+    const handleRequests = (snapshot) => {
+    const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+    setRequestCount(count);
 
-  useEffect(() => {
-    if (alertCount === 0) {
-    setItems([]);
-    return;
-  }
-    const floor = alertItem?.floor; 
-    if (!floor) return;
+    if (count > prevRequestCount.current) {
+      setNotification({ type: "request", message: "새로운 요청이 접수되었습니다." });
+      if (notificationTimer.current) clearTimeout(notificationTimer.current);
+      notificationTimer.current = setTimeout(() => setNotification(null), 3000);
+    }
 
-    let isMounted = true;
-    const alertsRef = ref(rtdb, `alerts/${floor}`);
-    
+    prevRequestCount.current = count;
+  };
 
-    const unsubscribe = onValue(
-      alertsRef,
-      (snapshot) => {
-        if (!isMounted) return;
+  const notificationTimer = { current: null };
 
-        const list = [];
-        if (snapshot.exists()) {
-          snapshot.forEach((child) => {
-            const val = child.val() || {};
-            list.push({
-              id: child.key,
-              createdAt: val.createdAt,
-              level: val.level,
-              metric: val.metric,
-              reason: val.reason,
-              value: val.value,
-            });
-          });
-        }
+  onValue(alertsRef, handleAlerts);
+  onValue(requestsRef, handleRequests);
 
-        // 최신 순 정렬
-        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-        setItems(list);
-      }
-    );
-    }, [alertCount]);
-
- 
-  
+  return () => {
+    // cleanup
+    off(alertsRef);
+    off(requestsRef);
+    if (notificationTimer.current) clearTimeout(notificationTimer.current);
+  };
+}, []);
     
   return (
     <div>
@@ -189,7 +147,7 @@ export default function TopMenu() {
                     <div className="w-full h-[130px] overflow-y-auto text-xs">
                 
                     <ul className="space-y-1">
-                    {items.map((item) => (
+                    {items.map(item => (
                         <li
                         key={item.id}
                         className="flex items-center gap-2 px-2 py-1 rounded-[6px] bg-[#F5F7F9]"
@@ -202,11 +160,11 @@ export default function TopMenu() {
                                 {METRIC_LABEL[item.metric] || item.metric || "기타"}
                             </span>
                             </div>
-                            {item.reason && (
+                            {item.reason && 
                             <div className="text-[10px] text-gray-600 truncate">
                                 {getReasonText(item.reason, item.metric)}
                             </div>
-                            )}
+                            }
                         </div>
                         </li>
                     ))}
