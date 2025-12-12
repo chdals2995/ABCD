@@ -81,7 +81,7 @@ export default function AddRequest() {
           className="w-full p-3 border rounded"
         >
           <option value="">층 선택</option>
-          {Array.from({ length: 20 }, (_, i) => (
+          {Array.from({ length: 35 }, (_, i) => (
             <option key={i + 1} value={`${i + 1}F`}>
               {i + 1}F
             </option>
