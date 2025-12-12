@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./App.css";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Join from "./pages/login/Join";
@@ -8,6 +7,7 @@ import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
+import ParkingStatus from "./pages/ParkingStatus";
 
 function App() {
   return (
@@ -21,6 +21,7 @@ function App() {
             <Route path="/main" element={<MainPage />} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
+            <Route path="/parking/:lotId" element={<ParkingStatus />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

@@ -1,5 +1,6 @@
 // src/pages/Floors.jsx
 import { useEffect, useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 
 import FloorsElecData from "../components/floors/FloorsElecData";
 import FloorsGasData from "../components/floors/FloorsGasData";
@@ -134,6 +135,10 @@ function buildSelectedFloorLabel(floorName) {
 }
 
 export default function Floors() {
+  const location = useLocation();
+  // 🔹 Main에서 navigate("/floors", { state: { floorTarget } })로 보낸 정보
+  const floorTarget = location.state?.floorTarget || null;
+
   const [groupIndex, setGroupIndex] = useState(0);
   const [floorGroups, setFloorGroups] = useState([]);
   const [allFloors, setAllFloors] = useState([]); // 🔸 전체 층 리스트 (그래프용)
@@ -199,16 +204,42 @@ export default function Floors() {
     };
   }, []);
 
-  // 🔹 floorGroups가 준비되면 "1F가 포함된 그룹"을 초기 그룹으로 선택
+  // 🔹 floorGroups가 준비되면
+  //    1순위: Main에서 넘어온 floorTarget에 맞는 그룹으로 이동
+  //    2순위: 기존처럼 1F가 포함된 그룹으로 이동
   useEffect(() => {
     if (!floorGroups.length) return;
 
+    if (
+      floorTarget &&
+      floorTarget.type &&
+      floorTarget.start != null &&
+      floorTarget.end != null
+    ) {
+      const { type, start, end } = floorTarget;
+
+      const startName = type === "basement" ? `B${start}` : `${start}F`;
+      const endName = type === "basement" ? `B${end}` : `${end}F`;
+
+      const idx = floorGroups.findIndex(
+        (grp) =>
+          Array.isArray(grp) && grp.includes(startName) && grp.includes(endName)
+      );
+
+      if (idx !== -1) {
+        setGroupIndex(idx);
+        setSelectedFloor(null);
+        return;
+      }
+    }
+
+    // fallback: 1F가 들어있는 그룹 또는 첫 번째 그룹
     const idxWith1F = floorGroups.findIndex(
       (grp) => Array.isArray(grp) && grp.includes("1F")
     );
-
     setGroupIndex(idxWith1F === -1 ? 0 : idxWith1F);
-  }, [floorGroups]);
+    setSelectedFloor(null);
+  }, [floorGroups, floorTarget]);
 
   const currentFloors = floorGroups[groupIndex] || [];
   const rows = Array.from({ length: 10 }, (_, i) => currentFloors[i] ?? null);
@@ -470,7 +501,10 @@ export default function Floors() {
 
       {/* 🔸 전체 층 그래프 모달 */}
       {largeChart && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"
+          onClick={closeLargeChart}
+        >
           {/* 카드 영역 안은 클릭해도 선택 안 풀리게 */}
           <div
             className="relative bg-white rounded-[18px] shadow-lg w-[1100px] max-w-[95vw] h-[650px] max-h-[90vh] px-6 py-5 flex flex-col"
