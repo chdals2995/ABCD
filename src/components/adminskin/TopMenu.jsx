@@ -5,6 +5,7 @@ import { ref, onValue } from "firebase/database";
 import login from "../../assets/icons/login.png";
 import alert from "../../assets/icons/alert.png";
 import alarm from "../../assets/icons/alarm.png";
+import warning from "../../assets/icons/iconRed.png";
 
 export default function TopMenu() {
   const [alertCount, setAlertCount] = useState(0); // 경고/주의 개수
@@ -32,27 +33,22 @@ export default function TopMenu() {
       // ---------------- 새 alert 로직 기준 코드들 ----------------
       case "strong_overload_from_normal":
         // normal → warning (강한 과부하)
-        return `${metricLabel} 사용량이 기준 대비 크게 증가하여 경고 단계로 전환되었습니다.`;
+        return `${metricLabel} 사용량 과부하`;
 
       case "sustained_caution_from_normal":
         // normal → caution (주의 구간이 일정 시간 유지)
-        return `${metricLabel} 사용량이 기준치를 초과한 상태가 지속되어 주의 단계로 전환되었습니다.`;
+        return `${metricLabel} 사용량 주의`;
 
       case "strong_overload_from_caution":
         // caution → warning (이미 주의였는데 더 심해짐)
-        return `${metricLabel} 사용량이 더 증가하여 경고 단계로 격상되었습니다.`;
+        return `${metricLabel} 사용량 주의에서 경고로 전환`;
 
       case "long_caution_escalation":
         // caution 상태가 너무 오래 유지되어 warning으로 승격
-        return `${metricLabel} 주의 상태가 장시간 지속되어 경고 단계로 격상되었습니다.`;
+        return `${metricLabel} 주의에서 오래 지속됨`;
 
-      case "caution_cleared":
-        // caution → normal
-        return `${metricLabel} 사용량이 다시 기준 범위로 돌아와 주의 상태가 해제되었습니다.`;
-
-      case "downgraded_from_warning":
-        // warning → caution
-        return `${metricLabel} 경고 상태가 완화되어 주의 단계로 내려갔습니다.`;
+      case "caution_cleared", "downgraded_from_warning":
+      return null; // 메시지 안 띄움
 
       default:
         // 아직 매핑 안 한 새로운 코드가 들어왔을 때
@@ -94,10 +90,11 @@ export default function TopMenu() {
 
     if (newAlert) {
     const baseMessage = getReasonText(newAlert.reason, newAlert.metric);
+    if (!msg) return;
 
   setNotification({
-    type: "alert",
-    icon: alert,               // 아이콘 파일
+    type: "warning",
+    icon: newAlert.level === "warning" ? warning : alert,    // 아이콘 파일
     floor: newAlert.floor,
     room: null,
     message: baseMessage
@@ -115,21 +112,20 @@ export default function TopMenu() {
 
     // 🔥 새 요청이 생겼을 때
   if (count > prevRequestCount.current) {
-    // 새 요청 키 (마지막으로 추가된 것)
-    const newRequestKey = keys[keys.length - 1];
-    const newRequest = raw[newRequestKey];
 
-    // floor, room, title을 이용해 메시지 구성
-    const msg = `[${newRequest.floor} ${newRequest.room}] ${newRequest.title}`;
+  const [key, newRequest] = Object.entries(snapshot.val()).pop();
 
-    setNotification({
-      type: "request",
-      message: msg,
-    });
+  setNotification({
+    type: "request",
+    icon: login,
+    floor: newRequest.floor,
+    room: newRequest.room,
+    message: newRequest.title
+  });
 
-    if (notificationTimer.current) clearTimeout(notificationTimer.current);
-    notificationTimer.current = setTimeout(() => setNotification(null), 3000);
-  }
+  if (notificationTimer.current) clearTimeout(notificationTimer.current);
+  notificationTimer.current = setTimeout(() => setNotification(null), 3000);
+}
 
     prevRequestCount.current = count;
   };
@@ -149,13 +145,38 @@ export default function TopMenu() {
     <div>
       {/* 알림표시 */}
       {notification && (
-        <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 z-50
-                    bg-white shadow-lg p-3 rounded-lg border border-gray-300 
-                    animate-[fadeIn_0.2s_ease-out]">
-          <p className="font-pyeojin text-[#054E76]">{notification.message}</p>
-        </div>
+  <div
+    className="absolute top-0 left-1/2 -translate-x-1/2 z-50
+               bg-white shadow-lg p-4 rounded-xl border border-gray-300 
+               flex items-start gap-4 w-[360px]
+               animate-[fadeIn_0.25s_ease-out]"
+  >
+    {/* 좌측 아이콘 + 층/호수 */}
+    <div className="flex flex-col items-center w-[70px] text-center">
+      <img
+        src={notification.icon}
+        alt="icon"
+        className="w-[34px] h-[34px] mb-1"
+      />
+
+      <p className="text-sm font-semibold text-[#054E76]">
+        {notification.floor}
+      </p>
+
+      {/* request일 때만 room 표시 */}
+      {notification.room && (
+        <p className="text-xs text-gray-600">{notification.room}</p>
       )}
+    </div>
+
+    {/* 우측 메시지 */}
+    <div className="flex-1">
+      <p className="font-pyeojin text-[#054E76] leading-tight">
+        {notification.message}
+      </p>
+    </div>
+  </div>
+)}
       {/* TopMenu */}
       <div
         className="TopMenu w-[372px] h-[68px] px-[74px] bg-[#0888D4] 
