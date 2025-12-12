@@ -1,68 +1,33 @@
 import { useState } from "react";
+import AlarmLog from "../Component/alarm_log.jsx";
+import AdminLayout from "../../layout/AdminLayout.jsx";
+import CheckLog from "../Component/check_log.jsx";
 
-export default function Log({item}) {
-    const [isEdit, setIsEait] = useState(false);
-    const [selectedStatus, setSelectedStatus] = useState(item.status);
+export default function Log() {
+  const [tab, setTab] = useState("alarm");
 
-    const statusColor = {
-        "접수" : "text-[#25c310]",
-        "처리중" : "text-[#ff3b3b]",
-        "완료" : "text-[#367cff]"
-    };
+  return (
+    <div className="w-full h-full bg-white p-6">
+      <AdminLayout />
 
-    return (
-        <div className="flex justify-between items-center py-3 border-b">
-            <span className="text-[16px]">{item.title}</span>
+      <div className="flex justify-center gap-6 mb-6 text-[36px] font-bold">
+        <button
+          className={tab === "alarm" ? "text-[#054E76]" : "text-gray-400"}
+          onClick={() => setTab("alarm")}
+        >
+          알림기록
+        </button>
 
-            <div className="flex items-center gap-4">
-            {/* 평상시 표시 */}
-            {!isEdit && (
-                <span className={`text-[16px] ${statusColor[item.status]}`}>
-                    {item.status}
-                </span>
-            )}
+        <button
+          className={tab === "check" ? "text-[#054E76]" : "text-gray-400"}
+          onClick={() => setTab("check")}
+        >
+          점검기록
+        </button>
+      </div>
 
-            {/* 수정 모드 */}
-            {isEdit && (
-                <div className="flex gap-3">
-                    {["접수", "처리중", "완료"].map((s) => {
-                        <button
-                          key = {s}
-                          onClick = { () => setSelectedStatus(s)}
-                          className={`
-                            px-2 py-1 text-[15px]
-                            ${selectedStatus === s
-                              ? "border-2 border-[#054e76] rounded-md text-[#054e76]"
-                              : "text-gray-500"
-                            }
-                         `}
-                         >
-                            {s}
-                         </button>
-                      })}
-                 </div>
-            )}
-
-            {/* 수정 ｜ 저장 버튼  */}
-            {!isEdit ? (
-                <button
-                  onClick ={() => setIsEait(true)}
-                  className="text-[14px] border px-2 py-1 rounded-md"
-                  >
-                    수정
-                  </button>
-            ) : (
-                <button
-                  onClick = {() => {
-                    setIsEait(false);
-                    console.log("저장된 상태:", selectedStatus);    
-                  }}
-                  className="text-[14px] border px-2 py-1 rounded-md bg-blue-100"
-                >
-                    저장
-                </button>
-            )}
-            </div>
-        </div>
-    )
+      {tab === "alarm" && <AlarmLog />}
+      {tab === "check" && <CheckLog />}
+    </div>
+  );
 }
