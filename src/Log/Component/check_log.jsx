@@ -11,122 +11,133 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ref, onValue, push, update } from "firebase/database";
 import { rtdb } from "../../firebase/config.js";
 
-  // 날짜 유틸
-  function formatDate(d) {
-    if (!d) return null;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
+/* 날짜 유틸 */
+function formatDate(d) {
+  if (!d) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-  function todayDot() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}.${m}.${day}`;
-  }
+function todayDot() {
+  const d = new Date();
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+}
 
-  export default function CheckLog() {
-    const [data, setData] = useState([]);
-    const [saved, setSaved] = useState(false);
+export default function CheckLog() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
 
-    const [loading, setLoading] = useState(true);  // ⭐ 로딩 상태 추가
+  /* 필터 */
+  const [selectedDate, setSelectedDate] = useState(null);
+  const datePickerRef = useRef(null);
+  const formattedDate = formatDate(selectedDate);
+  const [search, setSearch] = useState("");
 
-    const [selectedDate, setSelectedDate] = useState(null);
-    const datePickerRef = useRef(null);
-    const formattedDate = formatDate(selectedDate);
+  /* 폼 */
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState("create");
+  const [selectedRow, setSelectedRow] = useState(null);
 
-    const [search, setSearch] = useState("");
+  /* DB 로드 */
+  useEffect(() => {
+    const checkRef = ref(rtdb, "Check");
 
-    const [formOpen, setFormOpen] = useState(false);
-    const [formMode, setFormMode] = useState("create");
-    const [selectedRow, setSelectedRow] = useState(null);
-
-    // Firebase 로드
-    useEffect(() => {
-      const checkRef = ref(rtdb, "Check");
-
-      return onValue(checkRef, (snapshot) => {
-        const val = snapshot.val();
-
-        if (!val) {
-          setData([]);
-          setLoading(false);   // ⭐ 로딩 종료
-          return;
-        }
-
-        const list = Object.entries(val).map(([id, v]) => ({
-          id,
-          ...v,
-        }));
-
-        setData(list);
-        setLoading(false);     // ⭐ 로딩 종료
-      });
-    }, []);
-
-    // 저장
-    const handleFormSave = async (payload) => {
-      if (formMode === "create") {
-        const newItem = {
-          title: payload.title,
-          content: payload.content,
-          date: formatDate(new Date()),
-          status: "미완료",
-        };
-
-        await push(ref(rtdb, "Check"), newItem);
-      } else {
-        await update(ref(rtdb, `Check/${payload.id}`), {
-          title: payload.title,
-          content: payload.content,
-          status: payload.status,
-        });
+    return onValue(checkRef, (snapshot) => {
+      const val = snapshot.val();
+      if (!val) {
+        setData([]);
+        setLoading(false);
+        return;
       }
 
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    };
+      const list = Object.entries(val).map(([id, v]) => ({
+        id,
+        ...v,
+      }));
 
-    const handleItemClick = (row) => {
-      setFormMode("edit");
-      setSelectedRow(row);
-      setFormOpen(true);
-    };
+      setData(list);
+      setLoading(false);
+    });
+  }, []);
 
-    // 날짜 + 검색 필터
-    let filtered = data;
-
-    if (formattedDate) {
-      filtered = filtered.filter((row) => row.date === formattedDate);
+  /* 저장 */
+  const handleFormSave = async (payload) => {
+    // create 시 날짜 필수
+    if (formMode === "create" && !payload.date) {
+      alert("점검 날짜를 선택해주세요.");
+      return;
     }
 
-    if (search.trim() !== "") {
-      filtered = filtered.filter(
-        (row) =>
-          row.title.includes(search) || row.content.includes(search)
-      );
+    if (formMode === "create") {
+      const newItem = {
+        title: payload.title,
+        content: payload.content,
+        date: payload.date,
+        status: "미완료",
+        checkType: payload.checkType ?? "상시",
+        createdAt: Date.now(),
+      };
+
+      await push(ref(rtdb, "Check"), newItem);
+    } else {
+      const updateData = {
+        title: payload.title,
+        content: payload.content,
+        status: payload.status,
+        checkType: payload.checkType ?? "상시",
+      };
+
+      // 날짜를 실제로 바꿨을 때만
+      if (payload.date && payload.date !== selectedRow?.date) {
+        updateData.date = payload.date;
+      }
+
+      await update(ref(rtdb, `Check/${payload.id}`), updateData);
     }
 
-    // 페이징
-    const itemsPerPage = 6;
-    const [page, setPage] = useState(1);
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    const shown = filtered.slice(
-      (page - 1) * itemsPerPage,
-      page * itemsPerPage
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleItemClick = (row) => {
+    setFormMode("edit");
+    setSelectedRow(row);
+    setFormOpen(true);
+  };
+
+  /* 필터 */
+  let filtered = data;
+
+  if (formattedDate) {
+    filtered = filtered.filter((row) => row.date === formattedDate);
+  }
+
+  if (search.trim()) {
+    filtered = filtered.filter(
+      (row) =>
+        row.title?.includes(search) ||
+        row.content?.includes(search)
     );
+  }
 
-    // ⭐ 로딩 화면
-    if (loading) {
-      return (
-        <div className="w-full text-center py-20 text-[18px] text-gray-500">
-          데이터 불러오는 중...
-        </div>
-      );
-    }
+  /* 페이징 */
+  const itemsPerPage = 6;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const shown = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  if (loading) {
+    return (
+      <div className="w-full text-center py-20 text-gray-500">
+        데이터 불러오는 중...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[1100px] mx-auto mt-[30px]">
@@ -135,7 +146,7 @@ import { rtdb } from "../../firebase/config.js";
       <div className="flex justify-between items-center mb-5 text-[18px]">
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold cursor-pointer"
+            className="text-[#054E76] font-semibold"
             onClick={() => {
               setSelectedDate(null);
               setSearch("");
@@ -151,11 +162,8 @@ import { rtdb } from "../../firebase/config.js";
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => datePickerRef.current.setOpen(true)}
           >
-            <span className="font-[500]">
-              날짜{" "}
-              {selectedDate
-                ? formattedDate.replace(/-/g, ".")
-                : todayDot()}
+            <span>
+              날짜 {selectedDate ? formattedDate.replace(/-/g, ".") : todayDot()}
             </span>
             <img src={CalendarIcon} className="w-[30px]" />
           </div>
@@ -173,7 +181,7 @@ import { rtdb } from "../../firebase/config.js";
           <div className="flex items-center gap-2 ml-2">
             <input
               className="border px-2 py-1 rounded w-[200px] text-center"
-              placeholder="검색어를 입력하세요."
+              placeholder="검색어"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -182,7 +190,7 @@ import { rtdb } from "../../firebase/config.js";
         </div>
 
         <button
-          className="px-12 py-1 font-extrabold text-[20px] text-[#054E76]"
+          className="px-12 py-1 text-[20px] font-extrabold text-[#054E76]"
           onClick={() => {
             setFormMode("create");
             setSelectedRow(null);
@@ -194,10 +202,8 @@ import { rtdb } from "../../firebase/config.js";
       </div>
 
       {/* 헤더 */}
-      <div className="
-        grid grid-cols-[60px_300px_1fr_200px_150px]
-        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center
-      ">
+      <div className="grid grid-cols-[60px_300px_1fr_200px_150px]
+        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
         <div className="text-center">No.</div>
         <div className="text-center">점검항목</div>
         <div className="text-center">내용</div>
@@ -210,15 +216,10 @@ import { rtdb } from "../../firebase/config.js";
         <CheckL
           key={row.id}
           row={row}
-          index={i}
+          index={(page - 1) * itemsPerPage + i}
           onClickItem={handleItemClick}
         />
       ))}
-
-      {/* 안내 문구 */}
-      <div className="text-center text-gray-500 text-[15px] mt-4">
-        ※ 항목을 클릭하면 수정창이 열립니다.
-      </div>
 
       {/* 페이징 */}
       <div className="flex justify-center gap-3 text-[18px] my-8">
@@ -235,13 +236,11 @@ import { rtdb } from "../../firebase/config.js";
           </button>
         ))}
 
-        <button onClick={() => page < totalPages && setPage(page + 1)}>
-          {">"}
-        </button>
+        <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
         <button onClick={() => setPage(totalPages)}>{">>"}</button>
       </div>
 
-      {/* 수정창 */}
+      {/* 폼 */}
       {formOpen && (
         <CheckForm
           onClose={() => setFormOpen(false)}
@@ -252,12 +251,10 @@ import { rtdb } from "../../firebase/config.js";
         />
       )}
 
-      {/* 저장 완료 토스트 */}
+      {/* 토스트 */}
       {saved && (
-        <div className="
-          fixed bottom-10 left-1/2 -translate-x-1/2
-          bg-black text-white px-6 py-3 rounded-lg text-[18px] shadow-lg
-        ">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2
+          bg-black text-white px-6 py-3 rounded-lg">
           저장되었습니다.
         </div>
       )}
