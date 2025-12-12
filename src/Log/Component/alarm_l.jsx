@@ -7,7 +7,7 @@ export default function AlarmL({
   checked,
   toggleRow,
   editMode,
-  onClickContent,   // ← 추가됨
+  onClickContent,   // ← 추가
 }) {
   return (
     <div
