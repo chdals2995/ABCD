@@ -46,9 +46,7 @@ export default function CheckLog() {
   /* ===== 필터 ===== */
   const [selectedDate, setSelectedDate] = useState(null);
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState(null);
-  // "상시" | "정기" | "미완료" | "완료" | null
-
+  const [typeFilter, setTypeFilter] = useState(null);
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
 
@@ -57,10 +55,12 @@ export default function CheckLog() {
   const [formMode, setFormMode] = useState("create");
   const [selectedRow, setSelectedRow] = useState(null);
 
-  /* ===== DB 로드 ===== */
+  /* DB 로드 (todos 단일) */
   useEffect(() => {
     const todosRef = ref(rtdb, "todos");
+    const todosRef = ref(rtdb, "todos");
 
+    return onValue(todosRef, (snapshot) => {
     return onValue(todosRef, (snapshot) => {
       const val = snapshot.val();
       if (!val) {
@@ -71,11 +71,11 @@ export default function CheckLog() {
 
       const list = Object.entries(val).map(([id, v]) => ({
         id,
-        title: v.title ?? v.target ?? "",
-        content: v.content ?? v.description ?? "",
-        date: v.date ?? null,
-        status: v.status ?? (v.done ? "완료" : "미완료"),
-        checkType: v.checkType ?? "상시",
+        title: v.title,
+        content: v.content,
+        date: v.date,
+        status: v.status ?? "미완료",
+        checkType: v.checkType ?? "정기",
         createdAt: v.createdAt ?? 0,
       }));
 
@@ -84,9 +84,13 @@ export default function CheckLog() {
     });
   }, []);
 
-  /* ===== 저장 / 수정 ===== */
+  /* 저장 / 수정 (todos 단일) */
   const handleFormSave = async (payload) => {
-    const finalDate = payload.date ?? todayStr();
+    if (formMode === "create" && !payload.date) {
+      alert("점검 날짜를 선택해주세요.");
+      return;
+    }
+
     const todosRef = ref(rtdb, "todos");
 
     if (formMode === "create") {
@@ -104,9 +108,31 @@ export default function CheckLog() {
         content: payload.content,
         date: finalDate,
         checkType: payload.checkType ?? "상시",
-        updatedAt: Date.now(),
-      });
-    }
+      };
+
+      if (payload.date && payload.date !== selectedRow?.date) {
+        updateData.date = payload.date;
+      }
+
+     setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+  };
+
+  /* 상태 토글 */
+  const toggleStatus = async (row) => {
+    const nextStatus = row.status === "완료" ? "미완료" : "완료";
+    await update(ref(rtdb, `todos/${row.id}`), {
+      status: nextStatus,
+    });
+  };
+
+  /* 상태 토글 */
+  const toggleStatus = async (row) => {
+    const nextStatus = row.status === "완료" ? "미완료" : "완료";
+    await update(ref(rtdb, `todos/${row.id}`), {
+      status: nextStatus,
+    });
   };
 
   const handleItemClick = (row) => {
@@ -115,7 +141,7 @@ export default function CheckLog() {
     setFormOpen(true);
   };
 
-  /* ===== 필터 적용 (단일 필터) ===== */
+  /* 필터 */
   let filtered = data;
 
   if (formattedDate) {
@@ -124,18 +150,12 @@ export default function CheckLog() {
 
   if (search.trim()) {
     filtered = filtered.filter(
-      (row) =>
-        row.title.includes(search) ||
-        row.content.includes(search)
+      (row) => row.title?.includes(search) || row.content?.includes(search)
     );
   }
 
-  if (activeFilter) {
-    filtered = filtered.filter(
-      (row) =>
-        row.checkType === activeFilter ||
-        row.status === activeFilter
-    );
+  if (typeFilter) {
+    filtered = filtered.filter((row) => row.checkType === typeFilter);
   }
 
   /* ===== 페이징 ===== */
@@ -200,42 +220,21 @@ export default function CheckLog() {
           </div>
         </div>
 
-        {/* 우측 필터 (단일) */}
         <div className="flex items-center gap-4">
-          {["상시", "정기"].map((t) => (
-            <button
-              key={t}
-              onClick={() =>
-                setActiveFilter(activeFilter === t ? null : t)
-              }
-              className={`cursor-pointer ${
-                activeFilter === t
-                  ? "text-[#054E76] font-bold"
-                  : "text-gray-400"
-              }`}
-            >
-              {t} 점검
-            </button>
-          ))}
-
-          <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
-
-          {["미완료", "완료"].map((s) => (
-            <button
-              key={s}
-              onClick={() =>
-                setActiveFilter(activeFilter === s ? null : s)
-              }
-              className={`cursor-pointer ${
-                activeFilter === s
-                  ? s === "완료"
-                    ? "text-[#0E5FF0] font-bold"
-                    : "text-[#CA3535] font-bold"
-                  : "text-gray-400"
-              }`}
-            >
-              {s}
-            </button>
+          {["상시", "정기"].map((t, idx) => (
+            <div key={t} className="flex items-center gap-4">
+              <button
+                onClick={() => setTypeFilter(t)}
+                className={`cursor-pointer transition-colors ${
+                  typeFilter === t
+                    ? "text-[#054E76] font-bold"
+                    : "text-gray-400"
+                }`}
+              >
+                {t} 점검
+              </button>
+              {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
+            </div>
           ))}
         </div>
       </div>
@@ -256,6 +255,7 @@ export default function CheckLog() {
           row={row}
           index={(page - 1) * itemsPerPage + i}
           onClickItem={handleItemClick}
+          onToggleStatus={toggleStatus}
         />
       ))}
 
@@ -264,23 +264,35 @@ export default function CheckLog() {
         <div className="w-[120px]" />
 
         <div className="flex justify-center gap-3 text-[18px]">
-          <button className="cursor-pointer" onClick={() => setPage(1)}>{"<<"}</button>
-          <button className="cursor-pointer" onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
+          <button onClick={() => setPage(1)}>{"<<"}</button>
+          <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               onClick={() => setPage(n)}
-              className={page === n ? "font-bold text-[#054E76]" : "cursor-pointer"}
+              className={page === n ? "font-bold text-[#054E76]" : ""}
             >
               {n}
             </button>
           ))}
 
-          <button className="cursor-pointer" onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
-          <button className="cursor-pointer" onClick={() => setPage(totalPages)}>{">>"}</button>
+          <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
+          <button onClick={() => setPage(totalPages)}>{">>"}</button>
         </div>
 
+        <div className="w-[120px] flex justify-end mr-8 mb-1">
+          <Button
+            onClick={() => {
+              setFormMode("create");
+              setSelectedRow(null);
+              setFormOpen(true);
+            }}
+          >
+            글쓰기
+          </Button>
+        </div>
+      </div>
         <div className="w-[120px] flex justify-end mr-8 mb-1">
           <Button
             onClick={() => {
