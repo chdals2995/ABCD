@@ -8,6 +8,7 @@ import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import ParkingStatus from "./pages/ParkingStatus";
+import Logout from "./pages/Logout";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path="/UserMain" element={<AuthStatus />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
