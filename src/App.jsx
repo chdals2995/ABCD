@@ -1,5 +1,5 @@
 import "./App.css";
-
+import { Routes, Route, BrowserRouter } from "react-router-dom"
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
 import AuthStatus from "./components/Login/contexts/AuthStatus";
@@ -9,10 +9,6 @@ import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import ParkingStatus from "./pages/ParkingStatus";
 import Log from "./Log/Log";
-
-
-
-
 
 
 function App() {
