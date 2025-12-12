@@ -16,16 +16,38 @@ export default function CheckL({
       onClick={() => onClickItem && onClickItem(row)}
     >
       {/* No */}
-      <div className="text-center">{index + 1}</div>
+      <div className="text-center">
+        {index + 1}
+      </div>
 
-      {/* 점검항목 */}
-      <div className="text-center">{row.title}</div>
+      {/* 점검항목 + 점검구분 */}
+      <div className="flex flex-col items-center">
+        <span>{row.title}</span>
+
+        {/* 정기 / 상시 */}
+        <span
+          className={`
+            mt-1 text-[16px]
+            ${
+              row.checkType === "정기"
+                ? "text-blue-600"
+                : "text-[#054E76]"
+            }
+          `}
+        >
+          {row.checkType} 점검
+        </span>
+      </div>
 
       {/* 내용 */}
-      <div className="text-center">{row.content}</div>
+      <div className="text-center">
+        {row.content}
+      </div>
 
       {/* 점검일 */}
-      <div className="text-center">{row.date}</div>
+      <div className="text-center">
+        {row.date}
+      </div>
 
       {/* 상태 */}
       <div
