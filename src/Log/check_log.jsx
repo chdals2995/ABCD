@@ -37,7 +37,7 @@ export default function CheckLog() {
   /* 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState(null); // ⭐ 상시 / 정기
+  const [typeFilter, setTypeFilter] = useState(null);
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
 
@@ -46,11 +46,11 @@ export default function CheckLog() {
   const [formMode, setFormMode] = useState("create");
   const [selectedRow, setSelectedRow] = useState(null);
 
-  /* DB 로드 */
+  /* DB 로드 (todos 단일) */
   useEffect(() => {
-    const checkRef = ref(rtdb, "Check");
+    const todosRef = ref(rtdb, "todos");
 
-    return onValue(checkRef, (snapshot) => {
+    return onValue(todosRef, (snapshot) => {
       const val = snapshot.val();
       if (!val) {
         setData([]);
@@ -64,7 +64,7 @@ export default function CheckLog() {
         content: v.content,
         date: v.date,
         status: v.status ?? "미완료",
-        checkType: v.checkType ?? "정기", // ⭐ 기본값 보정
+        checkType: v.checkType ?? "정기",
         createdAt: v.createdAt ?? 0,
       }));
 
@@ -73,15 +73,17 @@ export default function CheckLog() {
     });
   }, []);
 
-  /* 저장 */
+  /* 저장 / 수정 (todos 단일) */
   const handleFormSave = async (payload) => {
     if (formMode === "create" && !payload.date) {
       alert("점검 날짜를 선택해주세요.");
       return;
     }
 
+    const todosRef = ref(rtdb, "todos");
+
     if (formMode === "create") {
-      await push(ref(rtdb, "Check"), {
+      await push(todosRef, {
         title: payload.title,
         content: payload.content,
         date: payload.date,
@@ -100,11 +102,19 @@ export default function CheckLog() {
         updateData.date = payload.date;
       }
 
-      await update(ref(rtdb, `Check/${payload.id}`), updateData);
+      await update(ref(rtdb, `todos/${payload.id}`), updateData);
     }
 
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  /* 상태 토글 */
+  const toggleStatus = async (row) => {
+    const nextStatus = row.status === "완료" ? "미완료" : "완료";
+    await update(ref(rtdb, `todos/${row.id}`), {
+      status: nextStatus,
+    });
   };
 
   const handleItemClick = (row) => {
@@ -113,7 +123,7 @@ export default function CheckLog() {
     setFormOpen(true);
   };
 
-  /* 필터 적용 */
+  /* 필터 */
   let filtered = data;
 
   if (formattedDate) {
@@ -122,16 +132,12 @@ export default function CheckLog() {
 
   if (search.trim()) {
     filtered = filtered.filter(
-      (row) =>
-        row.title?.includes(search) ||
-        row.content?.includes(search)
+      (row) => row.title?.includes(search) || row.content?.includes(search)
     );
   }
 
   if (typeFilter) {
-    filtered = filtered.filter(
-      (row) => row.checkType === typeFilter
-    );
+    filtered = filtered.filter((row) => row.checkType === typeFilter);
   }
 
   /* 페이징 */
@@ -150,10 +156,8 @@ export default function CheckLog() {
 
   return (
     <div className="w-full max-w-[1100px] mx-auto mt-[30px]">
-
       {/* 상단 필터 */}
       <div className="flex justify-between items-center mb-5 text-[18px]">
-        {/* 좌측 */}
         <div className="flex items-center gap-4">
           <button
             className="text-[#054E76] font-semibold"
@@ -168,7 +172,6 @@ export default function CheckLog() {
 
           <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
-          {/* 날짜 */}
           <div
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => datePickerRef.current.setOpen(true)}
@@ -188,7 +191,6 @@ export default function CheckLog() {
             className="hidden"
           />
 
-          {/* 검색 */}
           <div className="flex items-center gap-2 ml-2">
             <input
               className="border px-2 py-1 rounded w-[200px] text-center"
@@ -200,22 +202,16 @@ export default function CheckLog() {
           </div>
         </div>
 
-        {/* 우측 필터 (알림기록과 동일 위치) */}
         <div className="flex items-center gap-4">
           {["상시", "정기"].map((t, idx) => (
             <div key={t} className="flex items-center gap-4">
               <button
                 onClick={() => setTypeFilter(t)}
                 className={`cursor-pointer transition-colors ${
-                typeFilter === t
-                  ? "text-[#054E76] font-bold"
-                  : "text-gray-400"
-              } ${
-                t === "정기"
-                  ? "hover:text-[#0E5FF0]"   // 정기 hover 색
-                  : "hover:text-[#054E76]"   // 상시 hover 색
-              }`}
-
+                  typeFilter === t
+                    ? "text-[#054E76] font-bold"
+                    : "text-gray-400"
+                }`}
               >
                 {t} 점검
               </button>
@@ -242,46 +238,44 @@ export default function CheckLog() {
           row={row}
           index={(page - 1) * itemsPerPage + i}
           onClickItem={handleItemClick}
+          onToggleStatus={toggleStatus}
         />
       ))}
 
       {/* 페이징 + 글쓰기 */}
-<div className="flex justify-between items-center my-8">
-  {/* 왼쪽 여백 맞춤용 */}
-  <div className="w-[120px]" />
+      <div className="flex justify-between items-center my-8">
+        <div className="w-[120px]" />
 
-  {/* 페이징 */}
-  <div className="flex justify-center gap-3 text-[18px]">
-    <button onClick={() => setPage(1)}>{"<<"}</button>
-    <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
+        <div className="flex justify-center gap-3 text-[18px]">
+          <button onClick={() => setPage(1)}>{"<<"}</button>
+          <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
-    {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-      <button
-        key={n}
-        onClick={() => setPage(n)}
-        className={page === n ? "font-bold text-[#054E76]" : ""}
-      >
-        {n}
-      </button>
-    ))}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+            <button
+              key={n}
+              onClick={() => setPage(n)}
+              className={page === n ? "font-bold text-[#054E76]" : ""}
+            >
+              {n}
+            </button>
+          ))}
 
-    <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
-    <button onClick={() => setPage(totalPages)}>{">>"}</button>
-  </div>
+          <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
+          <button onClick={() => setPage(totalPages)}>{">>"}</button>
+        </div>
 
-  {/* 글쓰기 버튼 (오른쪽 고정) */}
-  <div className="w-[120px] flex justify-end mr-8 mb-1">
-    <Button
-      onClick={() => {
-        setFormMode("create");
-        setSelectedRow(null);
-        setFormOpen(true);
-      }}
-    >
-      글쓰기
-    </Button>
-  </div>
-</div>
+        <div className="w-[120px] flex justify-end mr-8 mb-1">
+          <Button
+            onClick={() => {
+              setFormMode("create");
+              setSelectedRow(null);
+              setFormOpen(true);
+            }}
+          >
+            글쓰기
+          </Button>
+        </div>
+      </div>
 
       {/* 폼 */}
       {formOpen && (

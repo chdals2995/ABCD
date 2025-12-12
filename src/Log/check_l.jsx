@@ -7,7 +7,8 @@ export default function CheckL({ row, index, onClickItem }) {
 
     const nextStatus = row.status === "완료" ? "미완료" : "완료";
 
-    await update(ref(rtdb, `Check/${row.id}`), {
+    // ⭐ todos 기준으로 수정
+    await update(ref(rtdb, `todos/${row.id}`), {
       status: nextStatus,
     });
   };
@@ -46,13 +47,15 @@ export default function CheckL({ row, index, onClickItem }) {
       {/* 점검일 */}
       <div className="text-center">{row.date}</div>
 
-      {/* 상태 — 항상 토글 */}
+      {/* 상태 (토글만 연결) */}
       <div
-        className="text-center font-medium"
-        onClick={toggleStatus}
+        className="text-center"
         style={{
           color: row.status === "완료" ? "#0E5FF0" : "#CA3535",
+          fontWeight: "500",
+          cursor: "pointer",
         }}
+        onClick={toggleStatus}   // ⭐ 여기만 변경
       >
         {row.status}
       </div>
