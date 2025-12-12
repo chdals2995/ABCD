@@ -93,10 +93,19 @@ export default function TopMenu() {
     setAlertCount(count);
 
     if (newAlert) {
-    setNotification({ type: "alert", message: getReasonText(newAlert.reason, newAlert.metric) });
-    if (notificationTimer.current) clearTimeout(notificationTimer.current);
-    notificationTimer.current = setTimeout(() => setNotification(null), 3000);
-    }
+    const baseMessage = getReasonText(newAlert.reason, newAlert.metric);
+
+  setNotification({
+    type: "alert",
+    icon: alert,               // 아이콘 파일
+    floor: newAlert.floor,
+    room: null,
+    message: baseMessage
+  });
+
+  if (notificationTimer.current) clearTimeout(notificationTimer.current);
+  notificationTimer.current = setTimeout(() => setNotification(null), 3000);
+}
     prevAlertCount.current = count;
   };
 
@@ -104,11 +113,23 @@ export default function TopMenu() {
     const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
     setRequestCount(count);
 
-    if (count > prevRequestCount.current) {
-      setNotification({ type: "request", message: "새로운 요청이 접수되었습니다." });
-      if (notificationTimer.current) clearTimeout(notificationTimer.current);
-      notificationTimer.current = setTimeout(() => setNotification(null), 3000);
-    }
+    // 🔥 새 요청이 생겼을 때
+  if (count > prevRequestCount.current) {
+    // 새 요청 키 (마지막으로 추가된 것)
+    const newRequestKey = keys[keys.length - 1];
+    const newRequest = raw[newRequestKey];
+
+    // floor, room, title을 이용해 메시지 구성
+    const msg = `[${newRequest.floor} ${newRequest.room}] ${newRequest.title}`;
+
+    setNotification({
+      type: "request",
+      message: msg,
+    });
+
+    if (notificationTimer.current) clearTimeout(notificationTimer.current);
+    notificationTimer.current = setTimeout(() => setNotification(null), 3000);
+  }
 
     prevRequestCount.current = count;
   };
