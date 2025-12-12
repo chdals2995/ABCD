@@ -8,6 +8,8 @@ import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import ParkingStatus from "./pages/ParkingStatus";
+import Log from "./Log/Log";
+
 
 
 
@@ -31,6 +33,7 @@ function App() {
             <Route path="/log" element={<Log />} />
 
             <Route path="/parking/:lotId" element={<ParkingStatus />} />
+            <Route path="/log" element={<Log />} />
 
           </Routes>
       </AuthProvider>
