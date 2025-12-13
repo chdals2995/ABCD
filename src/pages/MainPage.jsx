@@ -14,7 +14,7 @@ export default function MainPage(){
             {/* 건물 */}
             <div>
                 <ul className="w-[394px] flex justify-between font-pyeojin text-[28px]
-                    absolute top-[81px] left-1/2 -translate-x-1/2">
+                    absolute top-[81px] left-1/2 -translate-x-1/2 cursor-pointer">
                     <li>전력</li>
                     <li>온도</li>
                     <li>수도</li>
