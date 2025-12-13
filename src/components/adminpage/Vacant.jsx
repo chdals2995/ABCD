@@ -1,5 +1,6 @@
 // src/components/adminpage/Vacant.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
 
@@ -23,6 +24,8 @@ function getStatus(empty, total) {
 }
 
 export default function Vacant() {
+   const navigate = useNavigate();
+
    const [lots, setLots] = useState([]);
    const [stats, setStats] = useState({});
 
@@ -112,19 +115,29 @@ export default function Vacant() {
                   const status = getStatus(empty, total);
 
                   return (
-                     <div
+                     <button
                         key={lot.lotId}
-                        className="flex justify-between items-center"
+                        type="button"
+                        onClick={() => navigate(`/parking/${lot.lotId}`)}
+                        className="
+                  w-full
+                  flex justify-between items-center
+                  rounded-[8px]
+                  px-2 py-2
+                  hover:bg-[#E6EEF2]
+                  active:scale-[0.99]
+                  transition
+                  text-left
+                "
+                        title={`${lot.name} 상세 보기`}
                      >
-                        <span>{lot.name}</span>
+                        <span className="font-medium">{lot.name}</span>
 
                         <div className="flex items-center gap-3">
-                           {/* 숫자에 '잔여'를 명시적으로 붙이기 */}
                            <span className="text-sm">
                               잔여 {empty}대 / {total}대
                            </span>
 
-                           {/* 상태 뱃지 */}
                            <span
                               className={
                                  "text-[11px] px-2 py-[2px] rounded-full font-semibold " +
@@ -134,7 +147,7 @@ export default function Vacant() {
                               {status.label}
                            </span>
                         </div>
-                     </div>
+                     </button>
                   );
                })
             )}
