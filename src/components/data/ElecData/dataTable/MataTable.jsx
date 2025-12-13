@@ -1,5 +1,5 @@
 // src/pages/data/ElecData/dataTable/MataTable.jsx
-import { ElecMdata } from "../../../../hooks/dataPage/ElecMdata";
+import { ElecMdata } from "../../../../hooks/dataPage/elec/ElecMdata";
 
 export default function MataTable() {
   const { monthData, labels, loading } = ElecMdata();
@@ -30,14 +30,14 @@ export default function MataTable() {
             <td className="border px-[5px] py-[12px] text-center bg-[#B5DCF3] font-semibold">
               사용량 (kWh)
             </td>
-            {monthData.map((row) => (
-              <td
-                key={row.date}
-                className="border px-[5px] py-[12px] text-center whitespace-nowrap"
-              >
-                {Math.floor(row.elecSum).toLocaleString()}만
-              </td>
-            ))}
+            {monthData.map((row, idx) => (
+  <td
+    key={`${row.date ?? "no-date"}-${idx}`}   // ✅ 중복/undefined 방지
+    className="border px-[5px] py-[12px] text-center whitespace-nowrap"
+  >
+    {Math.floor(row.elecSum ?? 0).toLocaleString()}만
+  </td>
+))}
           </tr>
         </tbody>
       </table>

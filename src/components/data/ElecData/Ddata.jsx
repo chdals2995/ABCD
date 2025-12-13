@@ -10,7 +10,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { ElecDdata } from "../../../hooks/dataPage/ElecDdata";
+import { ElecDdata } from "../../../hooks/dataPage/elec/ElecDdata";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 

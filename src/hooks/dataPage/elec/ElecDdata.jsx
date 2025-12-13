@@ -1,6 +1,6 @@
 // src/hooks/dataPage/ElecDdata.js
 import { useEffect, useState } from "react";
-import { rtdb } from "../../firebase/config"; // ← 경로 프로젝트 구조에 맞게 조정
+import { rtdb } from "../../../firebase/config"; // ← 경로 프로젝트 구조에 맞게 조정
 import { ref, query, orderByKey, limitToLast, get } from "firebase/database";
 
 export function ElecDdata() {

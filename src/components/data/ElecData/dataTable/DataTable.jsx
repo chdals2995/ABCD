@@ -1,5 +1,5 @@
 // src/pages/data/ElecData/dataTable/DataTable.jsx
-import { ElecDdata } from "../../../../hooks/dataPage/ElecDdata";
+import { ElecDdata } from "../../../../hooks/dataPage/elec/ElecDdata";
 
 export default function DataTable() {
   const { dailyData, labels, loading } = ElecDdata();

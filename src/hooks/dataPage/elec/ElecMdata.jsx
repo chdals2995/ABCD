@@ -1,7 +1,7 @@
 // src/hooks/dataPage/ElecDdata.js  안에 같이 두거나 파일 나눠도 됨
 import { useEffect, useState } from "react";
 import { ref, query, orderByKey, limitToLast, get } from "firebase/database";
-import { rtdb } from "../../firebase/config";
+import { rtdb } from "../../../firebase/config";
 
 export function ElecMdata() {
   const [monthData, setMonthData] = useState([]);
