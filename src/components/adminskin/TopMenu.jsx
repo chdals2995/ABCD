@@ -90,7 +90,7 @@ export default function TopMenu() {
 
     if (newAlert) {
     const baseMessage = getReasonText(newAlert.reason, newAlert.metric);
-    if (!msg) return;
+    if (!baseMessage) return;
 
   setNotification({
     type: "warning",
@@ -148,7 +148,7 @@ export default function TopMenu() {
   <div
     className="absolute top-0 left-1/2 -translate-x-1/2 z-50
                bg-white shadow-lg p-4 rounded-xl border border-gray-300 
-               flex items-start gap-4 w-[360px]
+               flex items-center gap-4 w-[360px]
                animate-[fadeIn_0.25s_ease-out]"
   >
     {/* 좌측 아이콘 + 층/호수 */}
@@ -171,7 +171,7 @@ export default function TopMenu() {
 
     {/* 우측 메시지 */}
     <div className="flex-1">
-      <p className="font-pyeojin text-[#054E76] leading-tight">
+      <p className="font-pyeojin text-[#054E76] leading-tight items-center">
         {notification.message}
       </p>
     </div>
