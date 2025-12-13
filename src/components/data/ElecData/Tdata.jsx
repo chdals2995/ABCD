@@ -10,9 +10,7 @@ import {
   Legend,
 } from "chart.js";
 
-// ✅ 훅 import 경로/파일명 맞춰서
-import { ElecTdata } from "../../../hooks/dataPage/elec/Electdata"; 
-// (너가 올린 훅 파일명이 Electdata.js 라서 일단 이렇게 씀)
+import { ElecTdata } from "../../../hooks/dataPage/elec/ElecTdata";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -23,12 +21,11 @@ export default function Tdata({
   thresholds = { warn: 0.8, danger: 0.9 },
   showStatusColor = false,
 }) {
-  // ✅ 여기!! Tdata({}) ❌ -> ElecTdata({}) ✅
-  const { labels, values, loading } = ElecTdata({
-    metric,
-    minutes,
-    basePath: "aggMinuteBuilding",
-  });
+  const { labels, values, loading, lastKeyToday, day } = ElecTdata({
+  metric,
+  minutes,
+  basePath: "aggMinuteBuilding",
+});
 
   const data = {
     labels,
@@ -73,19 +70,22 @@ export default function Tdata({
       },
       y: {
         grid: { display: true },
-        ticks: { callback: (v) => Number(v).toLocaleString() },
+        ticks: {
+          callback: (v) => Number(v).toLocaleString(), // ✅ 여기 수정
+        },
         title: { display: true, text: `단위(${unit})` },
       },
     },
   };
 
   if (loading) return <div className="text-sm">로딩중...</div>;
-  if (!labels.length) return <div className="text-sm">데이터 없음</div>;
 
-  // ✅ maintainAspectRatio:false면 부모 높이가 있어야 보임!
   return (
-    <div className="w-full h-full" style={{ height: 180 }}>
-      <Line data={data} options={options} />
+  <div className="w-full h-full" style={{ height: 180 }}>
+    <div className="text-[11px] mb-1 text-gray-600">
+      마지막 데이터: {day} {lastKeyToday ?? "없음"}
     </div>
-  );
+    <Line data={data} options={options} />
+  </div>
+);
 }
