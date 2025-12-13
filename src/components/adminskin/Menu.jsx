@@ -1,10 +1,61 @@
 import logoW from '../../assets/logos/logoW.png';
 import logo from '../../assets/logos/mainlogo.png';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { ref, get } from "firebase/database";
+import { rtdb } from "../../firebase/config";
 import { Link } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-export default function Menu({customLogo, logoClass}){
+export default function Menu({customLogo, logoClass, floorGroups = [] }){
     const [open, setOpen] = useState(false);
+    const [userId, setUserId] = useState("");
+    const [role, setRole] = useState("");
+    const navigate = useNavigate();
+
+    // 메뉴 드롭다운
+    const [openMenu, setOpenMenu] = useState({
+    floor: false,
+    data: false,
+    issue: false,
+    });
+
+    useEffect(() => {
+  const auth = getAuth();
+
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+
+    // users/{uid} 경로에서 사용자 정보 가져오기
+    const userRef = ref(rtdb, `users/${user.uid}`);
+    const snapshot = await get(userRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      setUserId(data.userId);
+      setRole(data.role);  
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+
+    //마이페이지 이동
+    const goMyPage = () => {
+    if (role === "master") {
+        navigate("/master");
+    } else if (role === "admin") {
+        navigate("/adminpage");
+    }
+    };
+
+    //토글메뉴
+    const toggleMenu = (key) => {
+    setOpenMenu((prev) => ({
+        ...prev,
+        [key]: !prev[key],
+    }));
+    };
 
     const show = () => {
         setOpen(!open);
@@ -12,11 +63,12 @@ export default function Menu({customLogo, logoClass}){
 
     return(
         <div>
-            <Link to="/">
             <div className='pt-[13px]'>
+                <Link to="/" className="inline-flex w-fit shrink-0">
                 <img src={customLogo || logo} alt="홈" className={logoClass || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
+                </Link>
             </div>
-            </Link>
+            
             <div className='wrap flex w-[450px]'>
                 {/* 메뉴박스 */}
                 <div className={`whiteBox w-[372px] h-full bg-white border-[#0888D4] border-2
@@ -28,59 +80,96 @@ export default function Menu({customLogo, logoClass}){
                         border-[#0888D4] border-2'>
                         {/* 콘텐츠 */}
                         <div className='content'>
-                            <span className='text-[20px] ml-[5px]'>안녕하세요! "아이디 님"</span>
+                            <span className='text-[20px] ml-[5px]'>안녕하세요! "{userId}"님</span>
                             <br></br>
-                            <span className='ml-[210px] text-[#054E76]'>마이페이지</span>
+                            <span className='ml-[210px] text-[#054E76] cursor-pointer' onClick={goMyPage}>마이페이지</span>
                             {/* 페이지 */}
                             <ul className='px-[20px] mt-[30px]'>
-                                <li className='mt-[20px]'>
+                                <li className='mt-[20px] cursor-pointer'>
                                     <div className='border-b-[1px] border-[#054E76]'>
                                         <span className='text-[20px] font-pyeojin'>홈</span>
                                     </div>
                                 </li>
-                                <li className='mt-[20px]'>
-                                    <div className='Subtitle flex justify-between border-b-[1px] border-[#054E76]'>
-                                        <span className='text-[20px] font-pyeojin'>층별 페이지</span>
-                                        <div className="arrow w-3 h-3 border-l-2 border-b-2
-                                            border-[#054E76] rotate-[-45deg] mt-[5px]"></div>
-                                    </div>
-                                    <ul className='ml-[40px] list-disc'>
-                                        <div className='mt-[5px]'>
-                                            <li>1층 - 10층</li>
-                                            <li>11층 - 20층</li>
-                                            <li>21층 -</li>
-                                        </div>
+                                <li className="mt-[20px] cursor-pointer">
+                                    <button
+                                    type="button"
+                                    onClick={() => toggleMenu("floor")}
+                                    className="w-full flex justify-between items-center border-b border-[#054E76]"
+                                    >
+                                    <span className="text-[20px] font-pyeojin">층별 페이지</span>
+
+                                    {/* 화살표 */}
+                                    <div
+                                    className={`arrow w-3 h-3 border-l-2 border-b-2 border-[#054E76] mt-[5px]
+                                        transition-transform duration-300
+                                        ${openMenu.floor ? "rotate-[135deg]" : "rotate-[-45deg]"}`}
+                                    ></div>
+                                    </button>
+
+                                    {openMenu.floor && (
+                                    <ul className="ml-[40px] mt-[8px] list-disc">
+                                        {floorGroups.map((group) => (
+                                        <li
+                                            key={`${group.type}-${group.start}-${group.end}`}
+                                            className="cursor-pointer hover:text-[#054E76]"
+                                        >
+                                            {group.type === "basement"
+                                            ? `B${group.end}층 ~ B${group.start}층`
+                                            : `${group.start}층 ~ ${group.end}층`}
+                                        </li>
+                                        ))}
                                     </ul>
+                                    )}
                                 </li>
-                                <li className='mt-[20px]'>
-                                    <div className='Subtitle flex justify-between border-b-[1px] border-[#054E76]'>
-                                        <span className='text-[20px] font-pyeojin'>데이터 현황</span>
-                                        <div className="arrow w-3 h-3 border-l-2 border-b-2
-                                            border-[#054E76] rotate-[-45deg] mt-[5px]"></div>
-                                    </div>
-                                    <ul className='ml-[40px] list-disc'>
-                                        <div className='mt-[5px]'>
-                                            <li>전기</li>
-                                            <li>온도</li>
-                                            <li>수도</li>
-                                            <li>가스</li>
-                                        </div>
+
+                                {/* 데이터 현황 */}
+                                <li className="mt-[20px] cursor-pointer">
+                                    <button
+                                    type="button"
+                                    onClick={() => toggleMenu("data")}
+                                    className="w-full flex justify-between items-center border-b border-[#054E76]"
+                                    >
+                                    <span className="text-[20px] font-pyeojin">데이터 현황</span>
+                                    <div
+                                    className={`arrow w-3 h-3 border-l-2 border-b-2 border-[#054E76] mt-[5px]
+                                        transition-transform duration-300
+                                        ${openMenu.data ? "rotate-[135deg]" : "rotate-[-45deg]"}`}
+                                    ></div>
+                                    </button>
+
+                                    {openMenu.data && (
+                                    <ul className="ml-[40px] mt-[8px] list-disc">
+                                        <li className='cursor-pointer'>전기</li>
+                                        <li className='cursor-pointer'>온도</li>
+                                        <li className='cursor-pointer'>수도</li>
+                                        <li className='cursor-pointer'>가스</li>
                                     </ul>
+                                    )}
                                 </li>
-                                <li className='mt-[20px]'>
-                                    <div className='Subtitle flex justify-between border-b-[1px] border-[#054E76]'>
-                                        <span className='text-[20px] font-pyeojin'>문제 현황</span>
-                                        <div className="arrow w-3 h-3 border-l-2 border-b-2
-                                            border-[#054E76] rotate-[-45deg] mt-[5px]"></div>
-                                    </div>
-                                    <ul className='ml-[40px] list-disc'>
-                                        <div className='mt-[5px]'>
-                                            <li>전기</li>
-                                            <li>온도</li>
-                                            <li>수도</li>
-                                            <li>가스</li>
-                                        </div>
+
+                                {/* 문제 현황 */}
+                                <li className="mt-[20px] cursor-pointer">
+                                    <button
+                                    type="button"
+                                    onClick={() => toggleMenu("issue")}
+                                    className="w-full flex justify-between items-center border-b border-[#054E76]"
+                                    >
+                                    <span className="text-[20px] font-pyeojin">문제 현황</span>
+                                    <div
+                                    className={`arrow w-3 h-3 border-l-2 border-b-2 border-[#054E76] mt-[5px]
+                                        transition-transform duration-300
+                                        ${openMenu.issue ? "rotate-[135deg]" : "rotate-[-45deg]"}`}
+                                    ></div>
+                                    </button>
+
+                                    {openMenu.issue && (
+                                    <ul className="ml-[40px] mt-[8px] list-disc">
+                                        <li className='cursor-pointer'>전기</li>
+                                        <li className='cursor-pointer'>온도</li>
+                                        <li className='cursor-pointer'>수도</li>
+                                        <li className='cursor-pointer'>가스</li>
                                     </ul>
+                                    )}
                                 </li>
                             </ul>
                         </div>
@@ -88,7 +177,7 @@ export default function Menu({customLogo, logoClass}){
                 </div>
                 {/* 메뉴태그 */}
                 <div className={`tag w-[78px] h-[51px] bg-[#0888D4] flex justify-end items-center mt-[60px]
-                    transition-transform duration-500 fixed top-[100px] left-[372px]
+                    transition-transform duration-500 fixed top-[100px] left-[372px] cursor-pointer
                     ${open ? "translate-x-0" : "-translate-x-[372px]"}`}
                     onClick={show}>
                     <img src={logoW} alt="메뉴태그로고" 
