@@ -1,4 +1,8 @@
 import { useEffect, useState, useRef } from "react";
+import { getAuth } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { get } from "firebase/database";
+import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
 
@@ -12,6 +16,8 @@ export default function TopMenu() {
   const [requestCount, setRequestCount] = useState(0); // 요청 개수
   const [notification, setNotification] = useState(null); // 알림팝업 데이터
 
+  const [role, setRole] = useState("");
+
   // 이전 카운트 저장용
   const prevAlertCount = useRef(0);
   const prevRequestCount = useRef(0);
@@ -20,6 +26,8 @@ export default function TopMenu() {
   // ✅ 초기 로딩 차단용
   const isInitialAlertLoad = useRef(true);
   const isInitialRequestLoad = useRef(true);
+
+  const navigate = useNavigate();
 
   const METRIC_LABEL = {
     elec: "전기",
@@ -144,11 +152,11 @@ export default function TopMenu() {
   };
 
    const handleRequests = (snapshot) => {
-  if (!snapshot.exists()) {
-    setRequestCount(0);
-    prevRequestCount.current = 0;
-    isInitialRequestLoad.current = false;
-    return;
+
+  if (isInitialAlertLoad.current) {
+  prevAlertCount.current = count;
+  isInitialAlertLoad.current = false;
+  return;
   }
 
   const raw = snapshot.val();
@@ -200,6 +208,30 @@ export default function TopMenu() {
       }
     };
   }, []);
+
+    useEffect(() => {
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      const snapshot = await get(ref(rtdb, `users/${user.uid}`));
+      if (snapshot.exists()) {
+        setRole(snapshot.val().role);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+  
+  //마이페이지 이동
+    const goMyPage = () => {
+    if (role === "master") {
+        navigate("/master");
+    } else if (role === "admin") {
+        navigate("/adminpage");
+    }
+    };
     
   return (
     <div>
@@ -237,12 +269,14 @@ export default function TopMenu() {
     </div>
   </div>
 )}
+
+
       {/* TopMenu */}
       <div
         className="TopMenu w-[372px] h-[68px] px-[74px] bg-[#0888D4] 
                 absolute top-0 right-0 flex items-center justify-between "
       >
-        <img src={login} alt="마이페이지" className="w-[48px] h-[48px] cursor-pointer" />
+        <img src={login} alt="마이페이지" className="w-[48px] h-[48px] cursor-pointer" onClick={goMyPage}/>
         {/* 문제보기(alerts) */}
         <div className="relative">
           <img src={alert} alt="문제보기" className="w-[48px] h-[48px] cursor-pointer" />

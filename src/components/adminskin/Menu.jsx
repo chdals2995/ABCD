@@ -1,13 +1,13 @@
 import logoW from '../../assets/logos/logoW.png';
 import logo from '../../assets/logos/mainlogo.png';
 import { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { ref, get } from "firebase/database";
-import { rtdb } from "../../firebase/config";
+import { rtdb, auth } from "../../firebase/config";
 import { Link } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
 
-export default function Menu(logoSize){
+export default function Menu({logoSize}){
     const [open, setOpen] = useState(false);
     const [userId, setUserId] = useState("");
     const [role, setRole] = useState("");
@@ -97,6 +97,16 @@ export default function Menu(logoSize){
 
   fetchBuilding();
 }, []);
+ 
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+  } catch (err) {
+    console.error("로그아웃 실패:", err);
+  } finally {
+    navigate("/", { replace: true });
+  }
+};
 
     return(
         <div>
@@ -112,13 +122,13 @@ export default function Menu(logoSize){
                     ${open ? "translate-x-0" : "-translate-x-[372px]"} `}>
                     <img src={logo} alt="메뉴안로고" 
                         className='w-[216px] h-[84px] m-auto my-[20px]'/>
-                    <div className='blueBox w-[318px] h-[600px] bg-[#E7F3F8] m-auto p-[15px]
+                    <div className='blueBox w-[318px] min-h-[600px] bg-[#E7F3F8] m-auto p-[15px]
                         border-[#0888D4] border-2'>
                         {/* 콘텐츠 */}
                         <div className='content'>
                             <span className='text-[20px] ml-[5px]'>안녕하세요! "{userId}"님</span>
                             <br></br>
-                            <span className='ml-[210px] text-[#054E76] cursor-pointer' onClick={goMyPage}>마이페이지</span>
+                            <span className='block mt-[10px] ml-[210px] text-[#054E76] cursor-pointer' onClick={goMyPage}>마이페이지</span>
                             {/* 페이지 */}
                             <ul className='px-[20px] mt-[30px]'>
                                 <li className='mt-[20px] cursor-pointer'>
@@ -212,6 +222,9 @@ export default function Menu(logoSize){
                             </ul>
                         </div>
                     </div>
+                    <div className='text-[#0888D4] border-b hover:font-pyeojin hover:text-[#054E76]
+                        w-[60px] mt-[160px] ml-[280px] cursor-pointer'
+                        onClick={handleLogout}>로그아웃</div>
                 </div>
                 {/* 메뉴태그 */}
                 <div className={`tag w-[78px] h-[51px] bg-[#0888D4] flex justify-end items-center mt-[60px]
