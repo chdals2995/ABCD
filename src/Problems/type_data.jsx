@@ -33,11 +33,12 @@ export default function TypeData({ data, selectedMetric }) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center mt-6 select-none">
+    <div className=
+        "w-full flex mt-12 select-none ">
       {/* ============================
           파이 차트
       ============================ */}
-      <div className="w-[360px] h-[360px] mt-12">
+      <div className="w-[400px] h-[400px] ml-[-70px]">
         <Pie data={chartData} />
       </div>
     </div>

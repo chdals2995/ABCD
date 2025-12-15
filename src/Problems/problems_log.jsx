@@ -7,11 +7,13 @@ export default function ProblemsLog({ problems, onSelect }) {
   const [openReport, setOpenReport] = useState(false);
 
   return (
-    <div className="mt-10 border rounded p-4 w-full max-w-[950px] mx-auto">
+    <div className="
+          mt-10 border rounded
+          p-5 w-[990px] ml-13">
 
       {/* 제목 + (+) 버튼 */}
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold">원인내역(타입별)</h3>
+        <h3 className="text-[25px] font-semibold px-1 pt-5">원인내역(타입별)</h3>
 
         <button
           onClick={() => setOpenReport(true)}
@@ -22,11 +24,11 @@ export default function ProblemsLog({ problems, onSelect }) {
       </div>
 
       {/* 상단 구분선 */}
-      <div className="w-full border-t border-gray-400 mb-3"></div>
+      <div className="w-full border-t border-gray-400 mb-1 mt-5"></div>
 
       <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b text-left">
+          <tr className="border-b text-center">
             <th className="p-2">타입</th>
             <th className="p-2">호수</th>
             <th className="p-2">발생일시</th>
