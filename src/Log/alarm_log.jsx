@@ -123,6 +123,20 @@ export default function AlarmLog() {
     setDropdownOpen(false);
   };
 
+  const cancelEdit = () => {
+    setEditMode(false);
+    setCheckedRows({});
+    setPendingStatus(null);
+    setDropdownOpen(false);
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    setCheckedRows({});
+    setPendingStatus(null);
+    setDropdownOpen(false);
+  };
+
   /* ================= 페이징 ================= */
   const itemsPerPage = 6;
   const [page, setPage] = useState(1);
