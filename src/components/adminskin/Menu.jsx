@@ -108,7 +108,7 @@ export default function Menu(logoSize){
             <div className='wrap flex w-[450px]'>
                 {/* 메뉴박스 */}
                 <div className={`whiteBox w-[372px] h-full bg-white border-[#0888D4] border-2
-                transition-transform duration-500 fixed top-0 left-0
+                transition-transform duration-500 fixed top-0 left-0 z-50
                     ${open ? "translate-x-0" : "-translate-x-[372px]"} `}>
                     <img src={logo} alt="메뉴안로고" 
                         className='w-[216px] h-[84px] m-auto my-[20px]'/>
@@ -215,7 +215,7 @@ export default function Menu(logoSize){
                 </div>
                 {/* 메뉴태그 */}
                 <div className={`tag w-[78px] h-[51px] bg-[#0888D4] flex justify-end items-center mt-[60px]
-                    transition-transform duration-500 fixed top-[100px] left-[372px] cursor-pointer
+                    transition-transform duration-500 fixed top-[100px] left-[372px] z-50 cursor-pointer
                     ${open ? "translate-x-0" : "-translate-x-[372px]"}`}
                     onClick={show}>
                     <img src={logoW} alt="메뉴태그로고" 
