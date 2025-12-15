@@ -1,4 +1,4 @@
-// src/hooks/dataPage/elec/Electdata.js
+// src/hooks/dataPage/elec/ElecTdata.js
 import { useEffect, useMemo, useState } from "react";
 import { rtdb } from "../../../firebase/config";
 import { ref, query, orderByKey, limitToLast, onValue } from "firebase/database";
@@ -109,11 +109,19 @@ export function ElecTdata({
     };
   }, [rawToday, rawYday, metric, day, startDay, startMs, now, tick]);
 
+<<<<<<< HEAD
   // ✅ rawToday 기준 마지막 키(시각) 확인용
 const lastKeyToday = useMemo(() => {
+=======
+  const lastKeyToday = useMemo(() => {
+>>>>>>> 6e7150fa2ae19069f6b6abaca089acd940d06caf
   const ks = Object.keys(rawToday || {}).sort();
   return ks.length ? ks[ks.length - 1] : null;
 }, [rawToday]);
 
+<<<<<<< HEAD
 return { labels, values, loading, day, lastKeyToday };
+=======
+return { labels, values, loading, day, lastKeyToday };s
+>>>>>>> 6e7150fa2ae19069f6b6abaca089acd940d06caf
 }
