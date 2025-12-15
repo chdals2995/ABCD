@@ -152,10 +152,10 @@ export default function Sdata({ metricKey = "elec" }) {
             </div>
           </div>
         </div>
-      </DataModal>
+      </DataModal>  
 
       {/* 페이지 안의 작은 차트(일단 day 기준) */}
-      <div className="w-[450px] h-[300px] mt-[30px] ml-[-10px]">
+      <div className="w-[500px] h-[300px] absolute top-[55%] left-[50%] translate-x-[-52%] translate-y-[-50%]">
         {!isOpen && !dayRes.loading && dayRows.length > 0 && (
           <AggBarChart
             title={`${cfg.label} 사용량`}

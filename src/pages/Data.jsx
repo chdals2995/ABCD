@@ -17,10 +17,10 @@ export default function Data(){
               <Link className="mr-10 text-[32px]" to="/Data/ElecData">
                 전력
               </Link>
-              <Link className="mr-10 text-[32px]"  to="/Data/WaterData">
+              <Link className="mr-10 text-[32px]"  to="/Data/TempData">
                 온도
               </Link>
-              <Link className="mr-10 text-[32px]" to="/Data/TempData">
+              <Link className="mr-10 text-[32px]" to="/Data/WaterData">
                 수도
               </Link>
               <Link className="mr-10 text-[32px]" to="/Data/GasData">

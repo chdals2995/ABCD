@@ -20,26 +20,26 @@ export default function ElecData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">
-              <Sdata />
+              <Sdata metricKey="elec"/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata />
+              <Tdata metricKey="elec"/>
             </div>
           </div>
 
           {/* 아래쪽 3개 카드 */}
           <div className="absolute bottom-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
             <div className="relative w-[529px] h-[390px] bg-white mr-[8px] mt-[3px]">
-              <Pdata />
+              <Pdata metricKey="elec"/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white mt-[3px]">
-              <EmData />
+              <EmData metricKey="elec"/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px] mt-[3px]">
-              <MaxData />
+              <MaxData metricKey="elec"/>
             </div>
           </div>
         </div>
