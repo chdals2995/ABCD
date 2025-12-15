@@ -6,6 +6,16 @@ import { rtdb } from "../../firebase/config";
 import cautionIcon from "../../icons/Alert_triangle.png";
 import warningIcon from "../../icons/Alert_triangle_red.png";
 
+/* 상대 시간 계산 */
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const day = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (day <= 0) return "오늘";
+  if (day === 1) return "어제";
+  return `${day}일 전`;
+}
+
 export default function AlarmProblems() {
   const [items, setItems] = useState([]);
 
@@ -27,16 +37,16 @@ export default function AlarmProblems() {
           Object.entries(alerts).forEach(([id, v]) => {
             const createdAt = Number(v.createdAt) || 0;
 
-            // ✅ 1주일 이전 제외
+            // 최근 7일만
             if (createdAt < oneWeekAgo) return;
 
-            // ✅ 완료된 항목 제외
+            // 완료 항목 제외
             if (v.level === "completed" || v.status === "done") return;
 
             list.push({
               id,
               floor,
-              level: v.level,      // warning | caution
+              level: v.level, // warning | caution
               metric: v.metric,
               reason: v.reason,
               value: v.value,
@@ -54,8 +64,21 @@ export default function AlarmProblems() {
     });
   }, []);
 
+  // 경고 / 주의 분리
   const warningList = items.filter((x) => x.level === "warning");
   const cautionList = items.filter((x) => x.level === "caution");
+
+  // 🔹 상단 요약 문구 생성 (층별 최신 1건)
+  const summaryText = Object.values(
+    items.reduce((acc, cur) => {
+      if (!acc[cur.floor] || acc[cur.floor].createdAt < cur.createdAt) {
+        acc[cur.floor] = cur;
+      }
+      return acc;
+    }, {})
+  )
+    .map((item) => `${item.floor} / ${timeAgo(item.createdAt)}`)
+    .join(" · ");
 
   const sections = [
     { title: "경고", icon: warningIcon, data: warningList },
@@ -64,10 +87,15 @@ export default function AlarmProblems() {
 
   return (
     <div className="w-[335px] min-h-[698px] bg-white px-[15px] py-[10px]">
+      {/* 상단 요약 안내 */}
+      <div className="text-[12px] text-gray-400 mb-5 truncate mt-3 ">
+        {summaryText || "최근 7일 이내 발생한 점검 알림"}
+      </div>
+
       {sections.map((sec) => (
-        <div key={sec.title} className="mb-6">
+        <div key={sec.title} className="mb-6 ">
           {/* 섹션 헤더 */}
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-4">
             <img src={sec.icon} className="w-[18px] h-[18px]" />
             <span className="text-[20px] font-semibold">{sec.title}</span>
           </div>
@@ -83,14 +111,14 @@ export default function AlarmProblems() {
           {sec.data.map((item) => (
             <div
               key={item.id}
-              className="flex justify-between border-b border-[#e5e5e5] py-2 mb-6"
+              className="flex justify-between border-b border-[#e5e5e5] py-2 mb-4"
             >
-              <span className="text-[16px] w-[200px] truncate">
+              <span className="text-[16px] w-[150px] truncate ">
                 {item.metric} · {item.reason}
               </span>
 
-              <span className="text-[13px] text-[#555]">
-                {new Date(item.createdAt).toLocaleDateString()}
+              <span className="text-[13px] text-[#555] whitespace-nowrap">
+                {item.floor} / {new Date(item.createdAt).toLocaleDateString()}
               </span>
             </div>
           ))}
