@@ -501,7 +501,10 @@ export default function Floors() {
 
       {/* 🔸 전체 층 그래프 모달 */}
       {largeChart && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"
+          onClick={closeLargeChart}
+        >
           {/* 카드 영역 안은 클릭해도 선택 안 풀리게 */}
           <div
             className="relative bg-white rounded-[18px] shadow-lg w-[1100px] max-w-[95vw] h-[650px] max-h-[90vh] px-6 py-5 flex flex-col"
