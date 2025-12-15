@@ -5,8 +5,11 @@ import Login from "./pages/login/Login";
 import Data from "./pages/Data";
 import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
-import Master from "./pages/Master"
-import UserMain from "./pages/UserMain"
+import Floors from "./pages/Floors";
+import AdminPage from "./pages/AdminPage";
+import Master from "./pages/Master";
+import ParkingStatus from "./pages/ParkingStatus";
+import Logout from "./pages/Logout";
 
 function App() {
   return (
@@ -15,11 +18,14 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/UserMain" element={<AuthStatus />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
-            <Route path="/Master" element={<Master />} />
-            <Route path="/data" element={<Data />} />
-            <Route path="/userMain" element={<UserMain />} />
+            <Route path="/master" element={<Master/>} />
+            <Route path="/floors" element={<Floors />} />
+            <Route path="/AdminPage" element={<AdminPage />} />
+            <Route path="/parking/:lotId" element={<ParkingStatus />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

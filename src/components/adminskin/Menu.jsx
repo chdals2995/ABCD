@@ -1,8 +1,9 @@
 import logoW from '../../assets/logos/logoW.png';
-import logo from '../../assets/logos/logo.png';
+import logo from '../../assets/logos/mainlogo.png';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Menu(){
+export default function Menu({customLogo, logoClass}){
     const [open, setOpen] = useState(false);
 
     const show = () => {
@@ -10,10 +11,12 @@ export default function Menu(){
     };
 
     return(
-        <>
+        <div>
+            <Link to="/">
             <div className='pt-[13px]'>
-                <img src={logo} alt="홈" className='logo w-[216px] h-[84px] ml-[38px]'/>
+                <img src={customLogo || logo} alt="홈" className={logoClass || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
             </div>
+            </Link>
             <div className='wrap flex w-[450px]'>
                 {/* 메뉴박스 */}
                 <div className={`whiteBox w-[372px] h-full bg-white border-[#0888D4] border-2
@@ -92,6 +95,6 @@ export default function Menu(){
                     className="w-[39px] h-[42px] block translate-x-[-10px]"/>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
