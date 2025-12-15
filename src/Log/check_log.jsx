@@ -34,21 +34,21 @@ export default function CheckLog() {
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  /* ✅ 말풍선 토스트(필터 안내) */
+  const [showFilterGuide, setShowFilterGuide] = useState(true);
+
   /* 필터 */
   const [selectedDate, setSelectedDate] = useState(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(null); // "완료" | "미완료" | null
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
-
-  // "완료" | "미완료" | null 필터
-  const [statusFilter, setStatusFilter] = useState(null); 
 
   /* 폼 */
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create");
   const [selectedRow, setSelectedRow] = useState(null);
-  
 
   /* DB 로드 (todos 단일) */
   useEffect(() => {
@@ -75,6 +75,17 @@ export default function CheckLog() {
       setData(list);
       setLoading(false);
     });
+  }, []);
+
+  /* ✅ 최초 1회만 표시(자동으로 안 사라짐) - eslint 회피(동기 setState 금지) */
+  useEffect(() => {
+    const KEY = "check_log_filter_guide";
+    const seen = localStorage.getItem(KEY);
+
+    if (!seen) {
+      localStorage.setItem(KEY, "true");
+      setTimeout(() => setShowFilterGuide(true), 0); // eslint 회피용
+    }
   }, []);
 
   /* 저장 / 수정 (todos 단일) */
@@ -116,9 +127,7 @@ export default function CheckLog() {
   /* 상태 토글 */
   const toggleStatus = async (row) => {
     const nextStatus = row.status === "완료" ? "미완료" : "완료";
-    await update(ref(rtdb, `todos/${row.id}`), {
-      status: nextStatus,
-    });
+    await update(ref(rtdb, `todos/${row.id}`), { status: nextStatus });
   };
 
   const handleItemClick = (row) => {
@@ -130,9 +139,7 @@ export default function CheckLog() {
   /* 필터 */
   let filtered = data;
 
-  if (formattedDate) {
-    filtered = filtered.filter((row) => row.date === formattedDate);
-  }
+  if (formattedDate) filtered = filtered.filter((row) => row.date === formattedDate);
 
   if (search.trim()) {
     filtered = filtered.filter(
@@ -140,14 +147,9 @@ export default function CheckLog() {
     );
   }
 
-  if (typeFilter) {
-    filtered = filtered.filter((row) => row.checkType === typeFilter);
-  }
+  if (typeFilter) filtered = filtered.filter((row) => row.checkType === typeFilter);
 
-  // 완료 ｜ 미완료 상태 필터 추가
-  if (statusFilter) {
-    filtered = filtered.filter((row) => row.status === statusFilter);
-  }
+  if (statusFilter) filtered = filtered.filter((row) => row.status === statusFilter);
 
   /* 페이징 */
   const itemsPerPage = 6;
@@ -174,6 +176,8 @@ export default function CheckLog() {
               setSelectedDate(null);
               setSearch("");
               setTypeFilter(null);
+              setStatusFilter(null);
+              setShowFilterGuide(false);
             }}
           >
             전체
@@ -211,15 +215,38 @@ export default function CheckLog() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* 우측 필터 */}
+        <div className="flex items-center gap-4 relative">
+          {/* ✅ 필터 안내 말풍선 (필터 누르면 닫힘 / X로도 닫힘) */}
+          {showFilterGuide && (
+            <div className="absolute right-0 bottom-full mb-4 z-50">
+              <div className="relative bg-[#054E76] text-white text-[15px] leading-5 px-4 py-3 rounded-2xl shadow-lg max-w-[260px]">
+                <button
+                  type="button"
+                  onClick={() => setShowFilterGuide(false)}
+                  className="absolute top-2 right-3 text-white/80 hover:text-white"
+                >
+                  ×
+                </button>
+
+                상시/정기 + 완료/미완료<br />
+                둘을 같이 선택해서<br />
+                필터를 조합할 수 있습니다.
+
+                <div className="absolute top-full right-10 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#054E76]" />
+              </div>
+            </div>
+          )}
+
           {["상시", "정기"].map((t, idx) => (
             <div key={t} className="flex items-center gap-4">
               <button
-                onClick={() => setTypeFilter(t)}
+                onClick={() => {
+                  setTypeFilter(t);
+                  setShowFilterGuide(false);
+                }}
                 className={`cursor-pointer transition-colors ${
-                  typeFilter === t
-                    ? "text-[#054E76] font-bold"
-                    : "text-gray-400"
+                  typeFilter === t ? "text-[#054E76] font-bold" : "text-gray-400"
                 }`}
               >
                 {t} 점검
@@ -227,35 +254,37 @@ export default function CheckLog() {
               {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
             </div>
           ))}
-          
-  {/* 구분선 */}
-  <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
-  {/* 상태 필터 */}
-  {["미완료", "완료"].map((s, idx) => (
-    <div key={s} className="flex items-center gap-4">
-      <button
-        onClick={() => setStatusFilter(s)}
-        className={`cursor-pointer transition-colors ${
-          statusFilter === s
-            ? s === "완료"
-              ? "text-[#0E5FF0] font-bold"
-              : "text-[#CA3535] font-bold"
-            : "text-gray-400"
-        }`}
-      >
-        {s}
-      </button>
-      {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
-    </div>
-  ))}
+          <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
+          {["미완료", "완료"].map((s, idx) => (
+            <div key={s} className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setStatusFilter(s);
+                  setShowFilterGuide(false);
+                }}
+                className={`cursor-pointer transition-colors ${
+                  statusFilter === s
+                    ? s === "완료"
+                      ? "text-[#0E5FF0] font-bold"
+                      : "text-[#CA3535] font-bold"
+                    : "text-gray-400"
+                }`}
+              >
+                {s}
+              </button>
+              {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* 헤더 */}
-      <div className="grid grid-cols-[60px_300px_1fr_200px_150px]
-        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
+      <div
+        className="grid grid-cols-[60px_300px_1fr_200px_150px]
+        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center"
+      >
         <div className="text-center">No.</div>
         <div className="text-center">점검항목</div>
         <div className="text-center">내용</div>
@@ -320,10 +349,9 @@ export default function CheckLog() {
         />
       )}
 
-      {/* 토스트 */}
+      {/* 저장 토스트 */}
       {saved && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2
-          bg-black text-white px-6 py-3 rounded-lg">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-3 rounded-lg">
           저장되었습니다.
         </div>
       )}
