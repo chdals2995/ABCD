@@ -1,4 +1,3 @@
-import Alarm from "./Component/Alarm/Alarm";
 import Problems from "./Problems/Problems";
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
@@ -18,8 +17,7 @@ function App() {
         <Route path="/Join" element={<Join />} />
         <Route path="/main" element={<MainPage />} />
             <Route path="/Master" element={<Master />} />
-
-        <Route path="/alarm" element={<Alarm />} />
+            
         <Route path="/problems" element={<Problems />} />
       </Routes>
     </AuthProvider>
