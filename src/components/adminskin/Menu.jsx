@@ -3,7 +3,7 @@ import logo from '../../assets/logos/mainlogo.png';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function Menu({customLogo, logoClass}){
+export default function Menu({logoSize}){
     const [open, setOpen] = useState(false);
 
     const show = () => {
@@ -14,7 +14,7 @@ export default function Menu({customLogo, logoClass}){
         <div>
             <Link to="/">
             <div className='pt-[13px]'>
-                <img src={customLogo || logo} alt="홈" className={logoClass || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
+                <img src={logo} alt="홈" className={logoSize || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
             </div>
             </Link>
             <div className='wrap flex w-[450px]'>
