@@ -7,7 +7,7 @@ import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
-import Master from "./pages/Master";
+import Master from "./pages/Master"
 import ParkingStatus from "./pages/ParkingStatus";
 import Logout from "./pages/Logout";
 
@@ -25,6 +25,7 @@ function App() {
             <Route path="/master" element={<Master/>} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
+            <Route path="/master" element={<Master />} />
             <Route path="/parking/:lotId" element={<ParkingStatus />} />
           </Routes>
         </BrowserRouter>
