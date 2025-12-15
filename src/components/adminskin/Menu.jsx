@@ -124,7 +124,9 @@ export default function Menu(logoSize){
                             <ul className='px-[20px] mt-[30px]'>
                                 <li className='mt-[20px] cursor-pointer'>
                                     <div className='border-b-[1px] border-[#054E76]'>
-                                        <span className='text-[20px] font-pyeojin'>홈</span>
+                                        <Link to="/" className="inline-flex w-fit shrink-0">
+                                            <span className='text-[20px] font-pyeojin'>홈</span>
+                                        </Link>
                                     </div>
                                 </li>
                                 <li className="mt-[20px] cursor-pointer">
@@ -148,7 +150,7 @@ export default function Menu(logoSize){
                                         {floorGroups.map((group) => (
                                         <li
                                             key={`${group.type}-${group.start}-${group.end}`}
-                                            className="cursor-pointer hover:text-[#054E76]"
+                                            className="cursor-pointer hover:text-[#054E76] hover:font-pyeojin"
                                         >
                                             {group.type === "basement"
                                             ? `B${group.end}층 ~ B${group.start}층`
@@ -176,10 +178,10 @@ export default function Menu(logoSize){
 
                                     {openMenu.data && (
                                     <ul className="ml-[40px] mt-[8px] list-disc">
-                                        <li className='cursor-pointer'>전기</li>
-                                        <li className='cursor-pointer'>온도</li>
-                                        <li className='cursor-pointer'>수도</li>
-                                        <li className='cursor-pointer'>가스</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>전기</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>온도</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>수도</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>가스</li>
                                     </ul>
                                     )}
                                 </li>
@@ -201,10 +203,10 @@ export default function Menu(logoSize){
 
                                     {openMenu.issue && (
                                     <ul className="ml-[40px] mt-[8px] list-disc">
-                                        <li className='cursor-pointer'>전기</li>
-                                        <li className='cursor-pointer'>온도</li>
-                                        <li className='cursor-pointer'>수도</li>
-                                        <li className='cursor-pointer'>가스</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>전기</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>온도</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>수도</li>
+                                        <li className='cursor-pointer hover:text-[#054E76] hover:font-pyeojin'>가스</li>
                                     </ul>
                                     )}
                                 </li>

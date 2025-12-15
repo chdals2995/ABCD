@@ -2,7 +2,6 @@
 import AdminLayout from "../layout/AdminLayout";
 import MainBuilding from "../components/main/MainBuilding";
 import MainPark from "../components/main/MainPark";
-import MainLogo from "../assets/logos/mainlogo.png";
 
 import { useEffect, useState } from "react";
 import { rtdb } from "../firebase/config";
@@ -51,7 +50,7 @@ export default function MainPage() {
         // 배경화면
         <div className="bg-[url('./assets/imgs/background.png')] bg-cover bg-center h-screen">
             {/* 스킨과 로고변경 */}
-            <AdminLayout MainLogo={MainLogo}
+            <AdminLayout
                 logoSize="w-[290px] h-[113px]"
                 floorGroups={floorGroups}/>
             {/* 건물 */}
