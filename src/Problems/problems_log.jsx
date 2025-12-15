@@ -67,8 +67,14 @@ export default function ProblemsLog({ problems, onSelect }) {
 
       {/* 문제 입력 모달 (Report) */}
       {openReport && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-xl w-[600px] relative">
+        <div
+          className="fixed inset-0 bg-black/40 flex justify-center items-center z-50"
+          onClick={() => setOpenReport(false)}   // ⭐ 바깥 클릭 닫기
+        >
+          <div
+            className="bg-white p-6 rounded-xl w-[600px] relative"
+            onClick={(e) => e.stopPropagation()} // ⭐ 내부 클릭 방지
+          >
             <button
               onClick={() => setOpenReport(false)}
               className="absolute right-4 top-4 text-xl"
@@ -76,8 +82,7 @@ export default function ProblemsLog({ problems, onSelect }) {
               ✕
             </button>
 
-            {/* ★ 문제 입력 모달 본체 = Report */}
-            <Report />
+            <Report onClose={() => setOpenReport(false)} />
           </div>
         </div>
       )}
