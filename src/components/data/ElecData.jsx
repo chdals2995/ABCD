@@ -1,3 +1,4 @@
+//src/components/ElecData.jsx
 import Error from "./allData/Error"
 import Tdata from "./allData/Tdata";
 import Pdata from "./allData/Pdata";
@@ -16,30 +17,30 @@ export default function ElecData() {
           {/* 위쪽 3개 카드 */}
           <div className="absolute top-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
             <div className="relative w-[529px] h-[390px] bg-white mr-[8px]">
-              <Error />
+              <Error/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">
-              <Sdata metricKey="elec"/>
+              <Sdata metricKey="elec" />
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata metricKey="elec"/>
+              <Tdata metricKey="elec" />
             </div>
           </div>
 
           {/* 아래쪽 3개 카드 */}
           <div className="absolute bottom-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
             <div className="relative w-[529px] h-[390px] bg-white mr-[8px] mt-[3px]">
-              <Pdata metricKey="elec"/>
+              <Pdata metricKey="elec" />
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white mt-[3px]">
-              <EmData metricKey="elec"/>
+              <EmData metricKey="elec" />
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px] mt-[3px]">
-              <MaxData metricKey="elec"/>
+              <MaxData metricKey="elec" />
             </div>
           </div>
         </div>

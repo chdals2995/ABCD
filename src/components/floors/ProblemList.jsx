@@ -78,6 +78,12 @@ function getReasonText(reason, metric) {
     case "back_to_normal_from_warning":
       return `${metricLabel}가(이) 경고 상태에서 정상으로 복귀했습니다.`;
 
+    // ✅ 하루 1회 재알림(유지) reason 추가
+    case "still_caution":
+      return `${metricLabel} 주의 상태가 다음날에도 지속되고 있습니다.`;
+    case "still_warning":
+      return `${metricLabel} 경고 상태가 다음날에도 지속되고 있습니다.`;
+
     default:
       // 아직 매핑 안 한 새로운 코드가 들어왔을 때
       return "이상 상태가 감지되었습니다.";
@@ -88,6 +94,20 @@ export default function ProblemList({ floor }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+<<<<<<< HEAD
+=======
+  const loading = loadingAlerts || loadingRequests;
+  const normalizedFloor = normalizeFloor(floor);
+
+  // 알림 + 요청 합친 리스트
+  const items = useMemo(() => {
+    const merged = [...alertItems, ...requestItems];
+    merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return merged;
+  }, [alertItems, requestItems]);
+
+  // 🔹 alerts/{normalizedFloor}/{today} (오늘 알림만)
+>>>>>>> 0a70943e76b52465910f9c16faeeca5f5cb89535
   useEffect(() => {
     if (!floor) {
       setItems([]);
@@ -97,7 +117,9 @@ export default function ProblemList({ floor }) {
 
     let isMounted = true;
     const todayKey = formatDateKey(new Date());
-    const alertsRef = ref(rtdb, `alerts/${floor}/${todayKey}`);
+
+    // ✅ 여기 핵심: floor가 아니라 normalizedFloor로 읽기
+    const alertsRef = ref(rtdb, `alerts/${normalizedFloor}/${todayKey}`);
 
     const unsubscribe = onValue(
       alertsRef,
@@ -138,6 +160,7 @@ export default function ProblemList({ floor }) {
     };
   }, [floor]);
 
+<<<<<<< HEAD
   const levelColor = (level) => {
     if (level === "warning") return "bg-[#FF7070]";
     if (level === "caution") return "bg-[#FFD85E]";
@@ -149,6 +172,95 @@ export default function ProblemList({ floor }) {
     if (level === "warning") return "경고";
     if (level === "caution") return "주의";
     // normal인데 해제 계열 이유면 '해제'라고 표시해도 됨
+=======
+  // 🔹 requests: 날짜 상관 없이 이 층 요청 전부 (완료는 제외)
+  useEffect(() => {
+    if (!floor || !normalizedFloor) {
+      setRequestItems([]);
+      setLoadingRequests(false);
+      return;
+    }
+
+    let isMounted = true;
+    const requestsRef = ref(rtdb, "requests");
+
+    setLoadingRequests(true);
+
+    const unsubscribe = onValue(
+      requestsRef,
+      (snapshot) => {
+        if (!isMounted) return;
+
+        const list = [];
+        if (snapshot.exists()) {
+          snapshot.forEach((child) => {
+            const val = child.val() || {};
+
+            // 층 매칭
+            const reqFloorNorm = normalizeFloor(val.floor);
+            if (!reqFloorNorm || reqFloorNorm !== normalizedFloor) return;
+
+            // ✅ 완료(status === "완료") 요청은 표시/집계 안 함
+            if (val.status === "완료") return;
+
+            list.push({
+              id: child.key,
+              kind: "request",
+              createdAt: val.createdAt,
+              status: val.status, // "접수", "완료" 등
+              metric: val.type, // "전기", "온도" 등
+              title: val.title,
+              content: val.content,
+            });
+          });
+        }
+
+        setRequestItems(list);
+        setLoadingRequests(false);
+      },
+      (err) => {
+        console.error("ProblemList requests onValue error:", err);
+        if (!isMounted) return;
+        setRequestItems([]);
+        setLoadingRequests(false);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [floor, normalizedFloor]);
+
+  // 뱃지 색상
+  const levelColor = (item) => {
+    if (item.kind === "request") {
+      return "bg-[#88C5F7]";
+    }
+    if (item.level === "warning") return "bg-[#FF7070]";
+    if (item.level === "caution") return "bg-[#FFD85E]";
+    return "bg-[#88C5F7]";
+  };
+
+  // 뱃지 텍스트
+  const levelText = (item) => {
+    if (item.kind === "request") {
+      if (item.status) return `요청·${item.status}`;
+      return "요청";
+    }
+
+    const { level, reason } = item;
+
+    if (level === "warning") {
+      // (선택) 유지 재알림이면 배지에 표시하고 싶으면 아래처럼
+      // if (reason === "still_warning") return "경고·지속";
+      return "경고";
+    }
+    if (level === "caution") {
+      // if (reason === "still_caution") return "주의·지속";
+      return "주의";
+    }
+>>>>>>> 0a70943e76b52465910f9c16faeeca5f5cb89535
     if (level === "normal") {
       if (
         reason === "caution_cleared" ||

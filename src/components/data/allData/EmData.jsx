@@ -15,11 +15,11 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-// ✅ 단가(원) - 필요하면 여기만 바꾸면 됨
+// ✅ 단가(원)
 const RATE = {
-  elec: 160,  // 원/kWh
-  gas: 1100,  // 원/m³
-  water: 800, // 원/m³
+  elec: 160,   // 원/kWh
+  gas: 1100,   // 원/m³
+  water: 800,  // 원/m³
 };
 
 const LABEL_KR = { elec: "전력", gas: "가스", water: "수도" };
@@ -33,44 +33,104 @@ function safeNum(v) {
 function toManWon(won) {
   return safeNum(won) / 10000; // ✅ 만원 단위
 }
-
 function formatManWonFromWon(won) {
   return `${toManWon(won).toFixed(1)}만원`;
 }
 
-function pickUsage(row, metricKey) {
-  if (typeof row === "number") return safeNum(row);
+function daysInMonth(ym) {
+  const [y, m] = String(ym).split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+}
+function hoursInMonth(ym) {
+  return daysInMonth(ym) * 24;
+}
 
-  const ev = row?.eventCounts ?? {};
-  const map = {
-    elec: [row?.elecSum, row?.elecTotal, row?.elecKwh, row?.elec, row?.usage?.elec, row?.sum?.elec],
-    gas: [row?.gasSum, row?.gasTotal, row?.gas, row?.usage?.gas, row?.sum?.gas, ev?.gasSum, ev?.gasTotal],
-    water: [row?.waterSum, row?.waterTotal, row?.water, row?.usage?.water, row?.sum?.water, ev?.waterSum, ev?.waterTotal],
-  };
+// ✅ (추정) L/min 평균 -> 월 누적 m³
+function avgLminToM3PerMonth(avgLmin, ym) {
+  const minutes = 60 * 24 * daysInMonth(ym);
+  return (safeNum(avgLmin) * minutes) / 1000; // L -> m³
+}
 
-  const candidates = map[metricKey] ?? [];
-  for (const v of candidates) {
-    const n = safeNum(v);
-    if (n !== 0) return n;
+// ✅ (추정) kW 평균 -> 월 누적 kWh
+function avgKWToKWhPerMonth(avgKW, ym) {
+  return safeNum(avgKW) * hoursInMonth(ym); // kW * h = kWh
+}
+
+// 첫 번째로 "유효한 숫자" 뽑기(0도 허용)
+function firstFinite(cands) {
+  for (const v of cands) {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
   }
   return 0;
 }
 
-/**
- * props:
- * - metricKey / metrickey: "elec" | "gas" | "water"
- * - pathBase: 기본 "aggMonthBuilding"
- * - buildingId: 있으면 aggMonthBuilding/{buildingId}
- * - months: 최근 N개월
- */
+// ✅ sum(합) 후보들
+function pickSum(row, metricKey) {
+  if (typeof row === "number") return safeNum(row);
+
+  const ev = row?.eventCounts ?? {};
+  const map = {
+    elec: [
+      row?.elecSum, row?.elecTotal, row?.elecKwh, row?.elec,
+      row?.usage?.elec, row?.sum?.elec,
+      ev?.elecSum, ev?.elecTotal,
+    ],
+    gas: [
+      row?.gasSum, row?.gasTotal, row?.gas,
+      row?.usage?.gas, row?.sum?.gas,
+      ev?.gasSum, ev?.gasTotal,
+    ],
+    water: [
+      row?.waterSum, row?.waterTotal, row?.water,
+      row?.usage?.water, row?.sum?.water,
+      ev?.waterSum, ev?.waterTotal,
+    ],
+  };
+  return safeNum(firstFinite(map[metricKey] ?? []));
+}
+
+// ✅ count(샘플 개수) 후보들
+function pickCount(row) {
+  if (!row || typeof row === "number") return 0;
+  return safeNum(
+    firstFinite([
+      row?.count,
+      row?.sampleCount,
+      row?.samples,
+      row?.eventCounts?.count,
+    ])
+  );
+}
+
+// ✅ 핵심: "내가 추정한 단위" 기준으로 월 사용량 산출
+function computeMonthlyUsage(month, row, metricKey) {
+  const sum = pickSum(row, metricKey);
+  const count = pickCount(row);
+
+  // count가 있으면: sum/count 로 평균을 만들고 -> 월 누적으로 환산
+  if (count > 0) {
+    if (metricKey === "elec") {
+      const avgKW = sum / count;               // ✅ 평균 kW(추정)
+      return avgKWToKWhPerMonth(avgKW, month); // ✅ 월 kWh
+    }
+    if (metricKey === "water" || metricKey === "gas") {
+      const avgLmin = sum / count;             // ✅ 평균 L/min(추정)
+      return avgLminToM3PerMonth(avgLmin, month); // ✅ 월 m³
+    }
+  }
+
+  // count가 없다면: 이미 "월 사용량"으로 저장된 걸로 보고 그대로 사용 (fallback)
+  return sum;
+}
+
 export default function EmData({
   metricKey: metricKeyProp,
-  metrickey, // ✅ 오타로 넘어와도 대응
+  metrickey,
   pathBase = "aggMonthBuilding",
   buildingId,
   months = 12,
 }) {
-  // ✅ 여기 핵심: metricKey는 “prop”으로만 결정
   const metricKey = (metricKeyProp ?? metrickey ?? "elec").toLowerCase();
   const safeMetricKey = ["elec", "gas", "water"].includes(metricKey) ? metricKey : "elec";
 
@@ -100,7 +160,7 @@ export default function EmData({
         const rate = RATE[safeMetricKey] ?? 1;
 
         const next = entries.map(([month, row]) => {
-          const usage = pickUsage(row, safeMetricKey);
+          const usage = computeMonthlyUsage(month, row, safeMetricKey);
           const costWon = usage * rate;
           return { month, usage, costWon };
         });
@@ -114,7 +174,6 @@ export default function EmData({
     return () => unsub();
   }, [safeMetricKey, pathBase, buildingId, months]);
 
-  // ✅ 차트 데이터: “만원” 단위로 넣기
   const chartData = useMemo(() => {
     return {
       labels: rows.map((r) => r.month),
@@ -139,7 +198,8 @@ export default function EmData({
               const i = ctx.dataIndex;
               const r = rows[i];
               if (!r) return "";
-              return `${formatManWonFromWon(r.costWon)}  (사용량: ${r.usage.toLocaleString()} ${UNIT[safeMetricKey]})`;
+              const usageStr = Number(r.usage ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+              return `${formatManWonFromWon(r.costWon)} (사용량: ${usageStr} ${UNIT[safeMetricKey]})`;
             },
           },
         },
@@ -156,14 +216,12 @@ export default function EmData({
 
   return (
     <div className="w-full h-full bg-white relative overflow-hidden">
-      {/* 상단 제목만(원하면 여기 디자인 더 맞춰줄게) */}
       <div className="flex items-center gap-4 mt-[20px] ml-[10px]">
         <div className="text-[18px] font-semibold">
           월별 {LABEL_KR[safeMetricKey]} 사용비용 (단위: 만원)
         </div>
       </div>
 
-      {/* 차트 영역 */}
       <div className="absolute left-0 right-0 top-[70px] bottom-0 p-4">
         <div className="w-full h-full">
           {loading ? (

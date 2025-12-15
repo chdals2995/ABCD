@@ -1,3 +1,4 @@
+//src/components/data/allData/Pdata.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -83,6 +84,34 @@ const UNIT_MAP = {
   gas: "m³",
   water: "m³",
 };
+// ✅ metricKey별 버튼 테마
+const THEME = {
+  elec: {
+    configBtn: "bg-[#FFF1A8] hover:bg-[#FFE46B] text-black",
+    periodBase: {
+      day: "bg-[#FFE46B] text-black",
+      month: "bg-[#F3D21B] text-black",
+      year: "bg-[#E54138] text-white",
+    },
+  },
+  gas: {
+    configBtn: "bg-[#CFEEDD] hover:bg-[#A9E0C6] text-black",
+    periodBase: {
+      day: "bg-[#A9E0C6] text-black",
+      month: "bg-[#5AAE8A] text-white",
+      year: "bg-[#0B6A3D] text-white",
+    },
+  },
+  water: {
+    configBtn: "bg-[#CFEAFF] hover:bg-[#9FD6FF] text-black",
+    periodBase: {
+      day: "bg-[#9FD6FF] text-black",
+      month: "bg-[#3AB7E9] text-white",
+      year: "bg-[#106EC6] text-white",
+    },
+  },
+};
+
 
 function makeTotal(metricKey, period) {
   const key = metricKey in UNIT_MAP ? metricKey : "gas";
@@ -188,9 +217,11 @@ const insideLabelPlugin = {
 };
 
 export default function Pdata(props) {
-  const metricKey = (props.metricKey ?? props.metrickey ?? "gas").toLowerCase();
-  const safeMetricKey = metricKey in METRIC_MAP ? metricKey : "gas";
-  const unit = UNIT_MAP[safeMetricKey] ?? "";
+const metricKey = (props.metricKey ?? props.metrickey ?? "gas").toLowerCase();
+const safeMetricKey = metricKey in METRIC_MAP ? metricKey : "gas";
+const unit = UNIT_MAP[safeMetricKey] ?? "";
+const theme = THEME[safeMetricKey] ?? THEME.gas;
+
 
   const [period, setPeriod] = useState("day");
   const [openConfig, setOpenConfig] = useState(false);
@@ -287,9 +318,15 @@ export default function Pdata(props) {
     };
   }, [total, unit]);
 
-  const pillClass = (active) =>
-    `w-[92px] h-[44px] rounded-full shadow flex items-center justify-center text-[20px] font-normal
-     ${active ? "bg-[rgba(160,162,160,0.9)]" : "bg-[rgba(193,195,193,0.8)]"}`;
+  const pillClass = (p) => `
+  w-[92px] h-[44px] rounded-full shadow
+  flex items-center justify-center text-[20px] font-normal
+  ${theme.periodBase?.[p] ?? "bg-[rgba(193,195,193,0.8)] text-black"}
+  ${period === p ? "ring-2 ring-black/30" : "opacity-90 hover:opacity-100"}
+`;
+
+
+
 
   return (
     <div className="w-full h-full bg-[#FFFFFF] relative overflow-hidden">
@@ -300,7 +337,9 @@ export default function Pdata(props) {
         <button
           type="button"
           onClick={() => setOpenConfig(true)}
-          className="text-[18px] font-normal bg-amber-100 rounded-[10px]"
+          className={`text-[18px] font-normal rounded-[10px] px-3 py-1 ${theme.configBtn}`}
+
+
         >
           항목 설정
         </button>
@@ -314,15 +353,17 @@ export default function Pdata(props) {
       {/* 오른쪽: 기간 버튼 */}
       <div className="absolute right-4 top-6 text-[14px] leading-6 text-black">
         <div className="mt-3 flex flex-col items-end gap-2">
-          <button type="button" onClick={() => setPeriod("day")} className={pillClass(period === "day")}>
-            (단위)일
-          </button>
-          <button type="button" onClick={() => setPeriod("month")} className={pillClass(period === "month")}>
-            (단위)월
-          </button>
-          <button type="button" onClick={() => setPeriod("year")} className={pillClass(period === "year")}>
-            (단위)연
-          </button>
+          <button type="button" onClick={() => setPeriod("day")} className={pillClass("day")}>
+  (단위)일
+</button>
+<button type="button" onClick={() => setPeriod("month")} className={pillClass("month")}>
+  (단위)월
+</button>
+<button type="button" onClick={() => setPeriod("year")} className={pillClass("year")}>
+  (단위)연
+</button>
+
+
         </div>
       </div>
 
