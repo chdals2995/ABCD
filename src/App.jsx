@@ -1,5 +1,3 @@
-import { Routes, Route, BrowserRouter } from "react-router-dom";  
-import Alarm from "./Component/Alarm/Alarm";
 import "./App.css";
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
@@ -8,8 +6,10 @@ import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
+import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
-import AddRequest from "./Component/Alarm/AddRequest";
+import Logout from "./pages/Logout";
+
 
 
 function App() {
@@ -19,9 +19,11 @@ function App() {
         
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path="/UserMain" element={<AuthStatus />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
+            <Route path="/master" element={<Master/>} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
             <Route path="/parking/:lotId" element={<ParkingStatus />} />
@@ -29,8 +31,7 @@ function App() {
             {/* 알람 페이지 */}
             <Route path="/alarm" element={<Alarm />} />
           
-            {/* 요청 폼 페이지 */}
-            <Route path="/add-request" element={<AddRequest />} />
+      
           </Routes>
         
       </AuthProvider>
