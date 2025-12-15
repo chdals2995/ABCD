@@ -29,7 +29,7 @@ function App() {
             <Route path="/log" element={<Log />} />
 
             <Route path="/parking/:lotId" element={<ParkingStatus />} />
-            <Route path="/log" element={<Log />} />
+
 
           </Routes>
       </AuthProvider>
