@@ -69,6 +69,7 @@ input{
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE, Edge */
   scrollbar-width: none;     /* Firefox */
+  min-height: 750px;
 }
 
 /* 요청 들어올 시, 새로운 요청인 걸 구분짓기 위한 깜빡임 애니메이션 */

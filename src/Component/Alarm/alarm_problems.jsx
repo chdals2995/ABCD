@@ -10,37 +10,59 @@ export default function AlarmProblems() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    const requestsRef = ref(rtdb, "alerts");
+  const alertsRef = ref(rtdb, "alerts");
 
-    return onValue(requestsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) {
-        setItems([]);
-        return;
-      }
+  return onValue(alertsRef, (snapshot) => {
+    const data = snapshot.val();
+    if (!data) {
+      setItems([]);
+      return;
+    }
 
-      const list = Object.entries(data).map(([id, v]) => ({
-        id,
-        title: v.title || "",
-        content: v.content || "",
-        status: v.status || "접수",
-        floor: v.floor || "",
-        room: v.room || "",
-        type: v.type || "",
-        createdAt: Number(v.createdAt) || 0,
-      }));
+    const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const list = [];
 
-      setItems(list);
+    Object.entries(data).forEach(([floor, dates]) => {
+      Object.entries(dates).forEach(([, alerts]) => {
+        Object.entries(alerts).forEach(([id, v]) => {
+          const createdAt = Number(v.createdAt) || 0;
+
+          // ✅ 1주일 이내 데이터만
+          if (createdAt < oneWeekAgo) return;
+
+          list.push({
+            id,
+            floor,
+            level: v.level,        // warning / caution
+            metric: v.metric,
+            reason: v.reason,
+            value: v.value,
+            createdAt,
+          });
+        });
+      });
     });
-  }, []);
 
-  const warningList = items.filter((x) => x.status === "접수");
-  const cautionList = items.filter((x) => x.status === "처리중");
+    // ✅ 최신순 정렬
+    list.sort((a, b) => b.createdAt - a.createdAt);
+
+    // ✅ 5개만
+    setItems(list.slice(0, 5));
+  });
+}, []);
+
+
+
+  const warningList = items.filter((x) => x.level === "warning");
+  const cautionList = items.filter((x) => x.level === "caution");
+
 
   const sections = [
     { title: "경고", icon: warningIcon, data: warningList },
     { title: "주의", icon: cautionIcon, data: cautionList },
   ];
+
+
 
   return (
     <div className="w-[335px] min-h-[698px] bg-white px-[15px] py-[10px]">
@@ -62,14 +84,14 @@ export default function AlarmProblems() {
           {sec.data.map((item) => (
             <div
               key={item.id}
-              className="flex justify-between border-b border-[#e5e5e5] py-2"
+              className="flex justify-between border-b border-[#e5e5e5] py-2 mb-[8px]"
             >
               <span className="text-[16px] w-[200px] truncate">
-                {item.title || item.content}
+                {item.metric} · {item.reason}
               </span>
 
               <span className="text-[13px] text-[#555]">
-                {new Date(item.createdAt).toLocaleDateString()}
+                 {new Date(item.createdAt).toLocaleDateString()}
                 {/* 날짜 표시  */}
               </span>
             </div>
