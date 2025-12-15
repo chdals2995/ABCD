@@ -9,7 +9,7 @@ export default function Log() {
   const [tab, setTab] = useState("alarm"); // alarm | check
 
   return (
-    <div className="w-full h-full bg-white p-6">
+    <div className="w-full h-screen overflow-hidden bg-white p-6">
       <AdminLayout />
 
       {/* 상단 탭 */}
