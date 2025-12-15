@@ -17,7 +17,7 @@ export default function ProblemsLog({ problems, onSelect }) {
 
         <button
           onClick={() => setOpenReport(true)}
-          className="w-8 h-8 rounded-full shadow-md flex items-center justify-center bg-white hover:bg-gray-100"
+          className="w-8 h-8 rounded-full shadow-md flex items-center justify-center bg-white hover:bg-gray-100 mt-5"
         >
         <img src={PlusIcon} alt="add" className="w-4 h-4" />
       </button>

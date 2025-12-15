@@ -121,7 +121,7 @@ export default function App() {
               path="/UserMain"
               element={
                 <RequireRole allowRoles={["user"]}>
-                  <UserMain/>
+                  <UserMain />
                 </RequireRole>
               }
             />
@@ -183,7 +183,7 @@ export default function App() {
               }
             />
 
-            
+
             <Route
               path="/data/*"
               element={
@@ -209,8 +209,8 @@ export default function App() {
                   <Problems />
                 </RequireRole>
               }
-            /> 
-          
+            />
+
 
             {/* ✅ 없는 경로는 로그인으로 */}
             <Route path="*" element={<Navigate to="/" replace />} />
