@@ -38,6 +38,12 @@ const STATUS_NEXT = {
   완료: "접수",
 };
 
+const STATUS_NEXT = {
+  접수: "처리중",
+  처리중: "완료",
+  완료: "접수",
+};
+
 /* ================= 날짜 유틸 ================= */
 function formatDate(d) {
   if (!d) return null;
