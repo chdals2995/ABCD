@@ -46,7 +46,7 @@ export default function Problems({ alerts = [] }) {
                   <button
                     onClick={() => setSelectedMetric(type)}
                     className={`
-                      w-[200px] h-[65px]
+                      w-[170px] h-[65px]
                       flex items-center justify-center gap-2
                       text-[36px] font-bold
                       rounded-[20px]
