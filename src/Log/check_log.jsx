@@ -41,10 +41,14 @@ export default function CheckLog() {
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
 
+  // "완료" | "미완료" | null 필터
+  const [statusFilter, setStatusFilter] = useState(null); 
+
   /* 폼 */
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create");
   const [selectedRow, setSelectedRow] = useState(null);
+  
 
   /* DB 로드 (todos 단일) */
   useEffect(() => {
@@ -140,6 +144,11 @@ export default function CheckLog() {
     filtered = filtered.filter((row) => row.checkType === typeFilter);
   }
 
+  // 완료 ｜ 미완료 상태 필터 추가
+  if (statusFilter) {
+    filtered = filtered.filter((row) => row.status === statusFilter);
+  }
+
   /* 페이징 */
   const itemsPerPage = 6;
   const [page, setPage] = useState(1);
@@ -218,6 +227,29 @@ export default function CheckLog() {
               {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
             </div>
           ))}
+          
+  {/* 구분선 */}
+  <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
+
+  {/* 상태 필터 */}
+  {["미완료", "완료"].map((s, idx) => (
+    <div key={s} className="flex items-center gap-4">
+      <button
+        onClick={() => setStatusFilter(s)}
+        className={`cursor-pointer transition-colors ${
+          statusFilter === s
+            ? s === "완료"
+              ? "text-[#0E5FF0] font-bold"
+              : "text-[#CA3535] font-bold"
+            : "text-gray-400"
+        }`}
+      >
+        {s}
+      </button>
+      {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
+    </div>
+  ))}
+
         </div>
       </div>
 

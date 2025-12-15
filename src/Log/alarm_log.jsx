@@ -1,9 +1,10 @@
-// AlarmLog.jsx
 import { useState, useRef, useEffect } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config.js";
 
 import CalendarIcon from "../assets/icons/calendar_icon.png";
+import choiceIcon from "../assets/icons/choice_icon.png";
+
 import AlarmL from "../Log/alarm_l.jsx";
 import RequestArrival from "../Log/request_arrival.jsx";
 import Button from "../assets/Button.jsx";
@@ -12,7 +13,14 @@ import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
-// 날짜 유틸
+/* ================= 상태 컬러 ================= */
+const STATUS_COLOR = {
+  접수: "text-[#25C310]",
+  처리중: "text-[#FF3B3B]",
+  완료: "text-[#367CFF]",
+};
+
+/* ================= 날짜 유틸 ================= */
 function formatDate(d) {
   if (!d) return null;
   const y = d.getFullYear();
@@ -67,12 +75,17 @@ export default function AlarmLog() {
   const [editMode, setEditMode] = useState(false);
   const [checkedRows, setCheckedRows] = useState({});
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // ⭐ 임시 상태 (완료 누르기 전까지 DB 반영 ❌)
   const [pendingStatus, setPendingStatus] = useState(null);
 
   const toggleRow = (id) => {
     setCheckedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const cancelEdit = () => {
+    setEditMode(false);
+    setCheckedRows({});
+    setPendingStatus(null);
+    setDropdownOpen(false);
   };
 
   /* ================= 페이징 ================= */
@@ -82,13 +95,13 @@ export default function AlarmLog() {
   const shown = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const toggleAllCurrentPage = () => {
-    const allOn = shown.every((r) => checkedRows[r.id]);
+    const allOn = shown.length > 0 && shown.every((r) => checkedRows[r.id]);
     const next = { ...checkedRows };
     shown.forEach((r) => (next[r.id] = !allOn));
     setCheckedRows(next);
   };
 
-  /* ================= 수신창 ================= */
+  /* ================= 상세 ================= */
   const [showArrival, setShowArrival] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -105,14 +118,14 @@ export default function AlarmLog() {
     setTimeout(() => setToast(""), 2000);
   };
 
-  /* ================= 상태 선택  ================= */
+  /* ================= 상태 선택 ================= */
   const changeStatus = (newStatus) => {
     setPendingStatus(newStatus);
     setDropdownOpen(false);
-    showToast(`상태 '${newStatus}' 로 변경하시려면 완료버튼을 누르세요.`);
+    showToast(`상태 '${newStatus}' 로 변경하려면 완료를 누르세요.`);
   };
 
-  /* ================= 완료 클릭 (최종 반영) ================= */
+  /* ================= 완료 ================= */
   const applyChanges = () => {
     if (!pendingStatus) {
       showToast("변경할 상태를 선택하세요.");
@@ -136,12 +149,7 @@ export default function AlarmLog() {
     }
 
     showToast("수정이 완료되었습니다.");
-
-    // 리셋
-    setPendingStatus(null);
-    setEditMode(false);
-    setCheckedRows({});
-    setDropdownOpen(false);
+    cancelEdit();
   };
 
   return (
@@ -181,18 +189,13 @@ export default function AlarmLog() {
           />
         </div>
 
-        <div className="flex items-center gap-4 text-[18px]">
+        <div className="flex items-center gap-4">
           {["접수", "처리중", "완료"].map((t, idx) => (
             <div key={t} className="flex items-center gap-4">
               <button
                 onClick={() => setStatusFilter(t)}
                 className={`cursor-pointer ${
-                  statusFilter === t &&
-                  (t === "접수"
-                    ? "text-[#25C310] font-bold"
-                    : t === "처리중"
-                    ? "text-[#FF3B3B] font-bold"
-                    : "text-[#367CFF] font-bold")
+                  statusFilter === t && `${STATUS_COLOR[t]} font-bold`
                 }`}
               >
                 {t}
@@ -204,16 +207,25 @@ export default function AlarmLog() {
       </div>
 
       {/* ================= 헤더 ================= */}
-      <div className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px] h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
+      <div className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px]
+        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
         <div className="text-center">No.</div>
+
         <div className="flex justify-center">
           {editMode && (
             <div
-              className="w-[25px] h-[25px] bg-white/40 rounded cursor-pointer"
+              className="w-[25px] h-[25px] bg-white/40 rounded
+                         flex items-center justify-center cursor-pointer"
               onClick={toggleAllCurrentPage}
-            />
+            >
+              {shown.length > 0 &&
+                shown.every((r) => checkedRows[r.id]) && (
+                  <img src={choiceIcon} className="w-[14px] h-[14px]" />
+                )}
+            </div>
           )}
         </div>
+
         <div className="text-center">아이디</div>
         <div className="text-center">내용</div>
         <div className="text-center">등록일</div>
@@ -237,9 +249,11 @@ export default function AlarmLog() {
       <div className="flex justify-between items-center my-6 w-full">
         <div className="w-[120px]" />
 
+        {/* CENTER: 페이지네이션 */}
         <div className="flex justify-center items-center gap-3 text-[18px]">
           <button onClick={() => setPage(1)}>{"<<"}</button>
           <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
+
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
@@ -249,57 +263,60 @@ export default function AlarmLog() {
               {n}
             </button>
           ))}
+
           <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
           <button onClick={() => setPage(totalPages)}>{">>"}</button>
         </div>
 
-        <div className="flex items-center gap-3 w-[120px] justify-end mr-5">
-          {!editMode && (
-            <Button onClick={() => setEditMode(true)}>
-              <span className="whitespace-nowrap">수정</span>
-            </Button>
-          )}
+        {/* RIGHT: 버튼 */}
+        <div className="flex items-center gap-3 w-[300px] justify-end mr-5">
+          {!editMode && <Button onClick={() => setEditMode(true)}>수정</Button>}
 
           {editMode && (
             <>
-              <div className="relative">
-                <Button onClick={() => setDropdownOpen(!dropdownOpen)}>
-                  <span className="whitespace-nowrap">옵션 ▼</span>
+              <div className="relative flex-none shrink-0 w-[90px]">
+                <Button
+                  className="w-[90px] flex-none shrink-0"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                  옵션 ▼
                 </Button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 bg-white border shadow w-[90px] text-center">
-                    <div
-                      className="py-2 hover:bg-gray-100 cursor-pointer text-[#25C310]"
-                      onClick={() => changeStatus("접수")}
-                    >
-                      접수
-                    </div>
-                    <div
-                      className="py-2 hover:bg-gray-100 cursor-pointer text-[#FF3B3B]"
-                      onClick={() => changeStatus("처리중")}
-                    >
-                      처리중
-                    </div>
-                    <div
-                      className="py-2 hover:bg-gray-100 cursor-pointer text-[#367CFF]"
-                      onClick={() => changeStatus("완료")}
-                    >
-                      완료
-                    </div>
+                  <div className="absolute right-0 w-[90px] bg-white border shadow text-center">
+                    {["접수", "처리중", "완료"].map((s) => {
+                      const isSelected = pendingStatus === s;
+                      return (
+                        <div
+                          key={s}
+                          onClick={() => changeStatus(s)}
+                          className={`
+                            py-2 cursor-pointer
+                            ${STATUS_COLOR[s]}
+                            ${isSelected ? "font-bold bg-gray-100" : "hover:bg-gray-50"}
+                          `}
+                        >
+                          {s}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              <Button onClick={applyChanges}>
-                <span className="w-[79px]">완료</span>
+              <Button className="w-[90px] flex-none shrink-0" onClick={cancelEdit}>
+                취소
+              </Button>
+
+              <Button className="w-[90px] flex-none shrink-0" onClick={applyChanges}>
+                완료
               </Button>
             </>
           )}
         </div>
       </div>
 
-      {/* ================= 수신 모달 ================= */}
+      {/* ================= 상세 모달 ================= */}
       {showArrival && selectedRow && (
         <RequestArrival
           data={selectedRow}
@@ -309,7 +326,8 @@ export default function AlarmLog() {
 
       {/* ================= 토스트 ================= */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-xl shadow-lg text-[16px] opacity-90">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2
+          bg-black text-white px-5 py-3 rounded-xl text-[16px] opacity-90">
           {toast}
         </div>
       )}
