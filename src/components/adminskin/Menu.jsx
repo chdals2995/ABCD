@@ -105,7 +105,6 @@ export default function Menu(logoSize){
                 <img src={logo} alt="홈" className={logoSize || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
                 </Link>
             </div>
-            
             <div className='wrap flex w-[450px]'>
                 {/* 메뉴박스 */}
                 <div className={`whiteBox w-[372px] h-full bg-white border-[#0888D4] border-2

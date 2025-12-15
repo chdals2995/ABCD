@@ -16,6 +16,10 @@ export default function TopMenu() {
   const prevAlertCount = useRef(0);
   const prevRequestCount = useRef(0);
   const notificationTimer = useRef(null);
+  
+  // ✅ 초기 로딩 차단용
+  const isInitialAlertLoad = useRef(true);
+  const isInitialRequestLoad = useRef(true);
 
   const METRIC_LABEL = {
     elec: "전기",
@@ -66,28 +70,37 @@ export default function TopMenu() {
     if (!snapshot.exists()) {
     setAlertCount(0);
     prevAlertCount.current = 0;
-    setNotification(null);
+    isInitialAlertLoad.current = false;
     return;
   }
 
     const raw = snapshot.val();
     const latestMap = {};
 
-    Object.values(raw).forEach((byFloor) => {
-      Object.values(byFloor).forEach((byDate) => {
-        Object.values(byDate).forEach((alertItem) => {
-          const key = `${alertItem.floor}-${alertItem.metric}`;
-          const time = Number(alertItem.createdAt) || 0;
+    Object.entries(raw).forEach(([floorKey, byFloor]) => {
+    Object.values(byFloor).forEach((byDate) => {
+    Object.values(byDate).forEach((alertItem) => {
+      const floor = alertItem.floor || floorKey;
+      const metric = alertItem.metric;
 
-          if (
-              !latestMap[key] ||
-              time > Number(latestMap[key].createdAt || 0)
-            ) {
-              latestMap[key] = alertItem;
-            }
-          });
-        });
-      });
+      if (!floor || !metric) return;
+
+      const key = `${floor}-${metric}`;
+      const time = Number(alertItem.createdAt) || 0;
+
+      if (
+        !latestMap[key] ||
+        time > Number(latestMap[key].createdAt || 0)
+      ) {
+        latestMap[key] = {
+          ...alertItem,
+          floor, // 보정된 floor
+        };
+      }
+    });
+  });
+});
+
     
     let count = 0;
     let newAlert = null;
@@ -107,6 +120,7 @@ export default function TopMenu() {
     setAlertCount(count);
 
     if (
+  !isInitialAlertLoad.current &&
   count > prevAlertCount.current &&
   newAlert &&
   (newAlert.level === "warning" || newAlert.level === "caution")
@@ -126,12 +140,14 @@ export default function TopMenu() {
   notificationTimer.current = setTimeout(() => setNotification(null), 5000);
   } }
     prevAlertCount.current = count;
+    isInitialAlertLoad.current = false;
   };
 
    const handleRequests = (snapshot) => {
   if (!snapshot.exists()) {
     setRequestCount(0);
     prevRequestCount.current = 0;
+    isInitialRequestLoad.current = false;
     return;
   }
 
@@ -146,7 +162,7 @@ export default function TopMenu() {
   setRequestCount(count);
 
   // 🔥 새 요청이 생겼을 때만 알림
-  if (count > prevRequestCount.current) {
+  if (!isInitialRequestLoad.current && count > prevRequestCount.current) {
     const newRequest = activeRequests
       .sort((a, b) => Number(a.createdAt) - Number(b.createdAt))
       .pop();
@@ -170,6 +186,7 @@ export default function TopMenu() {
       }
 
     prevRequestCount.current = count;
+    isInitialRequestLoad.current = false;
   };
 
   const unsubscribeAlerts = onValue(alertsRef, handleAlerts);
