@@ -1,48 +1,59 @@
-// 미해결 문제 리스트
 // UnsolvedList.jsx
-
-import React from "react";
-
-
-export default function UnsolvedList({ items, onSelectProblem }) {
-  if (!items || items.length === 0) {
-    return (
-      <div className="text-center text-gray-500 mt-6">
-        미해결 문제가 없습니다.
-      </div>
-    );
-  }
-
+export default function UnsolvedList({ items = [], onSelectProblem }) {
   return (
-    <div className="w-full mt-10">
-      <h2 className="text-[22px] font-bold mb-4">미해결 문제</h2>
+    <div
+      className="
+        w-[450px] h-[656px] mt-42 mr-6
+        bg-white border rounded-xl
+        p-6
+      "
+    >
+      {/* 제목 */}
+      <div className="text-[22px] font-bold mb-2 text-center">
+        미해결 항목
+      </div>
 
-      <div className="flex flex-col gap-3">
+      {/* 리스트 */}
+      <div className="flex flex-col gap-4">
+        {items.length === 0 && (
+          <div className="text-center text-gray-400 text-[14px] mt-20">
+            미해결 항목이 없습니다.
+          </div>
+        )}
+
         {items.map((item) => (
           <div
             key={item.id}
-            className="w-full border border-gray-200 p-4 rounded-md bg-white cursor-pointer hover:bg-gray-50 transition"
-            onClick={() => onSelectProblem(item.id)}
+            onClick={() => onSelectProblem?.(item.id)}
+            className="
+              cursor-pointer
+              border-b pb-4
+              hover:bg-gray-50 transition
+            "
           >
-            {/* 상단: 층 + 문제유형 */}
-            <div className="flex justify-between">
-              <span className="text-[18px] font-bold">{item.floor}</span>
-              <span className="text-[16px] font-semibold text-blue-600">
-                {item.metric}
-              </span>
+            {/* 타입 */}
+            <div className="text-[18px] font-bold mb-1">
+              {item.metric}
             </div>
 
-            {/* 이유(문제 내용) */}
-            <div className="text-[15px] text-gray-700 mt-1">
-              {item.reason}
-            </div>
-
-            {/* 발생 시간 */}
-            <div className="text-[13px] text-gray-500 mt-2">
+            {/* 위치 + 시간 */}
+            <div className="text-[14px] text-gray-600">
+              {item.floor} ·{" "}
               {new Date(item.createdAt).toLocaleString("ko-KR")}
+            </div>
+
+            {/* 내용 */}
+            <div className="text-[14px] text-gray-700 mt-1">
+              {item.reason}
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 페이지네이션 자리 */}
+      <div className="mt-6 text-center
+                      text-gray-400 text-[14px] cursor-pointer">
+        &lt;&lt; &nbsp; &lt; &nbsp; 1 &nbsp; &gt; &nbsp; &gt;&gt;
       </div>
     </div>
   );
