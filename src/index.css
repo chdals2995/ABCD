@@ -5,15 +5,15 @@
     format("woff2");
   font-weight: 400;
   font-display: swap;
-}  
+}
 
 @font-face {
   font-family: "Pretendard";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2")
     format("woff2");
-  font-weight: 500;  
+  font-weight: 500;
   font-display: swap;
-}  
+}
 
 @font-face {
   font-family: "Pretendard";
@@ -21,7 +21,7 @@
   format("woff2");
   font-weight: 600;
   font-display: swap;
-}  
+}
 
 @font-face {
   font-family: "PyeojinGothic";
@@ -32,6 +32,7 @@
 }
 
 /* tailwind.config.js를 명시적으로 로드 */
+@config "../tailwind.config.js";
 
 /* Tailwind 불러오기 (v4 방식) */
 @import "tailwindcss";
@@ -55,139 +56,3 @@ html {
 input{
   border: 2px solid #D3D3D3;
 }
-
-/* ===================================================================
-                     여기서부턴 내가 추가한 영역  
-================================================================= */
-
-
-/* AlarmRequest 리스트 스크롤: 스크롤은 되되, 바는 숨김 */
-.SCROLL_CONTAINER {
-  overflow-y: auto;
-  max-height: 640px;
-  padding-right: 6px; /* 스크롤 공간 여유(내용 잘림 방지) */
-}
-
-/* 스크롤바 숨기기(크롬/사파리) */
-.SCROLL_CONTAINER::-webkit-scrollbar {
-  display: none;
-}
-
-/* 스크롤바 숨기기(IE/Edge/Firefox) */
-.SCROLL_CONTAINER {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-/* 요청 들어올 시, 새로운 요청인 걸 구분짓기 위한 깜빡임 애니메이션 */
-
-@keyframes blink-dot {
-  0% { opacity: 1; }
-  10% { opacity: 0.9; }
-  20% { opacity: 0.8; }
-  30% { opacity: 0.7; }
-  40% { opacity: 0.6; }
-  50% { opacity: 0.5; }
-  60% { opacity: 0.4; }
-  70% { opacity: 0.3; }
-  100% { opacity: 1; }
-}
-
-.blink-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%; /* 동그란 모양 */
-  background-color: red; /* 빨간 색 */
-  animation: blink-dot 1.8s infinite ease-in-out;
-}
-
-
-
-/* 화살표 애니메이션으로 스크롤 예고해주는 역할 */
-
-@keyframes arrowBounce {
-  0%   { transform: translateY(0); opacity: 0.4; }
-  50%  { transform: translateY(6px); opacity: 1; }
-  100% { transform: translateY(0); opacity: 0.4; }
-}
-
-.arrow-bounce {
-  animation: arrowBounce 1.4s ease-in-out infinite;
-}
-
-
-/* 알림 아이콘 애니메이션 */
-
-@keyframes notifyGlow {
-   0% {
-    box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
-    }
-    50% {
-      box-shadow: 0 5px 5px rgba(0, 0, 0, 0.35);
-    }
-    100% {
-      box-shadow: 0 6px 0px rgba(0, 0, 0, 0);
-    }
-}
-.notify-glow {
-  animation: notifyGlow 1.2s ease-in-out infinite;
-}
-
-
-/* 주의, 경고 알림이 올 때 쉐도우 부근이 웅웅... 맥동(Pulse)효과남 */
-
-@keyframes caution-pulse {
-  0% {
-    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
-  }
-  50% {
-    box-shadow: 0px 4px 10px rgba(255,215,0,0.65);
-  }
-  100% {
-    box-shadow: 0px 4px 4px rgba(255,215,0,0.25);
-  }
-}
-
-.caution-pulse {
-  animation: caution-pulse 1.4s ease-in-out infinite;
-}
-
-
-
-/* 경고, 위험 알림이 올 때 쉐도우 부근이 웅웅..맥동(Pulse)효과남 */
-
-@keyframes urgent-pulse {
-  0% {
-    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
-  }
-  50% {
-    box-shadow: 0px 4px 10px rgba(255,0,0,0.65);
-  }
-  100% {
-    box-shadow: 0px 4px 4px rgba(255,0,0,0.25);
-  }
-}
-
-.urgent-pulse {
-  animation: urgent-pulse 1.3s ease-in-out infinite;
-}
-
-
-/* 달력위에 달려있던 꼬리 제거 했음 */
-.react-datepicker__triangle,
-.react-datepicker__triangle::before,
-.react-datepicker__triangle::after {
-  display: none !important;
-}
-
-/* 삼각형 자리에 생기는 여백까지 제거 */
-.react-datepicker-popper[data-placement^="bottom"] .react-datepicker__triangle {
-  margin-top: 0 !important;
-}
-
-.react-datepicker-popper[data-placement^="top"] .react-datepicker__triangle {
-  margin-bottom: 0 !important;
-}
-
-
-
-
