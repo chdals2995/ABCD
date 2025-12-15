@@ -1,5 +1,5 @@
 // Report.jsx
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { ref, push } from "firebase/database";
 import { rtdb, storage } from "../firebase/config";
 import { uploadBytes, getDownloadURL, ref as storageRef } from "firebase/storage";
@@ -22,16 +22,8 @@ export default function Report({ onClose }) {
   const [files, setFiles] = useState([]);
   const [date, setDate] = useState(today);
 
-  // 건물별 층 목록
-  const floorOptions = useMemo(() => {
-    if (buildingType === "건물") {
-      return Array.from({ length: 20 }, (_, i) => i + 1);
-    }
-    if (buildingType === "주차타워건물") {
-      return Array.from({ length: 35 }, (_, i) => i + 1);
-    }
-    return [];
-  }, [buildingType]);
+  const floorOptions = Array.from({ length: 35 }, (_, i) => i + 1);
+
 
   const handleFileChange = (e) => {
     setFiles(Array.from(e.target.files));
