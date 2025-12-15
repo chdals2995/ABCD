@@ -9,6 +9,8 @@ import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
 import Logout from "./pages/Logout";
+import Alarm from "./Component/Alarm/Alarm"
+import { Routes, Route } from "react-router-dom";
 
 
 
