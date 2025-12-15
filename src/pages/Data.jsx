@@ -1,10 +1,10 @@
 // src/pages/Data.jsx
-import ElecData from "../components/data/ElecData/ElecData";
-import GasData from "../components/data/GasData/GasData";
-import TempData from "../components/data/TempData/TempData";
-import WaterData from "../components/data/WaterData/WaterData";
+import GasData from "../components/data/GasData";
+import TempData from "../components/data/TempData";
+import WaterData from "../components/data/WaterData";
 import {Routes, Route, Link} from "react-router-dom";
 import AdminLayout from "../layout/AdminLayout";
+import ElecData from "../components/data/ElecData";
 
 export default function Data(){
 

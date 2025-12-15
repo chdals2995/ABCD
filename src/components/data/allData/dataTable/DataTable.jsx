@@ -1,8 +1,8 @@
 // src/pages/data/ElecData/dataTable/DataTable.jsx
-import { ElecDdata } from "../../../../hooks/dataPage/elec/ElecDdata";
+import { useAggSeries } from "../../../../hooks/dataPage/useAggSeries";
 
 export default function DataTable() {
-  const { dailyData, labels, loading } = ElecDdata();
+  const { dailyData, labels, loading } = useAggSeries();
 
   if (loading || !dailyData.length) {
     return null;

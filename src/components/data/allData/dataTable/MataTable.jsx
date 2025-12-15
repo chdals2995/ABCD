@@ -1,8 +1,8 @@
 // src/pages/data/ElecData/dataTable/MataTable.jsx
-import { ElecMdata } from "../../../../hooks/dataPage/elec/ElecMdata";
+import { useAggSeries } from "../../../../hooks/dataPage/useAggSeries";
 
 export default function MataTable() {
-  const { monthData, labels, loading } = ElecMdata();
+  const { monthData, labels, loading } = useAggSeries();
 
   if (loading || !monthData.length) {
     return null;

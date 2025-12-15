@@ -1,10 +1,9 @@
-import { Link } from "react-router-dom";
-import ElecError from "./ElecError";
-import Tdata from "./Tdata";
-import Pdata from "./Pdata";
-import Sdata from "./Sdata";
-import MaxData from "./MaxData";
-import EmData from "./EmData";
+import Error from "./allData/Error"
+import Tdata from "./allData/Tdata";
+import Pdata from "./allData/Pdata";
+import Sdata from "./allData/Sdata";
+import MaxData from "./allData/MaxData";
+import EmData from "./allData/EmData";
 
 export default function ElecData() {
   return (
@@ -17,7 +16,7 @@ export default function ElecData() {
           {/* 위쪽 3개 카드 */}
           <div className="absolute top-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
             <div className="relative w-[529px] h-[390px] bg-white mr-[8px]">
-              <ElecError />
+              <Error />
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">

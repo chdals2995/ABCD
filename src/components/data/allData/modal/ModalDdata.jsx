@@ -1,4 +1,5 @@
-// src/pages/data/ElecData/Mdata.jsx (예시)
+// src/pages/data/Ddata.jsx
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,22 +10,31 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { ElecMdata } from "../../../../hooks/dataPage/elec/ElecMdata";
+import { useAggSeries } from "../../../../hooks/dataPage/useAggSeries";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function ModalMdata() {
-  const { monthData, labels, loading } = ElecMdata();
+export default function ModalDdata() {
+  const { dailyData, labels, loading } = useAggSeries();
 
-  if (loading) return <p className="text-xs text-gray-500">로딩중...</p>;
-  if (!monthData.length) return <p className="text-xs text-gray-500">데이터가 없습니다.</p>;
+  if (loading) {
+    return <p className="text-xs text-gray-500">로딩중...</p>;
+  }
+  if (!dailyData.length) {
+    return <p className="text-xs text-gray-500">데이터가 없습니다.</p>;
+  }
 
-  const values = monthData.map((m) => Math.floor(m.elecSum)); // 월별 전력 합계
+  // 막대 값 + 색상
+  const values = dailyData.map((d) => {
+    const v = Number(d.elecSum);
+    if (Number.isNaN(v)) return 0;
+    return Math.floor(v);
+  });
 
   const barColors = values.map((v) => {
-    if (v > 90000) {
+    if (v > 3500) {
       return "#414141";           // 위험
-    } else if (v >= 80000 && v <= 90000) {
+    } else if (v >= 2000 && v <= 3500) {
       return "#E54138";           // 주의
     } else {
       return "#F3D21B";           // 정상
@@ -35,9 +45,8 @@ export default function ModalMdata() {
     labels,
     datasets: [
       {
-        label: "월별 전력 사용량 (kWh)",
+        label: "일별 전력 사용량 (kWh)",
         data: values,
-        backgroundColor: "#2563EB",
         backgroundColor: barColors,
         borderColor: barColors,
         borderWidth: 1,
@@ -49,24 +58,23 @@ export default function ModalMdata() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
-      title: { display: false },
+      legend: { display: false },     // 범례는 우리가 따로 만듦
+      title: { display: false },      // 제목도 바깥에 넣을 거라 끔
       tooltip: { enabled: true },
     },
     scales: {
       x: {
         grid: { display: false },
-        ticks: {
-          font: { size: 10 },
-        },
       },
       y: {
-        beginAtZero: true,
         min:0,
-        max:110000,
+        max:4000,
+        beginAtZero: true,
         title: {
           display: true,
           text: "단위(kWh)",
+          align:"end",
+          padding: {top:0, bottom:10}
         },
       },
     },
