@@ -8,6 +8,7 @@ export default function AlarmL({
   toggleRow,
   editMode,
   onClickContent,   // ← 추가
+  onToggleStatus,   // ← 추가22
 }) {
   return (
     <div
@@ -62,14 +63,19 @@ export default function AlarmL({
       {/* 상태 */}
       <div className="text-center">
         <span
-          className={
-            row.status === "접수"
-              ? "text-[#25C310]"
-              : row.status === "처리중"
-              ? "text-[#FF3B3B]"
-              : "text-[#367CFF]"
-          }
-        >
+          className={`cursor-pointer select-none ${
+              row.status === "접수"
+                ? "text-[#25C310]"
+                : row.status === "처리중"
+                ? "text-[#FF3B3B]"
+                : "text-[#367CFF]"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (editMode) return;
+              onToggleStatus && onToggleStatus(row);
+            }}
+          >
           {row.status}
         </span>
       </div>
