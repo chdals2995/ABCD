@@ -7,11 +7,13 @@ import { rtdb } from "../../firebase/config";
 import { Link } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
 
-export default function Menu({customLogo, logoClass, floorGroups = [] }){
+export default function Menu(logoSize){
     const [open, setOpen] = useState(false);
     const [userId, setUserId] = useState("");
     const [role, setRole] = useState("");
     const navigate = useNavigate();
+    const [floorGroups, setFloorGroups] = useState([]);
+
 
     // 메뉴 드롭다운
     const [openMenu, setOpenMenu] = useState({
@@ -61,11 +63,46 @@ export default function Menu({customLogo, logoClass, floorGroups = [] }){
         setOpen(!open);
     };
 
+// 층수 메뉴 표시
+    useEffect(() => {
+  const fetchBuilding = async () => {
+    const snapshot = await get(
+      ref(rtdb, "buildings/43c82c19-bf2a-4068-9776-dbb0edaa9cc0")
+    );
+    if (!snapshot.exists()) return;
+
+    const data = snapshot.val();
+
+    const totalFloors = Number(data.floors);
+    const basement = Number(data.down);
+    const groundFloors = totalFloors - basement;
+
+    const basementGroup =
+      basement > 0
+        ? [{ type: "basement", start: 1, end: basement }]
+        : [];
+
+    const groundGroupCount = Math.ceil(groundFloors / 10);
+    const groundGroups = Array.from(
+      { length: groundGroupCount },
+      (_, i) => ({
+        type: "ground",
+        start: i * 10 + 1,
+        end: Math.min((i + 1) * 10, groundFloors),
+      })
+    );
+
+    setFloorGroups([...groundGroups.reverse(), ...basementGroup]);
+  };
+
+  fetchBuilding();
+}, []);
+
     return(
         <div>
             <div className='pt-[13px]'>
                 <Link to="/" className="inline-flex w-fit shrink-0">
-                <img src={customLogo || logo} alt="홈" className={logoClass || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
+                <img src={logo} alt="홈" className={logoSize || 'w-[216px] h-[84px] ml-[38px] cursor-pointer'}/>
                 </Link>
             </div>
             
