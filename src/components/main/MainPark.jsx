@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
-import { ref, get } from "firebase/database";
+import { ref, get ,onValue} from "firebase/database";
 
 import Park from "../../assets/imgs/park.png";
 import Vacant from "../../assets/icons/green.png";
@@ -14,65 +14,72 @@ export default function MainPark() {
   const [towerLotId, setTowerLotId] = useState(null);
   const [flatLotId, setFlatLotId] = useState(null);
 
+  const [towerConfigs, setTowerConfigs] = useState([]);
+  const [flatConfigs, setFlatConfigs] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadParking = async () => {
-      const simSnap = await get(ref(rtdb, "parkingSimConfig"));
-      const realSnap = await get(ref(rtdb, "parkingRealtime"));
+  const loadSimConfig = async () => {
+    const simSnap = await get(ref(rtdb, "parkingSimConfig"));
+    if (!simSnap.exists()) return;
 
-      if (!simSnap.exists() || !realSnap.exists()) return;
+    const simRaw = simSnap.val();
+    const simConfigs = Object.keys(simRaw).map((key) => ({
+      lotId: key,
+      ...simRaw[key],
+    }));
 
-      const simRaw = simSnap.val();
-      const realRaw = realSnap.val();
+    const towers = simConfigs.filter((c) => c.type === "tower");
+    const flats = simConfigs.filter((c) => c.type === "flat");
 
-      // 🔹 simConfigs에 lotId 추가 (키를 lotId로 사용)
-      const simConfigs = Object.keys(simRaw).map((key) => ({
-        lotId: key,
-        ...simRaw[key],
-      }));
+  setTowerConfigs(towers);
+  setFlatConfigs(flats);
 
-      const realtime = Object.keys(realRaw).map((key) => ({
-        lotId: key,
-        ...realRaw[key],
-      }));
+    if (towerConfigs.length > 0) setTowerLotId(towers[0].lotId);
+    if (flatConfigs.length > 0) setFlatLotId(flats[0].lotId);
+  };
 
-      const towerConfigs = simConfigs.filter((c) => c.type === "tower");
-      const flatConfigs = simConfigs.filter((c) => c.type === "flat");
-
-      // 🔹 클릭 시 이동할 대표 lotId
-      if (towerConfigs.length > 0) {
-        setTowerLotId(towerConfigs[0].lotId);
-      }
-      if (flatConfigs.length > 0) {
-        setFlatLotId(flatConfigs[0].lotId);
-      }
-
-      let towerEmptySum = 0;
-      let flatEmptySum = 0;
-
-      towerConfigs.forEach((tc) => {
-        const match = realtime.find((r) => r.lotId === tc.lotId);
-        if (match) {
-          const empty = Number(match.meta?.emptySlots ?? match.emptySlots ?? 0);
-          towerEmptySum += empty;
-        }
-      });
-
-      flatConfigs.forEach((fc) => {
-        const match = realtime.find((r) => r.lotId === fc.lotId);
-        if (match) {
-          const empty = Number(match.meta?.emptySlots ?? match.emptySlots ?? 0);
-          flatEmptySum += empty;
-        }
-      });
-
-      setTowerEmpty(towerEmptySum);
-      setFlatEmpty(flatEmptySum);
-    };
-
-    loadParking();
+  loadSimConfig();
   }, []);
+
+  useEffect(() => {
+  if (towerConfigs.length === 0 && flatConfigs.length === 0) return;
+
+  const realtimeRef = ref(rtdb, "parkingRealtime");
+  const unsubscribe = onValue(realtimeRef, (snap) => {
+    if (!snap.exists()) return;
+
+    const realRaw = snap.val();
+    const realtime = Object.keys(realRaw).map((key) => ({
+      lotId: key,
+      ...realRaw[key],
+    }));
+
+    let towerEmptySum = 0;
+    let flatEmptySum = 0;
+
+    towerConfigs.forEach((tc) => {
+      const match = realtime.find((r) => r.lotId === tc.lotId);
+      if (match) {
+        towerEmptySum += Number(match.meta?.emptySlots ?? match.emptySlots ?? 0);
+      }
+    });
+
+    flatConfigs.forEach((fc) => {
+      const match = realtime.find((r) => r.lotId === fc.lotId);
+      if (match) {
+        flatEmptySum += Number(match.meta?.emptySlots ?? match.emptySlots ?? 0);
+      }
+    });
+
+    setTowerEmpty(towerEmptySum);
+    setFlatEmpty(flatEmptySum);
+  });
+
+  return () => unsubscribe();
+}, [towerConfigs, flatConfigs]);
+
 
   // 박스 개수 계산
   const sections = [];

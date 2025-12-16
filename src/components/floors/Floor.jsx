@@ -145,7 +145,7 @@ export default function Floor({ floor, selected, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`relative w-full h-full text-left ${
+      className={`relative w-full h-full text-left cursor-pointer ${
         selected ? "bg-[#6FA8D6]" : "bg-[#A3C2D7]"
       }`}
     >

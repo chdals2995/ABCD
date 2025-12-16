@@ -22,7 +22,7 @@ function App() {
             <Route path="/UserMain" element={<AuthStatus />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
-            <Route path="/master" element={<Master/>} />
+            <Route path="/master" element={<Master />} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
             <Route path="/parking/:lotId" element={<ParkingStatus />} />
