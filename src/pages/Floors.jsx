@@ -470,7 +470,9 @@ export default function Floors() {
 
           {/* 🔹 오른쪽 그래프 영역 */}
           <div
-            className="absolute w-[411px] left-[47px] top-[170px] flex flex-col gap-[20px]"
+            className={`absolute w-[411px] left-[47px] top-[170px] flex flex-col ${
+              selectedFloor ? "gap-[74px]" : "gap-[47px]"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {selectedFloor ? (
