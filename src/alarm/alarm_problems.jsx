@@ -10,7 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 import warningIcon from "../assets/icons/iconRed.png"; // 경고
 import cautionIcon from "../assets/icons/alert.png";   // 주의
 
-import UnsolvedList from "./unsolved_list.jsx";
+import UnsolvedList from "../problems/unsolved_list.jsx";
 import "./hide_scrollbar.css";
 
 /* =========================
