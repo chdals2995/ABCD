@@ -84,15 +84,11 @@ export default function SelectedFloorWaterData({ floor }) {
 
           const value = v.waterAvg ?? v.waterSum ?? v.water ?? 0;
 
-          labels.push(key.slice(0, 5)); // "HH:mm"
+          labels.push(key.slice(0, 5));
           values.push(Number(value) || 0);
         });
 
-        setState({
-          loading: false,
-          labels,
-          values,
-        });
+        setState({ loading: false, labels, values });
       },
       (err) => {
         console.error("SelectedFloorWaterData onValue error:", err);
@@ -110,11 +106,13 @@ export default function SelectedFloorWaterData({ floor }) {
   const { loading, labels, values } = state;
   const { yMin, yMax } = getYAxisRange(values);
 
+  const Y_TITLE = "수도 사용량 (㎥)";
+
   const chartData = {
     labels,
     datasets: [
       {
-        label: `${floor} 수도 사용량 (㎥)`,
+        label: `${floor} ${Y_TITLE}`,
         data: values,
         borderColor: "#0004FF",
         backgroundColor: "rgba(0,4,255,0.2)",
@@ -133,7 +131,9 @@ export default function SelectedFloorWaterData({ floor }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y ?? 0;
-            return ` ${v.toLocaleString()} kWh`;
+            return ` ${Number(v).toLocaleString(undefined, {
+              maximumFractionDigits: 3,
+            })} ㎥`;
           },
         },
       },
@@ -142,12 +142,11 @@ export default function SelectedFloorWaterData({ floor }) {
       x: {
         title: { display: true, text: "시간 (10분 단위)" },
         ticks: {
-          autoSkip: false, // ✅ 자동 건너뛰기 끄기
+          autoSkip: false,
           callback: function (value) {
-            // ✅ 실제 라벨 문자열을 안전하게 가져오기
             const label = this.getLabelForValue(value);
             const minute = getMinuteFromLabel(label);
-            if (minute == null || minute % 10 !== 0) return ""; // 10분 단위만 표시
+            if (minute == null || minute % 10 !== 0) return "";
             return label;
           },
         },
@@ -156,7 +155,7 @@ export default function SelectedFloorWaterData({ floor }) {
         min: yMin,
         max: yMax,
         beginAtZero: false,
-        title: { display: true, text: "전기 사용량 (kWh)" },
+        title: { display: true, text: Y_TITLE },
       },
     },
   };
@@ -169,6 +168,7 @@ export default function SelectedFloorWaterData({ floor }) {
           <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
         )}
       </div>
+
       <div className="w-full h-[260px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
