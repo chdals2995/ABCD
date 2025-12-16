@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import AlarmRequest from "./alarm_request.jsx";
 import AlarmProblems from "./alarm_problems.jsx";
 import AdminLayout from "../layout/AdminLayout.jsx";
-import TopMenu from "../components/adminskin/TopMenu.jsx";
 
 import { rtdb } from "../firebase/config";
 import { ref, onValue } from "firebase/database";
@@ -83,9 +82,6 @@ export default function Alarm() {
   return (
     <div className="w-full h-full p-6 relative">
       <AdminLayout />
-
-      {/* 🔹 상단 아이콘 메뉴 (문제 / 알림 연동됨) */}
-      <TopMenu tab={tab} setTab={setTab} />
 
       <div
         className="
