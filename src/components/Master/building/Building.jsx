@@ -24,11 +24,9 @@ export default function Building() {
     floors: "",
   });
 
-  // 입력 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // ✅ 숫자 마이너스 방지 + 정수 처리
     if (name === "floors") {
       setForm((prev) => ({ ...prev, floors: toPositiveIntString(value) }));
       return;
@@ -41,7 +39,6 @@ export default function Building() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 저장 버튼 클릭
   const Save = async () => {
     if (!form.name || !form.floors) {
       alert("건물명과 전체 층수는 필수입니다.");
@@ -49,21 +46,16 @@ export default function Building() {
     }
 
     try {
-      const id = crypto.randomUUID(); // 랜덤 ID
+      const id = crypto.randomUUID();
       await set(ref(rtdb, `buildings/${id}`), {
-        name: form.name,
+        name: form.name.trim(),
         floors: Number(form.floors),
         down: form.down === "" ? 0 : Number(form.down),
         createdAt: Date.now(),
       });
 
       alert("등록되었습니다.");
-
-      setForm({
-        name: "",
-        down: "",
-        floors: "",
-      });
+      setForm({ name: "", down: "", floors: "" });
     } catch (error) {
       console.error("건물 등록 실패:", error);
       alert("등록에 실패하였습니다.");
@@ -72,53 +64,73 @@ export default function Building() {
 
   return (
     <div>
-      <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px]">
-        <div className="flex flex-col w-[75px]">
-          <div className="flex justify-between w-[342px]">
-            <label htmlFor="name" className="text-[20px] mb-[10px]">
+      <div className="w-[649px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px]">
+        {/* 헤더 */}
+        <div className="px-[24px] pt-[18px] pb-[12px] border-b border-[#B5DCF3]">
+          <p className="text-[24px] font-pyeojin text-[#054E76]">건물 등록</p>
+          <p className="text-[13px] text-gray-500 mt-[2px]">
+            건물명 / 전체 층수 / 지하 층수를 입력해 주세요.
+          </p>
+        </div>
+
+        {/* 폼 */}
+        <div className="px-[24px] py-[18px]">
+          <div className="grid grid-cols-[140px_1fr] items-center gap-x-4 gap-y-4">
+            <label htmlFor="name" className="text-[18px] text-[#054E76]">
               건물명
             </label>
             <input
+              id="name"
               type="text"
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="h-[30px]"
+              placeholder="예: ABCD 타워"
+              className="h-[36px] w-full rounded-[8px] border border-[#B5DCF3] px-3
+                         focus:outline-none focus:ring-2 focus:ring-[#0888D4]/40"
             />
-          </div>
 
-          <div className="flex justify-between w-[342px]">
-            <label htmlFor="floors" className="text-[20px] mb-[10px]">
+            <label htmlFor="floors" className="text-[18px] text-[#054E76]">
               전체 층수
             </label>
             <input
+              id="floors"
               type="number"
               name="floors"
               value={form.floors}
               onChange={handleChange}
               min={1}
               step={1}
+              placeholder="예: 23"
+              className="h-[36px] w-full rounded-[8px] border border-[#B5DCF3] px-3
+                         focus:outline-none focus:ring-2 focus:ring-[#0888D4]/40"
             />
-          </div>
 
-          <div className="w-[100px]">
-            <label htmlFor="down" className="text-[20px] mb-[10px]">
+            <label htmlFor="down" className="text-[18px] text-[#054E76]">
               지하
             </label>
-            <input
-              type="number"
-              name="down"
-              value={form.down}
-              onChange={handleChange}
-              min={0}
-              step={1}
-              className="w-[60px]"
-            />
+            <div className="flex items-center gap-3">
+              <input
+                id="down"
+                type="number"
+                name="down"
+                value={form.down}
+                onChange={handleChange}
+                min={0}
+                step={1}
+                placeholder="예: 2"
+                className="h-[36px] w-[160px] rounded-[8px] border border-[#B5DCF3] px-3
+                           focus:outline-none focus:ring-2 focus:ring-[#0888D4]/40"
+              />
+              <span className="text-[13px] text-gray-500">
+                (없으면 0 또는 공란)
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="w-[79px] mx-auto mt-[29px]">
+      <div className="w-[79px] mx-auto mt-[22px]">
         <Button onClick={Save}>등록</Button>
       </div>
     </div>
