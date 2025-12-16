@@ -1,16 +1,18 @@
 import { useEffect, useState, useMemo } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config";
+import { useNavigate } from "react-router-dom";
 
 // toast
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // 아이콘
-import warningIcon from "../assets/icons/iconRed.png"; // 경고
-import cautionIcon from "../assets/icons/alert.png";   // 주의
+import warningIcon from "../assets/icons/iconRed.png";
+import cautionIcon from "../assets/icons/alert.png";
 
-import UnsolvedList from "../problems/unsolved_list.jsx";
+// 컴포넌트
+import UnsolvedList from "../problems/unsolved_list";
 import "./hide_scrollbar.css";
 
 /* =========================
@@ -39,13 +41,14 @@ const METRIC_NORMALIZE = {
 function formatTime(ts) {
   if (!ts) return "";
   const d = new Date(ts);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(
-    d.getMinutes()
-  ).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
 }
 
 /* =========================
-   reason → 한글
+   reason → 한글 문장
 ========================= */
 function getReasonText(reason, metric, level) {
   const m = METRIC_NORMALIZE[metric] || metric || "";
@@ -82,10 +85,10 @@ function showDetailToast(item) {
 
   toast(
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="flex gap-2 items-center">
           <img src={icon} className="w-[18px] h-[18px]" />
-          <span className="font-bold text-[18px]">
+          <span className="text-[18px] font-bold">
             {item.level === "warning" ? "경고" : "주의"}
           </span>
         </div>
@@ -111,6 +114,7 @@ function showDetailToast(item) {
 }
 
 export default function AlarmProblems() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
 
   /* =========================
@@ -156,7 +160,7 @@ export default function AlarmProblems() {
   const cautionItems = items.filter((i) => i.level === "caution");
 
   /* =========================
-     🔥 미해결 리스트용 데이터
+     🔥 미해결 리스트용
   ========================= */
   const unsolvedItems = useMemo(() => {
     return items.map((item) => ({
@@ -201,8 +205,18 @@ export default function AlarmProblems() {
           />
         </div>
 
-        {/* ===== 미해결 항목 ===== */}
-        <UnsolvedList items={unsolvedItems} />
+        {/* ===== 미해결 항목 (문제 페이지로 이동) ===== */}
+        <UnsolvedList
+          items={unsolvedItems}
+          onSelectProblem={(id) => {
+            navigate("/problems", {
+              state: {
+                from: "alarm",
+                problemId: id,
+              },
+            });
+          }}
+        />
       </div>
     </>
   );
