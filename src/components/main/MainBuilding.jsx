@@ -1,13 +1,14 @@
 // MainBuilding
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
-import { ref, get } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
 import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
 import Circle from "../../assets/icons/circle.png";
 
 
+<<<<<<< HEAD
 
 export default function MainBuilding({floors = 10}){
     const [floorGroups, setFloorGroups] = useState([]);
@@ -86,28 +87,105 @@ export default function MainBuilding({floors = 10}){
       
     fetchBuilding();
   }, []);
+=======
+  const today = new Date().toISOString().slice(0, 10);
 
-  // 🔥 층 문자열 파싱 함수 (10F, 1층, B1 → 모두 처리)
+  useEffect(() => {
+  // -------------------------
+  // alerts (오늘 + 문제만)
+  // -------------------------
+  const alertRef = ref(rtdb, "alerts");
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const unsubscribeAlerts = onValue(alertRef, (snap) => {
+    if (!snap.exists()) {
+      setAlertList([]);
+      return;
+    }
+
+    const list = [];
+
+    Object.values(snap.val()).forEach((byFloor) => {
+      Object.values(byFloor).forEach((byDate) => {
+        Object.values(byDate).forEach((alert) => {
+          // ✅ normal 제외
+          if (alert.level === "normal") return;
+
+          // ✅ 오늘만 (timestamp 기준)
+          const time = Number(alert.createdAt);
+          if (
+            time < todayStart.getTime() ||
+            time > todayEnd.getTime()
+          )
+            return;
+
+          list.push(alert);
+        });
+      });
+    });
+
+    setAlertList(list);
+  });
+
+  return () => unsubscribeAlerts();
+}, []);
+>>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
+
+  // -------------------------
+  // requests (오늘 + 미완료)
+  // -------------------------
+  useEffect(() => {
+  const requestRef = ref(rtdb, "requests");
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const unsubscribeRequests = onValue(requestRef, (snap) => {
+    if (!snap.exists()) {
+      setRequestList([]);
+      return;
+    }
+
+    const list = Object.values(snap.val()).filter((r) => {
+      if (r.status === "완료") return false;
+
+      const time = Number(r.createdAt);
+      return (
+        time >= todayStart.getTime() &&
+        time <= todayEnd.getTime()
+      );
+    });
+
+    setRequestList(list);
+  });
+
+  return () => unsubscribeRequests();
+}, []);
+
+
+  // ===============================
+  // 층 나누기
+  // ===============================
   const parseFloor = (str) => {
     if (!str) return null;
     const s = str.trim();
 
-    // B2, B10 → 지하층
     if (s.startsWith("B")) {
       return { type: "basement", number: Number(s.replace(/[^0-9]/g, "")) };
     }
 
-    // 10F, 3F → 지상층
-    if (s.endsWith("F")) {
+    if (s.endsWith("F") || s.includes("층")) {
       return { type: "ground", number: Number(s.replace(/[^0-9]/g, "")) };
     }
 
-    // 1층, 10층 → 지상층
-    if (s.includes("층")) {
-      return { type: "ground", number: Number(s.replace(/[^0-9]/g, "")) };
-    }
-
-    // 숫자만 있는 경우 → 지상층
     if (!isNaN(Number(s))) {
       return { type: "ground", number: Number(s) };
     }
@@ -125,6 +203,8 @@ export default function MainBuilding({floors = 10}){
     // ① 경고(alerts) 카운트
     // -------------------------
     alertList.forEach((a) => {
+      if (a.level === "normal") return;
+
       const parsed = parseFloor(a.floor);
       if (!parsed) return;
 
@@ -142,6 +222,9 @@ export default function MainBuilding({floors = 10}){
     // ② 요청(requests) 카운트
     // -------------------------
     requestList.forEach((r) => {
+
+      if (r.status === "완료") return;
+
       const parsed = parseFloor(r.floor);
       if (!parsed) return;
 

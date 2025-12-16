@@ -9,7 +9,7 @@ export const metricConfig = {
       limit: 7,
       scale: (raw) => raw,
       y: { min: 0, max: 4000 },
-      thresholds: { warn: 2000, danger: 3500 },
+      thresholds: { warn: 2500, danger: 3500 },
       suffix: " kWh",
     },
     month: {
@@ -29,9 +29,10 @@ export const metricConfig = {
       y: { min: 0, max: 30}
     },
     chart: {
-      line: "#28C76F",
-      warn: "#FFC107",
-      danger: "#FF3B30",
+      bar:  "#FFC107",
+      line: "#FFC107",
+      warn: "#FF6200",
+      danger: "red",
     },
   },
 
@@ -65,6 +66,7 @@ export const metricConfig = {
       // thresholds: { warn: ??, danger: ?? },
     },
     chart: {
+      bar:  "#6AC254",
       line: "#6AC254",
       warn: "#006D31",
       danger: "#5C3824",
@@ -100,6 +102,7 @@ export const metricConfig = {
       // thresholds: { warn: ??, danger: ?? },
     },
     chart: {
+      bar:  "#6ED8DE",
       line: "#6ED8DE",
       warn: "#3AB7E9",
       danger: "#106EC6",
@@ -116,7 +119,7 @@ export const metricConfig = {
       scale: (raw) => raw,
       y: { min: 0, max: 50 },
       thresholds: { warn: 30, danger: 35 },
-      suffix: "",
+      suffix: "℃",
     },
     month: {
       path: "aggMonthBuilding",
@@ -135,6 +138,7 @@ export const metricConfig = {
       y: { min: 0, max: 40}
     },
     chart: {
+      bar:  "#B6D453",
       line: "#B6D453",
       warn: "#F8C931",
       danger: "#DE3F3F",

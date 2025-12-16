@@ -315,7 +315,7 @@ const theme = THEME[safeMetricKey] ?? THEME.gas;
   w-[92px] h-[44px] rounded-full shadow
   flex items-center justify-center text-[20px] font-normal
   ${theme.periodBase?.[p] ?? "bg-[rgba(193,195,193,0.8)] text-black"}
-  ${period === p ? "ring-2 ring-black/30" : "opacity-90 hover:opacity-100"}
+  ${period === p ? "ring-2 ring-black" : "opacity-90 hover:opacity-100"}
 `;
 
 
@@ -369,9 +369,9 @@ const theme = THEME[safeMetricKey] ?? THEME.gas;
             if (e.target === e.currentTarget) setOpenConfig(false);
           }}
         >
-          <div className="w-[280px] rounded-[16px] overflow-hidden shadow-lg bg-[#e7c6c6] mt-[-40px] z-50">
+          <div className="w-[280px] rounded-[16px] overflow-hidden shadow-lg bg-[#ffffff] mt-[-40px] z-50">
             {/* 헤더 */}
-            <div className="flex items-center justify-between px-4 py-3 bg-[#eee4e4]">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#ffffff]">
               <div className="text-[18px] font-semibold text-black">항목</div>
               <button
                 type="button"
@@ -383,7 +383,7 @@ const theme = THEME[safeMetricKey] ?? THEME.gas;
             </div>
 
             {/* 상단 탭(추가 / 항목) */}
-            <div className="grid grid-cols-2 text-center bg-[#C7B6B6] text-white">
+            <div className="grid grid-cols-2 text-center bg-[#90deff] text-[#000000]">
               <div className="py-3 text-[18px] font-semibold">추가하기</div>
               <div className="py-3 text-[18px] font-semibold border-l border-black/40">추가된 항목</div>
             </div>

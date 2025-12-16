@@ -34,10 +34,14 @@ export default function Tdata({
 
   // ✅ 색(정상은 metricKey 컬러)
 const normalColor = cfg.chart?.line ?? "#aaaaaa";
-const warnColor = "#FFC107";
-const dangerColor = "#FF3B30";
+const warnColor = cfg.chart?.warn ?? "#FFC107";
+const dangerColor = cfg.chart?.danger ?? "#FF3B30";
 
-
+const legendColors = {
+  normal: normalColor,
+  warn: warnColor,
+  danger: dangerColor,
+};
   const { labels, values, loading, lastKey, todayKey } = useAggMinuteSeries({
     basePath: rt.path ?? "aggMinuteBuilding",
     metricField: rt.metricField ?? "elecAvg",
@@ -91,7 +95,6 @@ const data = {
 ],
   };
   
-  
   // ✅ yMax 자동 계산(override 없을 때)
   const autoMax = (() => {
     const maxV = Math.max(...values.map((v) => Number(v) || 0));
@@ -102,11 +105,6 @@ const data = {
 
   // ✅ y축 범위는 "내가 지정한 값"만 사용
 // 우선순위: props(yMin/yMax) > metricConfig.realtime.y > (최종 fallback)
-
-if (!rt.y || rt.y.min === undefined || rt.y.max === undefined) {
-  return <div className="text-sm text-red-500">realtime.y(min/max) 설정이 필요합니다.</div>;
-}
-
 const finalYMin = (yMin !== undefined ? yMin : (rt.y?.min ?? 0));
 const finalYMax = (yMax !== undefined ? yMax : (rt.y?.max ?? 30)); // fallback도 고정값
 
@@ -132,18 +130,39 @@ const finalYMax = (yMax !== undefined ? yMax : (rt.y?.max ?? 30)); // fallback�
         max: finalYMax,
         grid: { display: true },
         ticks: { callback: (v) => Number(v).toLocaleString() },
-        title: { display: true, text: `단위(${cfg.unit})`, align: "end" },
+        title: { display: true, text: `단위(${cfg.unit})`, align: "start" },
       },
     },
   }
   
   return (
     <div className="w-full">
-      <h2 className="font-semibold text-base mt-[20px] ml-[10px]">
-        (건물) {cfg.label} 실시간 사용량 그래프
-      </h2>
+    <h2 className="font-semibold text-base mt-[20px] ml-[10px]">
+      (건물) {cfg.label} 실시간 사용량 그래프
+    </h2>
 
-      <div className="w-[500px] h-[300px] absolute top-[55%] left-[50%] translate-x-[-52%] translate-y-[-50%]">
+    {/* ✅ 범례 */}
+    <div className="absolute top-[70px] left-[20px] text-xs">
+      <div className="mb-2 font-semibold">범례</div>
+
+      <div className="flex items-center gap-2 mb-1">
+        <span className="inline-block w-5 h-1" style={{ backgroundColor: legendColors.danger }} />
+        <span>위험</span>
+      </div>
+
+      <div className="flex items-center gap-2 mb-1">
+        <span className="inline-block w-5 h-1" style={{ backgroundColor: legendColors.warn }} />
+        <span>주의</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="inline-block w-5 h-1" style={{ backgroundColor: legendColors.normal }} />
+        <span>정상</span>
+      </div>
+    </div>
+
+
+      <div className="w-[470px] h-[300px] absolute top-[55%] left-[57%] translate-x-[-52%] translate-y-[-50%]">
         <Line data={data} options={options}/>
       </div>
     </div>

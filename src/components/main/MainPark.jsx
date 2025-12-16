@@ -1,7 +1,7 @@
 // MainPark
 import { useEffect, useState } from "react";
 import { rtdb } from "../../firebase/config";
-import { ref, get } from "firebase/database";
+import { ref, get ,onValue} from "firebase/database";
 
 import Park from "../../assets/imgs/park.png";
 import Vacant from "../../assets/icons/green.png";
@@ -15,6 +15,7 @@ useEffect(() => {
     const simSnap = await get(ref(rtdb, "parkingSimConfig"));
     const realSnap = await get(ref(rtdb, "parkingRealtime"));
 
+<<<<<<< HEAD
     if (!simSnap.exists() || !realSnap.exists()) return;
 
     const simRaw = simSnap.val();
@@ -22,10 +23,25 @@ useEffect(() => {
 
     // 🔹 simConfigs에 lotId 추가 (키를 lotId로 사용)
     const simConfigs = Object.keys(simRaw).map(key => ({
+=======
+  const [towerConfigs, setTowerConfigs] = useState([]);
+  const [flatConfigs, setFlatConfigs] = useState([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+  const loadSimConfig = async () => {
+    const simSnap = await get(ref(rtdb, "parkingSimConfig"));
+    if (!simSnap.exists()) return;
+
+    const simRaw = simSnap.val();
+    const simConfigs = Object.keys(simRaw).map((key) => ({
+>>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
       lotId: key,
       ...simRaw[key],
     }));
 
+<<<<<<< HEAD
     const realtime = Object.keys(realRaw).map(key => ({
       lotId: key,
       ...realRaw[key],
@@ -75,6 +91,84 @@ useEffect(() => {
         label: "주차장",
         empty: flatEmpty,
         });
+=======
+    const towers = simConfigs.filter((c) => c.type === "tower");
+    const flats = simConfigs.filter((c) => c.type === "flat");
+
+  setTowerConfigs(towers);
+  setFlatConfigs(flats);
+
+    if (towerConfigs.length > 0) setTowerLotId(towers[0].lotId);
+    if (flatConfigs.length > 0) setFlatLotId(flats[0].lotId);
+  };
+
+  loadSimConfig();
+  }, []);
+
+  useEffect(() => {
+  if (towerConfigs.length === 0 && flatConfigs.length === 0) return;
+
+  const realtimeRef = ref(rtdb, "parkingRealtime");
+  const unsubscribe = onValue(realtimeRef, (snap) => {
+    if (!snap.exists()) return;
+
+    const realRaw = snap.val();
+    const realtime = Object.keys(realRaw).map((key) => ({
+      lotId: key,
+      ...realRaw[key],
+    }));
+
+    let towerEmptySum = 0;
+    let flatEmptySum = 0;
+
+    towerConfigs.forEach((tc) => {
+      const match = realtime.find((r) => r.lotId === tc.lotId);
+      if (match) {
+        towerEmptySum += Number(match.meta?.emptySlots ?? match.emptySlots ?? 0);
+      }
+    });
+
+    flatConfigs.forEach((fc) => {
+      const match = realtime.find((r) => r.lotId === fc.lotId);
+      if (match) {
+        flatEmptySum += Number(match.meta?.emptySlots ?? match.emptySlots ?? 0);
+      }
+    });
+
+    setTowerEmpty(towerEmptySum);
+    setFlatEmpty(flatEmptySum);
+  });
+
+  return () => unsubscribe();
+}, [towerConfigs, flatConfigs]);
+
+
+  // 박스 개수 계산
+  const sections = [];
+  if (towerEmpty !== null) {
+    sections.push({
+      type: "tower",
+      label: "주차타워",
+      empty: towerEmpty,
+    });
+  }
+  if (flatEmpty !== null) {
+    sections.push({
+      type: "flat",
+      label: "주차장",
+      empty: flatEmpty,
+    });
+  }
+
+  const boxCount = sections.length;
+  const boxHeight = boxCount > 0 ? 665 / boxCount : 0;
+
+  const handleClickSection = (type) => {
+    if (type === "tower" && towerLotId) {
+      navigate(`/parking/${towerLotId}`);
+    } else if (type === "flat" && flatLotId) {
+      navigate(`/parking/${flatLotId}`);
+>>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
     }
 
     const boxCount = sections.length;

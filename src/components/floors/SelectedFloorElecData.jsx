@@ -83,7 +83,25 @@ export default function SelectedFloorElecData({ floor }) {
           const v = child.val() || {};
 
           const timeLabel = key.slice(0, 5); // "HH:mm"
-          const value = v.elecAvg ?? v.elecSum ?? v.elec ?? 0;
+
+          // ✅ 실시간 차트는 "전력(kW)"로 보는 게 자연스러움
+          // 우선순위: elecAvg(kW) → elec(kW) → (elecSum/count로 평균 추정) → 0
+          let value = 0;
+
+          if (typeof v.elecAvg === "number") {
+            value = v.elecAvg;
+          } else if (typeof v.elec === "number") {
+            value = v.elec;
+          } else if (
+            typeof v.elecSum === "number" &&
+            typeof v.count === "number" &&
+            v.count > 0
+          ) {
+            // elecSum이 "샘플 합"이고 count가 있으면 평균 전력으로 환산 가능
+            value = v.elecSum / v.count;
+          } else {
+            value = 0;
+          }
 
           labels.push(timeLabel);
           values.push(Number(value) || 0);
@@ -111,11 +129,14 @@ export default function SelectedFloorElecData({ floor }) {
   const { loading, labels, values } = state;
   const { yMin, yMax } = getYAxisRange(values);
 
+  const UNIT = "kW";
+  const Y_TITLE = `전기 사용 전력 (${UNIT})`;
+
   const chartData = {
     labels,
     datasets: [
       {
-        label: `${floor} 전기 사용량 (kWh)`,
+        label: `${floor} ${Y_TITLE}`,
         data: values,
         borderColor: "#FF9130",
         backgroundColor: "rgba(255,145,48,0.2)",
@@ -134,7 +155,7 @@ export default function SelectedFloorElecData({ floor }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y ?? 0;
-            return ` ${v.toLocaleString()} kWh`;
+            return ` ${Number(v).toLocaleString()} ${UNIT}`;
           },
         },
       },
@@ -143,12 +164,11 @@ export default function SelectedFloorElecData({ floor }) {
       x: {
         title: { display: true, text: "시간 (10분 단위)" },
         ticks: {
-          autoSkip: false, // ✅ 자동 건너뛰기 끄기
+          autoSkip: false,
           callback: function (value) {
-            // ✅ 실제 라벨 문자열을 안전하게 가져오기
             const label = this.getLabelForValue(value);
             const minute = getMinuteFromLabel(label);
-            if (minute == null || minute % 10 !== 0) return ""; // 10분 단위만 표시
+            if (minute == null || minute % 10 !== 0) return "";
             return label;
           },
         },
@@ -157,7 +177,7 @@ export default function SelectedFloorElecData({ floor }) {
         min: yMin,
         max: yMax,
         beginAtZero: false,
-        title: { display: true, text: "전기 사용량 (kWh)" },
+        title: { display: true, text: Y_TITLE },
       },
     },
   };
@@ -170,6 +190,7 @@ export default function SelectedFloorElecData({ floor }) {
           <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
         )}
       </div>
+
       <div className="w-full h-[160px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">

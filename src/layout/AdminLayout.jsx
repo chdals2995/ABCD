@@ -1,3 +1,4 @@
+//AdminLayout
 import Menu from '../components/adminskin/Menu';
 import TopMenu from '../components/adminskin/TopMenu';
 

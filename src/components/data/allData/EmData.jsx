@@ -1,7 +1,15 @@
 // /src/components/data/allData/EmData.jsx
 import { useEffect, useMemo, useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue, query, orderByKey, limitToLast } from "firebase/database";
+import {
+  ref,
+  onValue,
+  query,
+  orderByKey,
+  limitToLast,
+  startAt,
+  endAt,
+} from "firebase/database";
 
 import { Bar } from "react-chartjs-2";
 import {
@@ -12,14 +20,15 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { metricConfig } from "../metricConfig";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 // ✅ 단가(원)
 const RATE = {
-  elec: 160,   // 원/kWh
-  gas: 1100,   // 원/m³
-  water: 800,  // 원/m³
+  elec: 160, // 원/kWh
+  gas: 1100, // 원/m³
+  water: 800, // 원/m³
 };
 
 const LABEL_KR = { elec: "전력", gas: "가스", water: "수도" };
@@ -43,6 +52,11 @@ function daysInMonth(ym) {
 }
 function hoursInMonth(ym) {
   return daysInMonth(ym) * 24;
+}
+
+function monthOnlyLabel(ym) {
+  const m = String(ym).split("-")[1]; // "01"~"12"
+  return `${Number(m)}월`; // "1월"~"12월"
 }
 
 // ✅ (추정) L/min 평균 -> 월 누적 m³
@@ -72,19 +86,32 @@ function pickSum(row, metricKey) {
   const ev = row?.eventCounts ?? {};
   const map = {
     elec: [
-      row?.elecSum, row?.elecTotal, row?.elecKwh, row?.elec,
-      row?.usage?.elec, row?.sum?.elec,
-      ev?.elecSum, ev?.elecTotal,
+      row?.elecSum,
+      row?.elecTotal,
+      row?.elecKwh,
+      row?.elec,
+      row?.usage?.elec,
+      row?.sum?.elec,
+      ev?.elecSum,
+      ev?.elecTotal,
     ],
     gas: [
-      row?.gasSum, row?.gasTotal, row?.gas,
-      row?.usage?.gas, row?.sum?.gas,
-      ev?.gasSum, ev?.gasTotal,
+      row?.gasSum,
+      row?.gasTotal,
+      row?.gas,
+      row?.usage?.gas,
+      row?.sum?.gas,
+      ev?.gasSum,
+      ev?.gasTotal,
     ],
     water: [
-      row?.waterSum, row?.waterTotal, row?.water,
-      row?.usage?.water, row?.sum?.water,
-      ev?.waterSum, ev?.waterTotal,
+      row?.waterSum,
+      row?.waterTotal,
+      row?.water,
+      row?.usage?.water,
+      row?.sum?.water,
+      ev?.waterSum,
+      ev?.waterTotal,
     ],
   };
   return safeNum(firstFinite(map[metricKey] ?? []));
@@ -94,12 +121,7 @@ function pickSum(row, metricKey) {
 function pickCount(row) {
   if (!row || typeof row === "number") return 0;
   return safeNum(
-    firstFinite([
-      row?.count,
-      row?.sampleCount,
-      row?.samples,
-      row?.eventCounts?.count,
-    ])
+    firstFinite([row?.count, row?.sampleCount, row?.samples, row?.eventCounts?.count])
   );
 }
 
@@ -111,11 +133,11 @@ function computeMonthlyUsage(month, row, metricKey) {
   // count가 있으면: sum/count 로 평균을 만들고 -> 월 누적으로 환산
   if (count > 0) {
     if (metricKey === "elec") {
-      const avgKW = sum / count;               // ✅ 평균 kW(추정)
+      const avgKW = sum / count; // ✅ 평균 kW(추정)
       return avgKWToKWhPerMonth(avgKW, month); // ✅ 월 kWh
     }
     if (metricKey === "water" || metricKey === "gas") {
-      const avgLmin = sum / count;             // ✅ 평균 L/min(추정)
+      const avgLmin = sum / count; // ✅ 평균 L/min(추정)
       return avgLminToM3PerMonth(avgLmin, month); // ✅ 월 m³
     }
   }
@@ -129,7 +151,7 @@ export default function EmData({
   metrickey,
   pathBase = "aggMonthBuilding",
   buildingId,
-  months = 12,
+  months = 12, // (연도필터 모드에서는 실제로는 12개월 고정이지만, props 유지)
 }) {
   const metricKey = (metricKeyProp ?? metrickey ?? "elec").toLowerCase();
   const safeMetricKey = ["elec", "gas", "water"].includes(metricKey) ? metricKey : "elec";
@@ -137,11 +159,56 @@ export default function EmData({
   const [rows, setRows] = useState([]); // [{ month:'YYYY-MM', usage, costWon }]
   const [loading, setLoading] = useState(true);
 
+  const [selectedYear, setSelectedYear] = useState(String(new Date().getFullYear()));
+  const [yearOptions, setYearOptions] = useState([]); // ["2024","2025",...]
+
+  const cfg = metricConfig?.[safeMetricKey] ?? metricConfig?.elec;
+  const accent = cfg?.chart?.bar ?? cfg?.chart?.line ?? "#2563EB";
+
+  // ✅ 1) 연도 옵션(셀렉트) 만들기: 최근 N개월에서 YYYY만 추출
+  useEffect(() => {
+    const basePath = buildingId ? `${pathBase}/${buildingId}` : pathBase;
+
+    // 최근 240개월(20년) 정도만 훑어서 연도 목록 추출
+    const qYears = query(ref(rtdb, basePath), orderByKey(), limitToLast(240));
+
+    const unsub = onValue(
+      qYears,
+      (snap) => {
+        const val = snap.val();
+        if (!val) {
+          setYearOptions([]);
+          return;
+        }
+
+        const years = Object.keys(val)
+          .filter((k) => /^\d{4}-\d{2}$/.test(k)) // YYYY-MM
+          .map((k) => k.slice(0, 4)); // YYYY
+
+        const uniq = Array.from(new Set(years)).sort(); // 오름차순
+        setYearOptions(uniq);
+
+        // ✅ 현재 선택 연도가 목록에 없으면 최신 연도로 자동 맞춤(사용자 선택 덮어쓰기 방지용 prev 사용)
+        const latest = uniq[uniq.length - 1];
+        if (latest) {
+          setSelectedYear((prev) => (uniq.includes(prev) ? prev : latest));
+        }
+      },
+      () => {}
+    );
+
+    return () => unsub();
+  }, [pathBase, buildingId]);
+
+  // ✅ 2) 선택 연도 데이터만 가져오기 (startAt/endAt)
   useEffect(() => {
     setLoading(true);
 
     const basePath = buildingId ? `${pathBase}/${buildingId}` : pathBase;
-    const q = query(ref(rtdb, basePath), orderByKey(), limitToLast(months));
+    const from = `${selectedYear}-01`;
+    const to = `${selectedYear}-12`;
+
+    const q = query(ref(rtdb, basePath), orderByKey(), startAt(from), endAt(to));
 
     const unsub = onValue(
       q,
@@ -154,37 +221,51 @@ export default function EmData({
         }
 
         const entries = Object.entries(val)
-          .filter(([k]) => /^\d{4}-\d{2}$/.test(k)) // YYYY-MM
+          .filter(([k]) => /^\d{4}-\d{2}$/.test(k))
           .sort(([a], [b]) => a.localeCompare(b));
 
         const rate = RATE[safeMetricKey] ?? 1;
 
-        const next = entries.map(([month, row]) => {
+        // month -> row map
+        const byMonth = new Map();
+        for (const [month, row] of entries) {
           const usage = computeMonthlyUsage(month, row, safeMetricKey);
-          const costWon = usage * rate;
-          return { month, usage, costWon };
+          byMonth.set(month, { month, usage, costWon: usage * rate });
+        }
+
+        // ✅ 1~12월 고정(없는 달은 0)
+        const full = Array.from({ length: 12 }, (_, i) => {
+          const mm = String(i + 1).padStart(2, "0");
+          const key = `${selectedYear}-${mm}`;
+          return byMonth.get(key) ?? { month: key, usage: 0, costWon: 0 };
         });
 
-        setRows(next);
+        setRows(full);
         setLoading(false);
       },
       () => setLoading(false)
     );
 
     return () => unsub();
-  }, [safeMetricKey, pathBase, buildingId, months]);
+  }, [safeMetricKey, pathBase, buildingId, selectedYear]);
 
   const chartData = useMemo(() => {
+    const barColor = cfg?.chart?.bar ?? cfg?.chart?.line ?? "#2563EB";
+
     return {
-      labels: rows.map((r) => r.month),
+      labels: rows.map((r) => monthOnlyLabel(r.month)), // ✅ "1월~12월"
       datasets: [
         {
           label: `${LABEL_KR[safeMetricKey]} 사용비용(만원)`,
           data: rows.map((r) => Number(toManWon(r.costWon).toFixed(1))),
+          backgroundColor: barColor,
+          borderColor: barColor,
+          borderWidth: 1,
+          borderRadius: 6,
         },
       ],
     };
-  }, [rows, safeMetricKey]);
+  }, [rows, safeMetricKey, cfg]);
 
   const options = useMemo(() => {
     return {
@@ -198,7 +279,9 @@ export default function EmData({
               const i = ctx.dataIndex;
               const r = rows[i];
               if (!r) return "";
-              const usageStr = Number(r.usage ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+              const usageStr = Number(r.usage ?? 0).toLocaleString(undefined, {
+                maximumFractionDigits: 2,
+              });
               return `${formatManWonFromWon(r.costWon)} (사용량: ${usageStr} ${UNIT[safeMetricKey]})`;
             },
           },
@@ -216,9 +299,25 @@ export default function EmData({
 
   return (
     <div className="w-full h-full bg-white relative overflow-hidden">
-      <div className="flex items-center gap-4 mt-[20px] ml-[10px]">
+      {/* ✅ 제목 + 우측 상단 연도 선택 */}
+      <div className="flex items-center gap-4 mt-[20px] ml-[10px] mr-[10px]">
         <div className="text-[18px] font-semibold">
-          월별 {LABEL_KR[safeMetricKey]} 사용비용 (단위: 만원)
+          {selectedYear}년 월별 {LABEL_KR[safeMetricKey]} 사용비용 (단위: 만원)
+        </div>
+
+        <div className="ml-auto">
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="text-sm px-3 py-2 rounded-md bg-white outline-none"
+            style={{ border: `1px solid ${accent}` }}
+          >
+            {(yearOptions.length ? yearOptions : [selectedYear]).map((y) => (
+              <option key={y} value={y}>
+                {y}년
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

@@ -25,7 +25,7 @@ export default function ElecData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata metricKey="elec" showStatusColor={false}/>
+              <Tdata metricKey="elec" />
             </div>
           </div>
 
