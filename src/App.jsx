@@ -12,6 +12,7 @@ import ParkingStatus from "./pages/ParkingStatus";
 import Logout from "./pages/Logout";
 
 
+
 function App() {
   return (
     <AuthProvider>
