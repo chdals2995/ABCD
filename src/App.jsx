@@ -1,4 +1,5 @@
 import "./App.css";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
 import AuthStatus from "./components/Login/contexts/AuthStatus";
@@ -6,11 +7,10 @@ import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
-import Master from "./pages/Master";
+import Master from "./pages/Master"
 import ParkingStatus from "./pages/ParkingStatus";
 import Logout from "./pages/Logout";
-import Alarm from "./Component/Alarm/Alarm"
-import { Routes, Route } from "react-router-dom";
+import Alarm from "./alarm/Alarm";
 
 
 
@@ -18,7 +18,7 @@ function App() {
   return (
     <>
       <AuthProvider>
-        
+         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
@@ -35,7 +35,7 @@ function App() {
           
       
           </Routes>
-        
+        </BrowserRouter>
       </AuthProvider>
     </>
   );

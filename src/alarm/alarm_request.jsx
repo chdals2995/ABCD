@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
-import { rtdb } from "../../firebase/config"; // Firebase 설정 파일에서 rtdb 가져오기
-import '../../index.css'; // CSS 파일에 애니메이션이 정의되어 있어야 합니다.
+import { rtdb } from "../firebase/config";
+
 
 export default function AlarmRequest() {
   const [items, setItems] = useState([]); // 알람 데이터 저장 상태

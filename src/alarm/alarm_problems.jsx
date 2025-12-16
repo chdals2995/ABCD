@@ -1,10 +1,12 @@
 // src/Component/Alarm/AlarmProblems.jsx
 import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
-import { rtdb } from "../../firebase/config";
+import { rtdb } from "../firebase/config";
 
-import cautionIcon from "../../icons/Alert_triangle.png";
-import warningIcon from "../../icons/Alert_triangle_red.png";
+import cautionIcon from "../assets/icons/iconRed.png";
+import warningIcon from "../assets/icons/alert.png";
+
+
 
 /* 상대 시간 계산 */
 function timeAgo(ts) {

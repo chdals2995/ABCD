@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import AlarmRequest from "./alarm_request.jsx";
 import AlarmProblems from "./alarm_problems.jsx";
-import AdminLayout from "../../layout/AdminLayout.jsx";
+import AdminLayout from "../layout/AdminLayout.jsx";
 
 
-import { rtdb } from "../../firebase/config";
+import { rtdb } from "../firebase/config";
 import { ref, onValue } from "firebase/database";
+// Alarm.jsx (최상단)
+import "./alarm_effects.css";
+
 
 
 export default function Alarm() {
