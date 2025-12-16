@@ -1,3 +1,4 @@
+// CheckForm.jsx
 import { useState } from "react";
 import AttachmentIcon from "../assets/icons/attachment_icon.png";
 import CloseIcon from "../assets/icons/close.png";
@@ -6,7 +7,7 @@ import Button from "../assets/Button";
 export default function CheckForm({
   onClose,
   title,
-  mode = "create",
+  mode = "create",   // create | edit
   row,
   onSave,
 }) {
@@ -28,6 +29,7 @@ export default function CheckForm({
     mode === "edit" ? row?.checkType ?? "상시" : "상시"
   );
 
+  // 수정 모드 제어
   const [isEditing, setIsEditing] = useState(mode === "create");
 
   const buttonLabel =
@@ -38,6 +40,7 @@ export default function CheckForm({
       : "저장";
 
   const handleSave = () => {
+    // edit 모드에서 처음 클릭 → 수정 가능 상태로만 전환
     if (mode === "edit" && !isEditing) {
       setIsEditing(true);
       return;
@@ -52,7 +55,7 @@ export default function CheckForm({
       checkType,
     };
 
-    onSave(payload);
+    onSave && onSave(payload);
     onClose();
   };
 
@@ -62,10 +65,10 @@ export default function CheckForm({
         fixed inset-0
         flex justify-center items-center
         z-[999]
-        backdrop-blur-sm 
+        backdrop-blur-sm
         bg-black/20
       "
-      onClick={onClose}   // ✅ 바깥 클릭 시 닫힘
+      onClick={onClose}
     >
       <div
         className="
@@ -73,7 +76,7 @@ export default function CheckForm({
           p-8 w-[620px] min-h-[650px]
           relative shadow-xl
         "
-        onClick={(e) => e.stopPropagation()} // ✅ 내부 클릭 차단
+        onClick={(e) => e.stopPropagation()}
       >
         {/* 닫기 */}
         <img
