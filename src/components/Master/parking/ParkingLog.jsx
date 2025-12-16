@@ -40,7 +40,6 @@ export default function ParkingLog() {
         ...value,
       }));
 
-      // PARKING_1,2,3… 정렬
       list.sort((a, b) => {
         const an = extractLastNumber(a.id) ?? 999999;
         const bn = extractLastNumber(b.id) ?? 999999;
@@ -71,7 +70,7 @@ export default function ParkingLog() {
               >
                 {p.name} ({p.id})
                 <div className="text-[14px] text-gray-500">
-                  소속: {p.belongsto || "-"}
+                  소속 건물 명: {p.belongsto || "-"}
                 </div>
               </li>
             ))}

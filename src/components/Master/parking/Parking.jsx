@@ -26,17 +26,21 @@ function extractParkingNumber(id) {
   return m ? Number(m[1]) : null;
 }
 
+function calcNextLotIdFromConfig(raw) {
+  const nums = Object.keys(raw || {})
+    .map(extractParkingNumber)
+    .filter((n) => Number.isFinite(n));
+
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return `PARKING_${next}`;
+}
+
 export default function Parking() {
   const [buildings, setBuildings] = useState([]); // [{id, name, ...}]
   const [form, setForm] = useState({
-    lotId: "",
     name: "",
     type: "flat", // "flat" | "tower"
-    enabled: true,
-
-    // ✅ 소속 건물(이름) 저장
     belongsto: "",
-
     floorCount: "",
     slotsPerFloor: "2", // tower용
     perFloorSlots: [], // flat용
@@ -51,12 +55,12 @@ export default function Parking() {
         setBuildings([]);
         return;
       }
+
       const list = Object.entries(data).map(([id, value]) => ({
         id,
         ...value,
       }));
 
-      // 보기 좋게 이름순 정렬(원하면 createdAt순으로 바꿔도 됨)
       list.sort((a, b) =>
         String(a.name || "").localeCompare(String(b.name || ""))
       );
@@ -109,92 +113,115 @@ export default function Parking() {
       return;
     }
 
+    // ✅ 마이너스 방지(직접 입력도 차단)
+    if (name === "floorCount") {
+      if (value === "") {
+        setForm((prev) => ({ ...prev, floorCount: "" }));
+        return;
+      }
+      const n = Number(value);
+      setForm((prev) => ({
+        ...prev,
+        floorCount: String(Math.max(1, Number.isFinite(n) ? n : 1)),
+      }));
+      return;
+    }
+
+    if (name === "slotsPerFloor") {
+      if (value === "") {
+        setForm((prev) => ({ ...prev, slotsPerFloor: "" }));
+        return;
+      }
+      const n = Number(value);
+      setForm((prev) => ({
+        ...prev,
+        slotsPerFloor: String(Math.max(1, Number.isFinite(n) ? n : 1)),
+      }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEnabledRadio = (value) => {
-    setForm((prev) => ({ ...prev, enabled: value === "true" }));
-  };
-
   const handlePerFloorSlotChange = (idx, value) => {
+    // ✅ 마이너스 방지(층별 주차 가능 대수는 0 이상)
+    let nextValue = value;
+    if (value === "") nextValue = "";
+    else {
+      const n = Number(value);
+      nextValue = String(Math.max(0, Number.isFinite(n) ? n : 0));
+    }
+
     setForm((prev) => {
       const next = [...(prev.perFloorSlots || [])];
-      next[idx] = value;
+      next[idx] = nextValue;
       return { ...prev, perFloorSlots: next };
     });
   };
 
-  // lotId 자동 생성: PARKING_최대+1
-  const handleAutoLotId = async () => {
-    try {
-      const snap = await get(ref(rtdb, "parkingSimConfig"));
-      const raw = snap.val() || {};
-      const nums = Object.keys(raw)
-        .map(extractParkingNumber)
-        .filter((n) => Number.isFinite(n));
+  // ✅ lotId 자동 생성(미노출): 저장 시점에 PARKING_최대+1 계산
+  const generateNextLotId = async () => {
+    const snap = await get(ref(rtdb, "parkingSimConfig"));
+    const raw = snap.val() || {};
 
-      const next = (nums.length ? Math.max(...nums) : 0) + 1;
-      setForm((prev) => ({ ...prev, lotId: `PARKING_${next}` }));
-    } catch (e) {
-      console.error("lotId 자동 생성 실패:", e);
-      alert("lotId 자동 생성 실패");
+    let nextId = calcNextLotIdFromConfig(raw);
+
+    const used = new Set(Object.keys(raw || {}));
+    while (used.has(nextId)) {
+      const n = extractParkingNumber(nextId) ?? 0;
+      nextId = `PARKING_${n + 1}`;
     }
+
+    return nextId;
   };
 
   const Save = async () => {
-    const lotId = String(form.lotId || "").trim();
-    if (!lotId) {
-      alert("lotId는 필수입니다. (예: PARKING_3)");
-      return;
-    }
     if (!form.name) {
-      alert("주차장 이름은 필수입니다.");
+      alert("주차장 명은 필수입니다.");
       return;
     }
     if (!form.belongsto) {
-      alert("소속 건물을 선택해 주세요.");
+      alert("소속 건물 명을 선택해 주세요.");
       return;
     }
 
     const floorCount = toNumber(form.floorCount, 0);
     if (floorCount <= 0) {
-      alert("층 수(floorCount)는 1 이상이어야 합니다.");
+      alert("층 수는 1 이상이어야 합니다.");
       return;
     }
 
     if (form.type === "tower") {
       const spf = toNumber(form.slotsPerFloor, 0);
       if (spf <= 0) {
-        alert("타워는 층당 슬롯(slotsPerFloor)이 1 이상이어야 합니다.");
+        alert("타워는 층당 주차 가능 대수가 1 이상이어야 합니다.");
         return;
       }
     } else {
       if (!form.perFloorSlots || form.perFloorSlots.length !== floorCount) {
-        alert("flat은 층별 슬롯(perFloorSlots)을 모두 입력해야 합니다.");
+        alert("flat은 층별 주차 가능 대수를 모두 입력해야 합니다.");
         return;
       }
     }
 
-    // 중복 체크
-    const existsSnap = await get(ref(rtdb, `parkingSimConfig/${lotId}`));
-    if (existsSnap.exists()) {
-      const ok = window.confirm("같은 lotId가 이미 있습니다. 덮어쓸까요?");
-      if (!ok) return;
+    let lotId = "";
+    try {
+      lotId = await generateNextLotId();
+    } catch (e) {
+      console.error("lotId 자동 생성 실패:", e);
+      alert("lotId 자동 생성 실패");
+      return;
     }
 
     const payload = {
-      enabled: !!form.enabled,
+      enabled: true,
       floorCount,
       lotId,
       name: form.name,
       totalSlots,
       type: form.type,
       createdAt: Date.now(),
-
-      // ✅ 소속 건물 이름
       belongsto: form.belongsto,
-
-      // (입력 안 받지만 기본값으로 저장)
       tickMs: DEFAULT_TICK_MS,
       entryProb: DEFAULT_ENTRY_PROB,
       exitProb: DEFAULT_EXIT_PROB,
@@ -211,10 +238,8 @@ export default function Parking() {
 
       alert("등록되었습니다.");
       setForm({
-        lotId: "",
         name: "",
         type: "flat",
-        enabled: true,
         belongsto: "",
         floorCount: "",
         slotsPerFloor: "2",
@@ -230,31 +255,8 @@ export default function Parking() {
     <div>
       <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px] overflow-y-auto">
         <div className="px-[24px] py-[20px]">
-          {/* lotId + 자동생성 */}
-          <div className="flex justify-between w-[520px] mb-[10px] items-center">
-            <label className="text-[20px]">lotId</label>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                name="lotId"
-                value={form.lotId}
-                onChange={handleChange}
-                placeholder="예: PARKING_3"
-                className="h-[30px] w-[190px]"
-              />
-              <button
-                type="button"
-                onClick={handleAutoLotId}
-                className="h-[30px] px-3 rounded-[8px] bg-[#0888D4] text-white text-[14px] hover:bg-[#054E76] transition"
-              >
-                자동
-              </button>
-            </div>
-          </div>
-
           <div className="flex justify-between w-[520px] mb-[10px]">
-            <label className="text-[20px]">이름</label>
+            <label className="text-[20px]">주차장 명</label>
             <input
               type="text"
               name="name"
@@ -265,9 +267,8 @@ export default function Parking() {
             />
           </div>
 
-          {/* ✅ 소속 건물 선택 */}
           <div className="flex justify-between w-[520px] mb-[10px]">
-            <label className="text-[20px]">소속 건물</label>
+            <label className="text-[20px]">소속 건물 명</label>
             <select
               name="belongsto"
               value={form.belongsto}
@@ -297,56 +298,34 @@ export default function Parking() {
           </div>
 
           <div className="flex justify-between w-[520px] mb-[10px]">
-            <label className="text-[20px]">사용 여부</label>
-            <div className="w-[260px] flex items-center gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="enabledRadio"
-                  checked={form.enabled === true}
-                  onChange={() => handleEnabledRadio("true")}
-                />
-                사용
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="enabledRadio"
-                  checked={form.enabled === false}
-                  onChange={() => handleEnabledRadio("false")}
-                />
-                미사용
-              </label>
-            </div>
-          </div>
-
-          <div className="flex justify-between w-[520px] mb-[10px]">
-            <label className="text-[20px]">층 수(floorCount)</label>
+            <label className="text-[20px]">층 수</label>
             <input
               type="number"
               name="floorCount"
               value={form.floorCount}
               onChange={handleChange}
+              min={1}
+              step={1}
               className="h-[30px] w-[260px]"
             />
           </div>
 
           {form.type === "tower" ? (
             <div className="flex justify-between w-[520px] mb-[10px]">
-              <label className="text-[20px]">층당 슬롯(slotsPerFloor)</label>
+              <label className="text-[20px]">층당 주차 가능 대수</label>
               <input
                 type="number"
                 name="slotsPerFloor"
                 value={form.slotsPerFloor}
                 onChange={handleChange}
+                min={1}
+                step={1}
                 className="h-[30px] w-[260px]"
               />
             </div>
           ) : (
             <div className="w-[520px] mb-[10px]">
-              <div className="text-[20px] mb-[6px]">
-                층별 슬롯(perFloorSlots)
-              </div>
+              <div className="text-[20px] mb-[6px]">층별 주차 가능 대수</div>
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-2">
                 {(form.perFloorSlots || []).map((v, i) => (
@@ -358,6 +337,8 @@ export default function Parking() {
                       onChange={(e) =>
                         handlePerFloorSlotChange(i, e.target.value)
                       }
+                      min={0}
+                      step={1}
                       className="h-[28px] w-[140px]"
                     />
                   </div>
@@ -367,7 +348,7 @@ export default function Parking() {
           )}
 
           <div className="flex justify-between w-[520px]">
-            <label className="text-[20px]">totalSlots</label>
+            <label className="text-[20px]">전체 주차 가능 대수</label>
             <input
               type="number"
               value={totalSlots}
