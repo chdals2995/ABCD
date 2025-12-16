@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config";
 
@@ -10,6 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 import warningIcon from "../assets/icons/iconRed.png"; // 경고
 import cautionIcon from "../assets/icons/alert.png";   // 주의
 
+import UnsolvedList from "./unsolved_list.jsx";
 import "./hide_scrollbar.css";
 
 /* =========================
@@ -33,15 +34,14 @@ const METRIC_NORMALIZE = {
 };
 
 /* =========================
-   시간 포맷 (HH:MM:SS)
+   시간 포맷
 ========================= */
 function formatTime(ts) {
   if (!ts) return "";
   const d = new Date(ts);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes()
+  ).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
 }
 
 /* =========================
@@ -74,43 +74,30 @@ function getReasonText(reason, metric, level) {
   return `${m} 상태 변화가 감지되었습니다.`;
 }
 
-  /* =========================
-    컴팩트 토스트
-  ========================= */
-  function showDetailToast(item) {
-    const icon = item.level === "warning" ? warningIcon : cautionIcon;
-    const message = getReasonText(item.reason, item.metric, item.level);
-    const timeText = formatTime(item.createdAt);
+/* =========================
+   토스트
+========================= */
+function showDetailToast(item) {
+  const icon = item.level === "warning" ? warningIcon : cautionIcon;
 
-    toast(
-      <div className="flex flex-col gap-2">
-        {/* 상단 */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
+  toast(
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between">
+        <div className="flex gap-2 items-center">
           <img src={icon} className="w-[18px] h-[18px]" />
-            <span className="text-[18px] font-bold text-gray-800">
-          {item.level === "warning" ? "경고" : "주의"}
+          <span className="font-bold text-[18px]">
+            {item.level === "warning" ? "경고" : "주의"}
+          </span>
+        </div>
+        <span className="text-[13px] text-gray-500">
+          {formatTime(item.createdAt)}
         </span>
       </div>
 
-      <span className="text-[13px] text-gray-500 mt-[20px] whitespace-nowrap">
-        {timeText}
-      </span>
-   </div>
-
-      {/* 메시지 (2줄 제한) */}
-      <div
-        className="text-[16px] font-semibold text-gray-900 break-words overflow-hidden"
-        style={{
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-        }}
-      >
-        {message}
+      <div className="text-[16px] font-semibold">
+        {getReasonText(item.reason, item.metric, item.level)}
       </div>
 
-      {/* 위치 */}
       <div className="text-[13px] text-gray-600">
         {item.floor} · {item.dateKey}
       </div>
@@ -118,7 +105,6 @@ function getReasonText(reason, metric, level) {
     {
       position: "top-center",
       autoClose: item.level === "warning" ? 3500 : 2500,
-      closeOnClick: true,
       hideProgressBar: true,
     }
   );
@@ -127,6 +113,9 @@ function getReasonText(reason, metric, level) {
 export default function AlarmProblems() {
   const [items, setItems] = useState([]);
 
+  /* =========================
+     alerts 읽기
+  ========================= */
   useEffect(() => {
     const alertsRef = ref(rtdb, "alerts");
 
@@ -143,7 +132,6 @@ export default function AlarmProblems() {
         Object.entries(dates || {}).forEach(([dateKey, alerts]) => {
           Object.entries(alerts || {}).forEach(([id, v]) => {
             if (v.level === "normal") return;
-            if (v.level === "completed" || v.status === "done") return;
             if (v.check === true) return;
 
             list.push({
@@ -167,83 +155,92 @@ export default function AlarmProblems() {
   const warningItems = items.filter((i) => i.level === "warning");
   const cautionItems = items.filter((i) => i.level === "caution");
 
+  /* =========================
+     🔥 미해결 리스트용 데이터
+  ========================= */
+  const unsolvedItems = useMemo(() => {
+    return items.map((item) => ({
+      id: item.id,
+      metric: METRIC_NORMALIZE[item.metric] || item.metric,
+      floor: item.floor,
+      createdAt: item.createdAt,
+      reason: getReasonText(item.reason, item.metric, item.level),
+    }));
+  }, [items]);
+
   const handleRead = (item) => {
-    update(
-      ref(rtdb, `alerts/${item.floor}/${item.dateKey}/${item.id}`),
-      { check: true }
-    );
+    update(ref(rtdb, `alerts/${item.floor}/${item.dateKey}/${item.id}`), {
+      check: true,
+    });
     showDetailToast(item);
   };
 
   return (
     <>
-      <ToastContainer
-        position="top-center"
-        newestOnTop
-        pauseOnHover={false}
-        style={{ zIndex: 99999 }}
-        toastClassName={() =>
-          "min-w-[360px] max-w-[420px] px-4 py-3 rounded-xl shadow-sm bg-white"
-        }
-        bodyClassName={() => "p-0 m-0"}
-      />
+      <ToastContainer newestOnTop pauseOnHover={false} />
 
-      <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px]">
-        <div className="text-[12px] text-gray-400 mb-5 mt-3">
-          안 읽은 알림
+      <div className="flex gap-6">
+        {/* ===== 알람 패널 ===== */}
+        <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px]">
+          <div className="text-[12px] text-gray-400 mb-5 mt-3">
+            안 읽은 알림
+          </div>
+
+          <Section
+            title="경고"
+            icon={warningIcon}
+            items={warningItems}
+            onRead={handleRead}
+          />
+
+          <Section
+            title="주의"
+            icon={cautionIcon}
+            items={cautionItems}
+            onRead={handleRead}
+          />
         </div>
 
-        <Section
-          title="경고"
-          icon={warningIcon}
-          items={warningItems}
-          onRead={handleRead}
-        />
-
-        <Section
-          title="주의"
-          icon={cautionIcon}
-          items={cautionItems}
-          onRead={handleRead}
-        />
+        {/* ===== 미해결 항목 ===== */}
+        <UnsolvedList items={unsolvedItems} />
       </div>
     </>
   );
 }
 
-  /* =========================
-    섹션
-  ========================= */
-  function Section({ title, icon, items, onRead }) {
-    return (
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <img src={icon} className="w-[18px] h-[18px]" />
-          <span className="text-[20px] font-semibold">{title}</span>
-        </div>
-
-        <div className="max-h-[260px] overflow-y-auto hide-scrollbar">
-          {items.length === 0 ? (
-            <div className="text-gray-400 text-[14px] py-2">
-              항목 없음
-            </div>
-          ) : (
-            items.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onRead(item)}
-                className="flex justify-between border-b py-2 mb-3 cursor-pointer border-[#e5e5e5]"
-              >
-                <span className="text-[15px] w-[180px] truncate">
-                  {getReasonText(item.reason, item.metric, item.level)}
-                </span>
-                <span className="text-[13px] text-[#555] whitespace-nowrap">
-                  {item.floor} / {item.dateKey}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
+/* =========================
+   섹션
+========================= */
+function Section({ title, icon, items, onRead }) {
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <img src={icon} className="w-[18px] h-[18px]" />
+        <span className="text-[20px] font-semibold">{title}</span>
       </div>
-    );
-  }
+
+      <div className="max-h-[260px] overflow-y-auto hide-scrollbar">
+        {items.length === 0 ? (
+          <div className="text-gray-400 text-[14px] py-2">
+            항목 없음
+          </div>
+        ) : (
+          items.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => onRead(item)}
+              className="flex justify-between border-b py-2 mb-3 cursor-pointer"
+            >
+              <span className="text-[15px] w-[180px] truncate">
+                {getReasonText(item.reason, item.metric, item.level)}
+              </span>
+              <span className="text-[13px] text-[#555] whitespace-nowrap">
+                {item.floor} / {item.dateKey}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
