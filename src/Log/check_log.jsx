@@ -12,6 +12,7 @@ import { ref, onValue, push, update } from "firebase/database";
 import { rtdb } from "../firebase/config.js";
 
 import Button from "../assets/Button.jsx";
+import "./datepicker_override.css";
 
 /* 날짜 유틸 */
 function formatDate(d) {
