@@ -33,7 +33,6 @@ function App() {
             {/* 알람 페이지 */}
             <Route path="/alarm" element={<Alarm />} />
           
-      
           </Routes>
         </BrowserRouter>
       </AuthProvider>
