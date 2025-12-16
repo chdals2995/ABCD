@@ -25,6 +25,7 @@ function generateUserCode(length = 8) {
   return result;
 }
 
+import "./datepicker_override.css";
 /* ================= 상태 컬러 ================= */
 const STATUS_COLOR = {
   접수: "text-[#25C310]",
