@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../firebase/config";
 
-import CheckForm from "../Check/CheckForm";
+import CheckForm from "../Log/check_form";
 
 export default function AlarmRequest() {
   const [items, setItems] = useState([]);
