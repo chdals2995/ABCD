@@ -13,6 +13,7 @@ import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
+import "./datepicker_override.css";
 /* ================= 상태 컬러 ================= */
 const STATUS_COLOR = {
   접수: "text-[#25C310]",
