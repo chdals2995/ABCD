@@ -450,7 +450,7 @@ export default function Floors() {
         <div className="w-[554px] bg-[#E7F3F8] relative">
           {/* ✅ 우측 그래프 위쪽: 주차장 이동 버튼 */}
           <div
-            className="absolute w-[411px] left-[47px] top-[120px] flex justify-end"
+            className="absolute w-[411px] left-[47px] top-[120px] flex"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -612,7 +612,7 @@ export default function Floors() {
             <button
               type="button"
               onClick={closeLargeChart}
-              className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 text-lg leading-none hover:bg-gray-100"
+              className="cursor-pointer absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 text-lg leading-none hover:bg-gray-100"
             >
               ×
             </button>
