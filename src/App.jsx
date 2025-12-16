@@ -10,6 +10,8 @@ import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
 import Logout from "./pages/Logout";
+import UserMain from "./pages/UserMain";
+
 
 function App() {
   return (
@@ -19,13 +21,13 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/logout" element={<Logout />} />
-            <Route path="/UserMain" element={<AuthStatus />} />
+            <Route path="/UserMain" element={<UserMain />} />
             <Route path="/Join" element={<Join />} />
             <Route path="/main" element={<MainPage />} />
             <Route path="/master" element={<Master />} />
             <Route path="/floors" element={<Floors />} />
             <Route path="/AdminPage" element={<AdminPage />} />
-            <Route path="/parking/:lotId" element={<ParkingStatus />} />
+            <Route path="/parking/:lotId" element={<ParkingStatus />} />            
           </Routes>
         </BrowserRouter>
       </AuthProvider>

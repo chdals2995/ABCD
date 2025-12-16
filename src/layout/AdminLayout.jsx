@@ -6,9 +6,9 @@ import TopMenu from '../components/adminskin/TopMenu';
 export default function AdminLayout({logoSize, floorGroups}){
     return(
         <div>
-            <Menu
+            <Menu/>
                 logoSize={logoSize}
-                floorGroups={floorGroups}/>
+                floorGroups={floorGroups}
             <TopMenu/>
         </div>
     );
