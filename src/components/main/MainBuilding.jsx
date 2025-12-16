@@ -8,103 +8,34 @@ import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
 import Circle from "../../assets/icons/circle.png";
 
-export default function MainBuilding({ floors = 10 }) {
-  const [floorGroups, setFloorGroups] = useState([]);
-  const [buildingName, setBuildingName] = useState("");
+export default function MainBuilding({ floorGroups, buildingName}) {
   const [alertList, setAlertList] = useState([]);
   const [requestList, setRequestList] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-  const fetchBuilding = async () => {
-    const snapshot = await get(
-      ref(rtdb, "buildings/43c82c19-bf2a-4068-9776-dbb0edaa9cc0")
-    );
+  
+useEffect(() => {
+  const fetchAlertsAndRequests = async () => {
+    const alerts = await get(ref(rtdb, "alerts"));
+    const requests = await get(ref(rtdb, "requests"));
 
-    if (!snapshot.exists()) return;
+    if (alerts.exists()) {
+      const list = [];
+      Object.values(alerts.val()).forEach(byFloor =>
+        Object.values(byFloor).forEach(byDate =>
+          Object.values(byDate).forEach(alert => list.push(alert))
+        )
+      );
+      setAlertList(list);
+    }
 
-    const data = snapshot.val();
-
-    const totalFloors = Number(data.floors); // 총 층수
-    const basement = Number(data.down); // 지하 층수
-    const groundFloors = totalFloors - basement;
-
-    setBuildingName(data.name);
-
-    // 지하 그룹
-    const basementGroup =
-      basement > 0
-        ? [
-            {
-              type: "basement",
-              start: 1,
-              end: basement,
-            },
-          ]
-        : [];
-
-    // 지상 그룹 (10층 단위)
-    const groundGroupCount = Math.ceil(groundFloors / 10);
-
-    const groundGroups = Array.from({ length: groundGroupCount }, (_, i) => ({
-      type: "ground",
-      start: i * 10 + 1,
-      end: Math.min((i + 1) * 10, groundFloors),
-    }));
-
-    const finalGroups = [...groundGroups.reverse(), ...basementGroup];
-    setFloorGroups(finalGroups);
+    if (requests.exists()) {
+      setRequestList(Object.values(requests.val()));
+    }
   };
 
-  // ✅ 여기서 딱 한 번만 호출
-  fetchBuilding();
+  fetchAlertsAndRequests();
 }, []);
-
-      // 2️⃣ alerts 실시간
-  // ===============================
-  useEffect(() => {
-    const alertRef = ref(rtdb, "alerts");
-
-    const unsubscribe = onValue(alertRef, (snap) => {
-      if (!snap.exists()) {
-        setAlertList([]);
-        return;
-      }
-
-      const raw = snap.val();
-      const list = [];
-
-      Object.values(raw).forEach((byFloor) => {
-        Object.values(byFloor).forEach((byDate) => {
-          Object.values(byDate).forEach((alertItem) => {
-            list.push(alertItem);
-          });
-        });
-      });
-
-      setAlertList(list);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // ===============================
-  // 3️⃣ requests 실시간
-  // ===============================
-  useEffect(() => {
-    const requestRef = ref(rtdb, "requests");
-
-    const unsubscribe = onValue(requestRef, (snap) => {
-      if (!snap.exists()) {
-        setRequestList([]);
-        return;
-      }
-
-      setRequestList(Object.values(snap.val()));
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   // ===============================
   // 층 파싱
@@ -193,8 +124,8 @@ export default function MainBuilding({ floors = 10 }) {
       className="w-[350px] h-[665px] bg-cover bg-center relative"
     >
       {/* 층분할 */}
-      {floorGroups.map((group) => {
-        const { warning, caution, requests } = getGroupCounts(group);
+      {floorGroups && floorGroups.length > 0 && floorGroups.map((group) => {
+      const { warning, caution, requests } = getGroupCounts(group);
 
         return (
           <div

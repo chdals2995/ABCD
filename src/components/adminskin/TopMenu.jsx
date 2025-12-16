@@ -1,4 +1,8 @@
 import { useEffect, useState, useRef } from "react";
+import { getAuth } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { get } from "firebase/database";
+import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
 
@@ -12,10 +16,18 @@ export default function TopMenu() {
   const [requestCount, setRequestCount] = useState(0); // 요청 개수
   const [notification, setNotification] = useState(null); // 알림팝업 데이터
 
+  const [role, setRole] = useState("");
+
   // 이전 카운트 저장용
   const prevAlertCount = useRef(0);
   const prevRequestCount = useRef(0);
   const notificationTimer = useRef(null);
+  
+  // ✅ 초기 로딩 차단용
+  const isInitialAlertLoad = useRef(true);
+  const isInitialRequestLoad = useRef(true);
+
+  const navigate = useNavigate();
 
   const METRIC_LABEL = {
     elec: "전기",
@@ -47,7 +59,8 @@ export default function TopMenu() {
         // caution 상태가 너무 오래 유지되어 warning으로 승격
         return `${metricLabel} 주의에서 오래 지속됨`;
 
-      case "caution_cleared", "downgraded_from_warning":
+      case "caution_cleared": 
+      case "downgraded_from_warning":
       return null; // 메시지 안 띄움
 
       default:
@@ -62,59 +75,106 @@ export default function TopMenu() {
     const requestsRef = ref(rtdb, "requests");
 
     const handleAlerts = (snapshot) => {
-    if (!snapshot.exists()) return;
-
-    let count = 0;
-    let newAlert = null;
-
+    if (!snapshot.exists()) {
+    setAlertCount(0);
+    prevAlertCount.current = 0;
+    isInitialAlertLoad.current = false;
+    return;
+  }
 
     const raw = snapshot.val();
-    Object.values(raw).forEach((byFloor) => {
-      Object.values(byFloor).forEach((byDate) => {
-        Object.values(byDate).forEach((alertItem) => {
-          if (alertItem.level === "warning" || alertItem.level === "caution") {
-            count++;
+    const latestMap = {};
 
-      
-      // 새 알림이 이전 카운트보다 많으면 가장 최근 alert 가져오기
-            if (count > prevAlertCount.current) {
-              newAlert = alertItem;
-              
-            }
-          }
-        });
-      });
+    Object.entries(raw).forEach(([floorKey, byFloor]) => {
+    Object.values(byFloor).forEach((byDate) => {
+    Object.values(byDate).forEach((alertItem) => {
+      const floor = alertItem.floor || floorKey;
+      const metric = alertItem.metric;
+
+      if (!floor || !metric) return;
+
+      const key = `${floor}-${metric}`;
+      const time = Number(alertItem.createdAt) || 0;
+
+      if (
+        !latestMap[key] ||
+        time > Number(latestMap[key].createdAt || 0)
+      ) {
+        latestMap[key] = {
+          ...alertItem,
+          floor, // 보정된 floor
+        };
+      }
     });
+  });
+});
+
+    
+    let count = 0;
+    let newAlert = null;
+    let latestTime = 0;
+
+    Object.values(latestMap).forEach((alertItem) => {
+      const time = Number(alertItem.createdAt) || 0;
+    if (alertItem.level === "warning" || alertItem.level === "caution") {
+      count++;
+    }
+      if (time > latestTime) {
+          latestTime = time;
+          newAlert = alertItem;
+        }
+      });
 
     setAlertCount(count);
 
-    if (newAlert) {
-    const baseMessage = getReasonText(newAlert.reason, newAlert.metric);
-    if (!baseMessage) return;
+    if (
+  !isInitialAlertLoad.current &&
+  count > prevAlertCount.current &&
+  newAlert &&
+  (newAlert.level === "warning" || newAlert.level === "caution")
+) {
+  const baseMessage = getReasonText(newAlert.reason, newAlert.metric);
 
-  setNotification({
-    type: "warning",
-    icon: newAlert.level === "warning" ? warning : alert,    // 아이콘 파일
-    floor: newAlert.floor,
-    room: null,
-    message: baseMessage
-  });
+  if (baseMessage) {
+    setNotification({
+      type: "warning",
+      icon: newAlert.level === "warning" ? warning : alert,
+      floor: newAlert.floor,
+      room: null,
+      message: baseMessage,
+    });
 
   if (notificationTimer.current) clearTimeout(notificationTimer.current);
-  notificationTimer.current = setTimeout(() => setNotification(null), 3000);
-}
+  notificationTimer.current = setTimeout(() => setNotification(null), 5000);
+  } }
     prevAlertCount.current = count;
+    isInitialAlertLoad.current = false;
   };
 
-    const handleRequests = (snapshot) => {
-    const count = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-    setRequestCount(count);
+   const handleRequests = (snapshot) => {
 
-    // 🔥 새 요청이 생겼을 때
-  if (count > prevRequestCount.current) {
+  if (isInitialAlertLoad.current) {
+  prevAlertCount.current = count;
+  isInitialAlertLoad.current = false;
+  return;
+  }
 
-  const [key, newRequest] = Object.entries(snapshot.val()).pop();
+  const raw = snapshot.val();
 
+  // ✅ 완료되지 않은 요청만 필터
+  const activeRequests = Object.values(raw).filter(
+    (req) => req.status !== "완료"
+  );
+
+  const count = activeRequests.length;
+  setRequestCount(count);
+
+  // 🔥 새 요청이 생겼을 때만 알림
+  if (!isInitialRequestLoad.current && count > prevRequestCount.current) {
+    const newRequest = activeRequests
+      .sort((a, b) => Number(a.createdAt) - Number(b.createdAt))
+      .pop();
+      
   setNotification({
     type: "request",
     icon: login,
@@ -123,27 +183,59 @@ export default function TopMenu() {
     message: newRequest.title
   });
 
-  if (notificationTimer.current) clearTimeout(notificationTimer.current);
-  notificationTimer.current = setTimeout(() => setNotification(null), 3000);
-}
+  if (notificationTimer.current) {
+          clearTimeout(notificationTimer.current);
+        }
+
+        notificationTimer.current = setTimeout(
+          () => setNotification(null),
+          3000
+        );
+      }
 
     prevRequestCount.current = count;
+    isInitialRequestLoad.current = false;
   };
 
   const unsubscribeAlerts = onValue(alertsRef, handleAlerts);
     const unsubscribeRequests = onValue(requestsRef, handleRequests);
 
     return () => {
-      // cleanup
       unsubscribeAlerts();
       unsubscribeRequests();
-      if (notificationTimer.current) clearTimeout(notificationTimer.current);
+      if (notificationTimer.current) {
+        clearTimeout(notificationTimer.current);
+      }
     };
   }, []);
+
+    useEffect(() => {
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+
+      const snapshot = await get(ref(rtdb, `users/${user.uid}`));
+      if (snapshot.exists()) {
+        setRole(snapshot.val().role);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+  
+  //마이페이지 이동
+    const goMyPage = () => {
+    if (role === "master") {
+        navigate("/master");
+    } else if (role === "admin") {
+        navigate("/adminpage");
+    }
+    };
     
   return (
     <div>
-      {/* 알림표시 */}
+      {/* 드롭다운알림 */}
       {notification && (
   <div
     className="absolute top-0 left-1/2 -translate-x-1/2 z-50
@@ -177,15 +269,17 @@ export default function TopMenu() {
     </div>
   </div>
 )}
+
+
       {/* TopMenu */}
       <div
         className="TopMenu w-[372px] h-[68px] px-[74px] bg-[#0888D4] 
                 absolute top-0 right-0 flex items-center justify-between "
       >
-        <img src={login} alt="마이페이지" className="w-[48px] h-[48px]" />
+        <img src={login} alt="마이페이지" className="w-[48px] h-[48px] cursor-pointer" onClick={goMyPage}/>
         {/* 문제보기(alerts) */}
         <div className="relative">
-          <img src={alert} alt="문제보기" className="w-[48px] h-[48px]" />
+          <img src={alert} alt="문제보기" className="w-[48px] h-[48px] cursor-pointer" />
           {alertCount > 0 && (
             <div
               className="absolute top-1 -right-2 bg-red-500 rounded-full w-5 h-5 
@@ -197,7 +291,7 @@ export default function TopMenu() {
         </div>
         {/* 요청보기(requests) */}
         <div className="relative">
-          <img src={alarm} alt="알림보기" className="w-[42px] h-[48px]" />
+          <img src={alarm} alt="알림보기" className="w-[42px] h-[48px] cursor-pointer" />
           {requestCount > 0 && (
             <div
               className="absolute top-1 -right-2 bg-red-500 rounded-full w-5 h-5 
