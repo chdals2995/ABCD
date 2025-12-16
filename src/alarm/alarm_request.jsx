@@ -1,10 +1,17 @@
+// AlarmRequest.jsx
 import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../firebase/config";
 
+import CheckForm from "../Check/CheckForm";
+
 export default function AlarmRequest() {
   const [items, setItems] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("전체"); // 🔹 필터 상태
+  const [statusFilter, setStatusFilter] = useState("전체");
+
+  // ✅ 상세 모달용
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [openDetail, setOpenDetail] = useState(false);
 
   useEffect(() => {
     const requestsRef = ref(rtdb, "requests");
@@ -26,83 +33,97 @@ export default function AlarmRequest() {
         createdAt: Number(v.createdAt) || 0,
       }));
 
-      // 🔹 최신순 고정
       list.sort((a, b) => b.createdAt - a.createdAt);
-
       setItems(list);
     });
   }, []);
 
-  // 🔹 상태 필터 적용
   const filtered = items.filter((item) => {
     if (statusFilter === "전체") return true;
     return item.status === statusFilter;
   });
 
   return (
-    <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
-      
-      {/* 🔹 상태 필터 버튼 */}
-      <div className="flex justify-end mb-[10px] gap-[8px] text-[14px]">
-        {["전체", "접수", "처리중", "완료"].map((status) => {
-          const isActive = statusFilter === status;
+    <>
+      <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
+        {/* 상태 필터 */}
+        <div className="flex justify-end mb-[10px] gap-[8px] text-[14px]">
+          {["전체", "접수", "처리중", "완료"].map((status) => {
+            const isActive = statusFilter === status;
 
-          const colorClass = (() => {
-            if (!isActive) return "text-gray-500";
+            const colorClass = (() => {
+              if (!isActive) return "text-gray-500";
+              if (status === "접수") return "text-[#25C310] font-bold";
+              if (status === "처리중") return "text-[#FF3B3B] font-bold";
+              if (status === "완료") return "text-[#367CFF] font-bold";
+              return "text-[#054e76] font-bold";
+            })();
 
-            switch (status) {
-              case "접수":
-                return "text-[#25C310] font-bold";
-              case "처리중":
-                return "text-[#FF3B3B] font-bold";
-              case "완료":
-                return "text-[#367CFF] font-bold";
-              default:
-                return "text-[#054e76] font-bold"; // 전체
-            }
-          })();
+            return (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-2 hover:underline ${colorClass}`}
+              >
+                {status}
+              </button>
+            );
+          })}
+        </div>
 
-          return (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-2 hover:underline ${colorClass}`}
+        {/* 요청 리스트 */}
+        <div className="SCROLL_CONTAINER flex flex-col gap-4">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => {
+                setSelectedRow(item);
+                setOpenDetail(true);
+              }}
+              className="flex justify-between items-center py-2 pb-4 border-b border-gray-300 cursor-pointer"
             >
-              {status}
-            </button>
-          );
-        })}
-      </div>
+              {/* 왼쪽 */}
+              <div className="flex items-center gap-2">
+                {item.status === "접수" && <span className="blink-dot"></span>}
+                <span className="text-[16px] font-medium leading-6">
+                  {item.title || item.content}
+                </span>
+              </div>
 
-
-      {/* 알람 리스트 */}
-      <div className="SCROLL_CONTAINER flex flex-col gap-4">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="flex justify-between items-center py-2 pb-4 border-b border-gray-300"
-          >
-            {/* 왼쪽 */}
-            <div className="flex items-center gap-2">
-              {item.status === "접수" && <span className="blink-dot"></span>}
-              <span className="text-[16px] font-medium leading-6">
-                {item.title || item.content}
+              {/* 오른쪽 상태 */}
+              <span
+                className={`text-[17px] font-semibold
+                  ${item.status === "접수" ? "text-[#25C310]" : ""}
+                  ${item.status === "처리중" ? "text-[#FF3B3B]" : ""}
+                  ${item.status === "완료" ? "text-[#367CFF]" : ""}
+                `}
+              >
+                {item.status}
               </span>
             </div>
-
-            {/* 오른쪽 상태 */}
-            <span
-              className={`text-[17px] font-semibold
-                ${item.status === "접수" ? "text-[#25C310]" : ""}
-                ${item.status === "처리중" ? "text-[#FF3B3B]" : ""}
-                ${item.status === "완료" ? "text-[#367CFF]" : ""}
-              `}
-            >
-              {item.status}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* ✅ 상세 모달 */}
+      {openDetail && selectedRow && (
+        <CheckForm
+          mode="edit"
+          row={{
+            id: selectedRow.id,
+            title: selectedRow.title,
+            content: selectedRow.content,
+            date: "",
+            status: selectedRow.status,
+            checkType: "상시",
+          }}
+          onClose={() => setOpenDetail(false)}
+          onSave={(payload) => {
+            // 여기서는 아직 저장 안 함 (연동 단계에서 처리)
+            console.log("REQUEST DETAIL PAYLOAD", payload);
+          }}
+        />
+      )}
+    </>
   );
 }
