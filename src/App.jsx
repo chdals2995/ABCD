@@ -1,4 +1,4 @@
-import Problems from "./Problems/Problems";
+import Problems from "./problems/problems";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
