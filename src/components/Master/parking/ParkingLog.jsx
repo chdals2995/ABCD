@@ -10,6 +10,12 @@ function extractLastNumber(value) {
   return m ? Number(m[1]) : null;
 }
 
+function getTypeLabel(type) {
+  if (type === "tower") return "주차타워";
+  if (type === "flat") return "주차장";
+  return "-";
+}
+
 export default function ParkingLog() {
   const [log, setLog] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -69,8 +75,13 @@ export default function ParkingLog() {
                   hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
               >
                 {p.name} ({p.id})
-                <div className="text-[14px] text-gray-500">
-                  소속 건물 명: {p.belongsto || "-"}
+                <div className="flex justify-between">
+                  <div className="text-[14px] text-gray-500">
+                    소속 건물 명: {p.belongsto || "-"}
+                  </div>
+                  <div className="text-[14px] text-gray-500">
+                    타입: {getTypeLabel(p.type)}
+                  </div>
                 </div>
               </li>
             ))}

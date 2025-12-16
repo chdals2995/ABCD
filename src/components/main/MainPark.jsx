@@ -13,29 +13,11 @@ function getTypeLabel(type) {
   return "주차";
 }
 
-// ✅ "주차장 12" 같은 이름/lotId에서 마지막 숫자 뽑기
-function extractLastNumber(value) {
-  const s = String(value ?? "");
+// ✅ lotId(PARKING_12)에서 마지막 숫자 뽑기
+function extractLotIdNumber(lotId) {
+  const s = String(lotId ?? "");
   const m = s.match(/(\d+)(?!.*\d)/);
   return m ? Number(m[1]) : null;
-}
-
-function getSortKey(cfg) {
-  // 1) order 필드가 있으면 그걸로 정렬 (DB에 만들어두면 제일 깔끔)
-  const order = Number(cfg?.order);
-  if (Number.isFinite(order)) return { kind: 0, num: order, str: "" };
-
-  // 2) name 마지막 숫자
-  const n1 = extractLastNumber(cfg?.name);
-  if (Number.isFinite(n1)) return { kind: 1, num: n1, str: "" };
-
-  // 3) lotId 마지막 숫자
-  const n2 = extractLastNumber(cfg?.lotId);
-  if (Number.isFinite(n2)) return { kind: 2, num: n2, str: "" };
-
-  // 4) 문자열 fallback
-  const str = String(cfg?.name ?? cfg?.lotId ?? "");
-  return { kind: 3, num: Number.MAX_SAFE_INTEGER, str };
 }
 
 export default function MainPark() {
@@ -59,19 +41,20 @@ export default function MainPark() {
         ...simRaw[key],
       }));
 
-      // ✅ 타입 우선 제거하고, 번호(또는 order) 기준 정렬로 변경
+      // ✅ lotId 기준 정렬 (PARKING_1, PARKING_2 ... 숫자 오름차순)
       configs.sort((a, b) => {
-        const ka = getSortKey(a);
-        const kb = getSortKey(b);
+        const an = extractLotIdNumber(a.lotId);
+        const bn = extractLotIdNumber(b.lotId);
 
-        // kind 먼저 (order -> name숫자 -> lotId숫자 -> 문자열)
-        if (ka.kind !== kb.kind) return ka.kind - kb.kind;
+        // 숫자 둘 다 있으면 숫자 기준
+        if (Number.isFinite(an) && Number.isFinite(bn)) return bn - an;
 
-        // 숫자 비교
-        if (ka.num !== kb.num) return kb.num - ka.num;
+        // 하나만 숫자 있으면 숫자 있는 쪽 우선
+        if (Number.isFinite(an) && !Number.isFinite(bn)) return -1;
+        if (!Number.isFinite(an) && Number.isFinite(bn)) return 1;
 
-        // 문자열 비교
-        return ka.str.localeCompare(kb.str);
+        // 둘 다 숫자 없으면 문자열 정렬
+        return String(a.lotId || "").localeCompare(String(b.lotId || ""));
       });
 
       setLotConfigs(configs);
