@@ -1,5 +1,4 @@
 // src/components/adminpage/MemberList.jsx
-
 import { useEffect, useState } from "react";
 import addIcon from "../../assets/icons/add.png";
 import Modal from "../../assets/Modal";
@@ -21,7 +20,7 @@ import CloseButton from "../../assets/CloseButton";
 
 // 숫자만 받아서 010-1234-5678 형태로 포맷
 function formatPhone(value) {
-  const digits = value.replace(/\D/g, ""); // 숫자만 추출
+  const digits = String(value || "").replace(/\D/g, ""); // 숫자만 추출
 
   if (digits.length <= 3) return digits;
   if (digits.length <= 7) {
@@ -55,8 +54,6 @@ export default function MemberList() {
     role: "none",
   });
 
-  // 🔐 (자동 로그인 로직 제거됨)
-
   // ✅ users 경로에서 실시간으로 읽어오기
   useEffect(() => {
     const usersRef = ref(rtdb, "users");
@@ -68,7 +65,6 @@ export default function MemberList() {
 
         const all = Object.entries(value).map(([uid, u]) => {
           const rawRole = u.role || "none";
-
           const isManager = rawRole === "admin" || rawRole === "master";
 
           const roleLabel =
@@ -196,21 +192,24 @@ export default function MemberList() {
     setIsEditModalOpen(true);
   };
 
+  // ✅ name이 없을 때도 id로 처리 + phone 하이픈 유지
   const handleEditChange = (e) => {
-    const { name, value } = e.target;
+    const { name, id, value } = e.target;
+    const key = name || id; // ✅ 핵심: select에 name 빠져도 작동
 
     let nextValue = value;
-    if (name === "phone") {
-      nextValue = formatPhone(value); // 수정 화면에서도 자동 하이픈
+    if (key === "phone") {
+      nextValue = formatPhone(value);
     }
 
-    setEditForm((prev) => ({ ...prev, [name]: nextValue }));
+    setEditForm((prev) => ({ ...prev, [key]: nextValue }));
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
       const { uid, name, phone, role } = editForm;
+
       if (!uid) {
         alert("잘못된 사용자입니다.");
         return;
@@ -317,7 +316,7 @@ export default function MemberList() {
           onSubmit={handleSubmit}
           className="w-full h-full flex flex-col text-[14px]"
         >
-          <div className="flex itemscenter justify-between px-8 py-4 border-b border-[#054E76]">
+          <div className="flex items-center justify-between px-8 py-4 border-b border-[#054E76]">
             <div className="w-6" />
             <h2 className="flex-1 text-center text-[28px] font-pyeojin">
               회원 등록
@@ -423,16 +422,19 @@ export default function MemberList() {
             </div>
 
             <div className="flex items-center gap-4">
-              <label htmlFor="userId" className="w-[80px] text-right">ID</label>
+              <label htmlFor="userId" className="w-[80px] text-right">
+                ID
+              </label>
               <input
                 id="userId"
+                name="userId"
                 value={editForm.userId}
                 readOnly
                 className="flex-1 h-[40px] bg-[#F4F4F4] px-3 shadow-[0_2px_3px_rgba(0,0,0,0.25)] outline-none"
               />
             </div>
 
-            {/* 비밀번호는 여기선 안 바꾸고, 그냥 가짜 표시만 해 둘 수도 있음 */}
+            {/* 비밀번호는 여기선 안 바꾸고, 그냥 가짜 표시 */}
             <div className="flex items-center gap-4">
               <label className="w-[80px] text-right">비밀번호</label>
               <input
@@ -444,9 +446,12 @@ export default function MemberList() {
             </div>
 
             <div className="flex items-center gap-4">
-              <label htmlFor="role" className="w-[80px] text-right">권한</label>
+              <label htmlFor="role" className="w-[80px] text-right">
+                권한
+              </label>
               <select
                 id="role"
+                name="role" // ✅ 핵심: role 변경 반영
                 value={editForm.role}
                 onChange={handleEditChange}
                 className="flex-1 h-[40px] bg-white px-3 shadow-[0_2px_3px_rgba(0,0,0,0.25)] outline-none"
