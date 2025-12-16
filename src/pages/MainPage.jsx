@@ -57,10 +57,10 @@ export default function MainPage() {
             <div>
                 <ul className="w-[394px] flex justify-between font-pyeojin text-[28px]
                     absolute top-[81px] left-1/2 -translate-x-1/2 cursor-pointer">
-                    <li>전력</li>
-                    <li>온도</li>
-                    <li>수도</li>
-                    <li>가스</li>
+                    <li className="hover:text-[#054E76]">전력</li>
+                    <li className="hover:text-[#054E76]">온도</li>
+                    <li className="hover:text-[#054E76]">수도</li>
+                    <li className="hover:text-[#054E76]">가스</li>
                 </ul>
                 <div className="flex justify-between w-[745px] mx-auto mt-[30px]">
                     <MainBuilding floorGroups={floorGroups}

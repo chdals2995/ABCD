@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
-import { ref, get, onValue } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
 import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
@@ -13,32 +13,90 @@ export default function MainBuilding({ floorGroups, buildingName}) {
   const [requestList, setRequestList] = useState([]);
   const navigate = useNavigate();
 
-  
-useEffect(() => {
-  const fetchAlertsAndRequests = async () => {
-    const alerts = await get(ref(rtdb, "alerts"));
-    const requests = await get(ref(rtdb, "requests"));
+  const today = new Date().toISOString().slice(0, 10);
 
-    if (alerts.exists()) {
-      const list = [];
-      Object.values(alerts.val()).forEach(byFloor =>
-        Object.values(byFloor).forEach(byDate =>
-          Object.values(byDate).forEach(alert => list.push(alert))
-        )
-      );
-      setAlertList(list);
+  useEffect(() => {
+  // -------------------------
+  // alerts (오늘 + 문제만)
+  // -------------------------
+  const alertRef = ref(rtdb, "alerts");
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const unsubscribeAlerts = onValue(alertRef, (snap) => {
+    if (!snap.exists()) {
+      setAlertList([]);
+      return;
     }
 
-    if (requests.exists()) {
-      setRequestList(Object.values(requests.val()));
-    }
-  };
+    const list = [];
 
-  fetchAlertsAndRequests();
+    Object.values(snap.val()).forEach((byFloor) => {
+      Object.values(byFloor).forEach((byDate) => {
+        Object.values(byDate).forEach((alert) => {
+          // ✅ normal 제외
+          if (alert.level === "normal") return;
+
+          // ✅ 오늘만 (timestamp 기준)
+          const time = Number(alert.createdAt);
+          if (
+            time < todayStart.getTime() ||
+            time > todayEnd.getTime()
+          )
+            return;
+
+          list.push(alert);
+        });
+      });
+    });
+
+    setAlertList(list);
+  });
+
+  return () => unsubscribeAlerts();
 }, []);
 
+  // -------------------------
+  // requests (오늘 + 미완료)
+  // -------------------------
+  useEffect(() => {
+  const requestRef = ref(rtdb, "requests");
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const unsubscribeRequests = onValue(requestRef, (snap) => {
+    if (!snap.exists()) {
+      setRequestList([]);
+      return;
+    }
+
+    const list = Object.values(snap.val()).filter((r) => {
+      if (r.status === "완료") return false;
+
+      const time = Number(r.createdAt);
+      return (
+        time >= todayStart.getTime() &&
+        time <= todayEnd.getTime()
+      );
+    });
+
+    setRequestList(list);
+  });
+
+  return () => unsubscribeRequests();
+}, []);
+
+
   // ===============================
-  // 층 파싱
+  // 층 나누기
   // ===============================
   const parseFloor = (str) => {
     if (!str) return null;
