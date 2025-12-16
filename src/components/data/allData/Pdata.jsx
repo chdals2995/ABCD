@@ -125,44 +125,37 @@ function makeTotal(metricKey, period) {
 }
 
 // ✅ 선택된 항목만으로 비율 생성 + remainder로 100 맞춤
-function buildSeries(metricKey, selectedDefs) {
+function buildSeries(metricKey, selectedDefs, period) {
   const cfg = METRIC_MAP[metricKey] ?? METRIC_MAP.gas;
 
-  // 방어: 없으면 기본 items 사용
   let items = selectedDefs?.length ? selectedDefs : cfg.items;
-
-  // 최소 3개 보장(혹시 state 꼬였을 때)
   if (items.length < MIN_SELECTED) items = cfg.items.slice(0, MIN_SELECTED);
 
-  // min/max 정리
   const labels = items.map((it) => it.label);
   const colors = items.map((it) => it.color);
   const mins = items.map((it) => Math.max(0, Number(it.min ?? 0)));
   const maxs = items.map((it, i) => Math.max(mins[i], Number(it.max ?? mins[i])));
 
-  let values = [...mins];
+  // ✅ 1) 우선 min~max 사이로 랜덤 뽑기
+  let values = items.map((_, i) => randInt(mins[i], maxs[i]));
 
-  // min 합이 100을 넘는 비정상 케이스 방어(이럴 땐 min을 완화)
-  const minSum = values.reduce((a, b) => a + b, 0);
-  if (minSum > 100) {
-    const scale = 100 / minSum;
-    values = values.map((m) => Math.floor(m * scale));
+  // ✅ 2) 합이 100 넘으면 “min보다 큰 애들”에서 랜덤으로 1씩 깎기
+  let sum = values.reduce((a, b) => a + b, 0);
+  let excess = sum - 100;
+
+  while (excess > 0) {
+    const reducibles = values
+      .map((v, i) => ({ i, room: v - mins[i] }))
+      .filter((x) => x.room > 0);
+
+    if (reducibles.length === 0) break;
+
+    const pick = reducibles[randInt(0, reducibles.length - 1)];
+    values[pick.i] -= 1;
+    excess -= 1;
   }
 
-  let remaining = 100 - values.reduce((a, b) => a + b, 0);
-  if (remaining < 0) remaining = 0;
-
-  // 랜덤으로 각 항목 max까지 채우기
-  const idxs = [...values.keys()].sort(() => Math.random() - 0.5);
-  while (remaining > 0) {
-    const candidates = idxs.filter((i) => values[i] < maxs[i]);
-    if (candidates.length === 0) break;
-    const pick = candidates[randInt(0, candidates.length - 1)];
-    values[pick] += 1;
-    remaining -= 1;
-  }
-
-  const sum = values.reduce((a, b) => a + b, 0);
+  sum = values.reduce((a, b) => a + b, 0);
   const remainderVal = Math.max(0, 100 - sum);
 
   const series = labels.map((label, i) => ({
@@ -171,7 +164,6 @@ function buildSeries(metricKey, selectedDefs) {
     color: colors[i],
   }));
 
-  // remainder는 “자동”으로 항상 포함 (모달 목록에는 안 넣음)
   series.push({
     label: cfg.remainder.label,
     value: remainderVal,
@@ -261,7 +253,8 @@ const theme = THEME[safeMetricKey] ?? THEME.gas;
   // ✅ 선택/기간/metric 변하면 차트 재생성
   useEffect(() => {
     const selectedDefs = selectedLabels.map((lb) => itemMap.get(lb)).filter(Boolean);
-    const { title: t, series: s } = buildSeries(safeMetricKey, selectedDefs);
+    const { title: t, series: s } = buildSeries(safeMetricKey, selectedDefs, period);
+
     setTitle(t);
     setSeries(s);
     setTotal(makeTotal(safeMetricKey, period));

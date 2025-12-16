@@ -12,7 +12,7 @@ export default function ElecData() {
       {/* 상단 네비 */}
     
       {/* 나머지 영역 전체에 카드들 가운데 배치 */}
-      <div className="flex-1 flex justify-center items-center">
+      <div className="flex-1 flex justify-center items-center mt-[70px]">
         <div className="relative w-[1619px] h-[810px] bg-transparent">
           {/* 위쪽 3개 카드 */}
           <div className="absolute top-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
@@ -25,7 +25,7 @@ export default function ElecData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata metricKey="elec" />
+              <Tdata metricKey="elec" showStatusColor={false}/>
             </div>
           </div>
 

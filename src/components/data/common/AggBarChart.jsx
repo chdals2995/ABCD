@@ -9,30 +9,43 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
+// ✅ metricConfig를 여기서 읽어오게 (경로는 네 프로젝트에 맞게)
+import { metricConfig } from "../../../data/metricConfig";
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-function buildColors(values, thresholds) {
+function buildColors(values, thresholds, palette) {
   const warn = thresholds?.warn ?? Number.POSITIVE_INFINITY;
   const danger = thresholds?.danger ?? Number.POSITIVE_INFINITY;
 
+  // ✅ metricKey별 색(없으면 fallback)
+  const normalColor = palette?.normal ?? palette?.line ?? "#F3D21B";
+  const warnColor = palette?.warn ?? "#E54138";
+  const dangerColor = palette?.danger ?? "#414141";
+
   return values.map((v) => {
-    if (v >= danger) return "#414141";   // 위험
-    if (v >= warn) return "#E54138";     // 주의
-    return "#F3D21B";                   // 정상
+    if (v >= danger) return dangerColor; // 위험
+    if (v >= warn) return warnColor;     // 주의
+    return normalColor;                  // 정상
   });
 }
 
 export default function AggBarChart({
+  metricKey,       // ✅ 추가
   title,
   labels,
-  rows,          // [{key, raw, value}]
+  rows,            // [{key, raw, value}]
   yMin = 0,
   yMax,
   unitLabel = "단위",
   thresholds,
 }) {
   const values = rows.map((r) => Math.floor(Number(r.value) || 0));
-  const colors = buildColors(values, thresholds);
+
+  const cfg = metricKey ? metricConfig[metricKey] : null;
+  const palette = cfg?.chart; // ✅ elec/gas/water/temp chart
+
+  const colors = buildColors(values, thresholds, palette);
 
   const data = {
     labels,
@@ -55,7 +68,6 @@ export default function AggBarChart({
       tooltip: {
         enabled: true,
         callbacks: {
-          // tooltip에 원본(raw)도 같이 보여주고 싶으면 여기서 사용
           afterLabel: (ctx) => {
             const idx = ctx.dataIndex;
             const raw = rows[idx]?.raw ?? 0;

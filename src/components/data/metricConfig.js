@@ -1,60 +1,73 @@
 // src/data/metricConfig.js
-
 export const metricConfig = {
   elec: {
     label: "전력",
     unit: "kWh",
     day: {
       path: "aggDayBuilding",
-      sumField: "elecSum",       // val.elecSum
+      sumField: "elecSum",
       limit: 7,
-      scale: (raw) => Math.round(raw / 10000), // "만" 단위로 쓰는 경우
+      scale: (raw) => raw,
       y: { min: 0, max: 4000 },
-      thresholds: { warn: 2000, danger: 3500 }, // warn 이상=주의, danger 이상=위험
-      suffix: "만", // 테이블에 붙일 단위(원하면 "")
+      thresholds: { warn: 2000, danger: 3500 },
+      suffix: " kWh",
     },
     month: {
       path: "aggMonthBuilding",
       sumField: "elecSum",
       limit: 12,
-      scale: (raw) => Math.round(raw / 10000),
+      scale: (raw) => raw / 10000,
       y: { min: 0, max: 110000 },
       thresholds: { warn: 80000, danger: 90000 },
-      suffix: "만",
+      suffix: "만 kWh",
     },
     realtime: {
       path: "aggMinuteBuilding",
       metricField: "elecAvg",
       minutes: 60,
+      thresholds: { warn: 15, danger: 20 },
+      y: { min: 0, max: 30}
+    },
+    chart: {
+      line: "#28C76F",
+      warn: "#FFC107",
+      danger: "#FF3B30",
     },
   },
 
-  // ⚠️ 아래 3개는 네 RTDB 스키마에 맞게 sumField/metricField만 맞춰주면 됨
   gas: {
     label: "가스",
-    unit: "ℓ/h",
+    unit: "L/h",
     day: {
       path: "aggDayBuilding",
       sumField: "gasSum",
       limit: 7,
-      scale: (raw) => raw, // 가스는 "만" 안 쓰면 그대로
+      scale: (raw) => raw,
       y: { min: 0, max: 1000 },
       thresholds: { warn: 700, danger: 850 },
-      suffix: "",
+      suffix: " L/h",
     },
     month: {
       path: "aggMonthBuilding",
       sumField: "gasSum",
       limit: 12,
-      scale: (raw) => raw,
-      y: { min: 0, max: 30000 },
+      scale: (raw) => (raw / 10000),
+      y: { min: 0, max: 10000 },
       thresholds: { warn: 22000, danger: 26000 },
-      suffix: "",
+      suffix: "만 L/h",
     },
     realtime: {
       path: "aggMinuteBuilding",
       metricField: "gasAvg",
       minutes: 60,
+      y: { min: 0, max: 10},
+      // 필요하면 여기도 thresholds 추가 가능
+      // thresholds: { warn: ??, danger: ?? },
+    },
+    chart: {
+      line: "#6AC254",
+      warn: "#006D31",
+      danger: "#5C3824",
     },
   },
 
@@ -68,21 +81,28 @@ export const metricConfig = {
       scale: (raw) => raw,
       y: { min: 0, max: 1000 },
       thresholds: { warn: 700, danger: 850 },
-      suffix: "",
+      suffix: "m³/h",
     },
     month: {
       path: "aggMonthBuilding",
       sumField: "waterSum",
       limit: 12,
-      scale: (raw) => raw,
+      scale: (raw) => (raw / 10000),
       y: { min: 0, max: 30000 },
       thresholds: { warn: 22000, danger: 26000 },
-      suffix: "",
+      suffix: "만 m³/h",
     },
     realtime: {
       path: "aggMinuteBuilding",
       metricField: "waterAvg",
       minutes: 60,
+      y: { min: 0, max: 10}
+      // thresholds: { warn: ??, danger: ?? },
+    },
+    chart: {
+      line: "#6ED8DE",
+      warn: "#3AB7E9",
+      danger: "#106EC6",
     },
   },
 
@@ -105,12 +125,19 @@ export const metricConfig = {
       scale: (raw) => raw,
       y: { min: 0, max: 50 },
       thresholds: { warn: 30, danger: 35 },
-      suffix: "",
+      suffix: "℃",
     },
     realtime: {
       path: "aggMinuteBuilding",
       metricField: "tempAvg",
       minutes: 60,
+      thresholds: { warn:10 && 30,   danger: 40 },
+      y: { min: 0, max: 40}
+    },
+    chart: {
+      line: "#B6D453",
+      warn: "#F8C931",
+      danger: "#DE3F3F",
     },
   },
 };
