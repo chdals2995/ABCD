@@ -2,24 +2,20 @@ import { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { rtdb } from "../firebase/config";
 
-
 export default function AlarmRequest() {
-  const [items, setItems] = useState([]); // 알람 데이터 저장 상태
-  const [sortOrder, setSortOrder] = useState("latest"); // 정렬 순서 상태
+  const [items, setItems] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("전체"); // 🔹 필터 상태
 
-  // Firebase에서 데이터를 실시간으로 읽어오는 useEffect
   useEffect(() => {
-    const requestsRef = ref(rtdb, "requests"); // Firebase의 'requests' 경로에서 데이터 읽기
+    const requestsRef = ref(rtdb, "requests");
 
-    // Firebase에서 실시간으로 데이터 읽기
     return onValue(requestsRef, (snapshot) => {
-      const data = snapshot.val(); // 데이터 가져오기
+      const data = snapshot.val();
       if (!data) {
-        setItems([]); // 데이터가 없으면 빈 배열로 설정
+        setItems([]);
         return;
       }
 
-      // 데이터를 원하는 형태로 가공
       const list = Object.entries(data).map(([id, v]) => ({
         id,
         title: v.title || "",
@@ -27,59 +23,74 @@ export default function AlarmRequest() {
         status: v.status || "접수",
         floor: v.floor || "",
         room: v.room || "",
-        createdAt: Number(v.createdAt) || 0, // createdAt 값이 없으면 0으로 처리
+        createdAt: Number(v.createdAt) || 0,
       }));
 
-      setItems(list); // 상태에 데이터 저장
-    });
-  }, []); // 빈 배열을 넣어서 컴포넌트 마운트 시 한 번만 실행
+      // 🔹 최신순 고정
+      list.sort((a, b) => b.createdAt - a.createdAt);
 
-  // 정렬 로직 (최신순, 오래된순)
-  const sorted = [...items].sort((a, b) =>
-    sortOrder === "latest" // 최신순
-      ? b.createdAt - a.createdAt
-      : a.createdAt - b.createdAt // 오래된순
-  );
+      setItems(list);
+    });
+  }, []);
+
+  // 🔹 상태 필터 적용
+  const filtered = items.filter((item) => {
+    if (statusFilter === "전체") return true;
+    return item.status === statusFilter;
+  });
 
   return (
     <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
-      {/* 정렬 버튼 */}
-      <div className="flex justify-end mb-[10px] gap-[10px] text-[14px]">
-        <button
-          onClick={() => setSortOrder("latest")}
-          className={`${sortOrder === "latest" ? "font-bold text-[#054e76]" : "text-gray-500"} hover:underline`}
-        >
-          최신순
-        </button>
+      
+      {/* 🔹 상태 필터 버튼 */}
+      <div className="flex justify-end mb-[10px] gap-[8px] text-[14px]">
+        {["전체", "접수", "처리중", "완료"].map((status) => {
+          const isActive = statusFilter === status;
 
-        <span className="text-gray-400">|</span>
+          const colorClass = (() => {
+            if (!isActive) return "text-gray-500";
 
-        <button
-          onClick={() => setSortOrder("old")}
-          className={`${sortOrder === "old" ? "font-bold text-[#054e76]" : "text-gray-500"} hover:underline`}
-        >
-          오래된순
-        </button>
+            switch (status) {
+              case "접수":
+                return "text-[#25C310] font-bold";
+              case "처리중":
+                return "text-[#FF3B3B] font-bold";
+              case "완료":
+                return "text-[#367CFF] font-bold";
+              default:
+                return "text-[#054e76] font-bold"; // 전체
+            }
+          })();
+
+          return (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-2 hover:underline ${colorClass}`}
+            >
+              {status}
+            </button>
+          );
+        })}
       </div>
 
-      {/* 알람 리스트 (SCROLL_CONTAINER 클래스 적용) */}
+
+      {/* 알람 리스트 */}
       <div className="SCROLL_CONTAINER flex flex-col gap-4">
-        {/* 항목들 간 간격을 4로 설정 */}
-        {sorted.map((item) => (
+        {filtered.map((item) => (
           <div
             key={item.id}
             className="flex justify-between items-center py-2 pb-4 border-b border-gray-300"
           >
-            {/* 왼쪽: 제목 및 내용 */}
+            {/* 왼쪽 */}
             <div className="flex items-center gap-2">
-              {/* 빨간 점 애니메이션 */}
               {item.status === "접수" && <span className="blink-dot"></span>}
               <span className="text-[16px] font-medium leading-6">
-                {item.title || item.content} {/* 제목이 없으면 내용 표시 */}
+                {item.title || item.content}
               </span>
             </div>
 
-            {/* 오른쪽: 상태별 색상 */}
+            {/* 오른쪽 상태 */}
             <span
               className={`text-[17px] font-semibold
                 ${item.status === "접수" ? "text-[#25C310]" : ""}
@@ -87,7 +98,7 @@ export default function AlarmRequest() {
                 ${item.status === "완료" ? "text-[#367CFF]" : ""}
               `}
             >
-              {item.status} {/* 상태 값 표시 */}
+              {item.status}
             </span>
           </div>
         ))}
