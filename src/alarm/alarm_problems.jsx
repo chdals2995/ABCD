@@ -181,7 +181,7 @@ export default function AlarmProblems() {
     <>
       <ToastContainer newestOnTop pauseOnHover={false} />
 
-      <div className="w-[335px] h-[770px] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
+      <div className="w-[335px] h-[770px] bg-white px-[15px] py-[10px] mt-1 overflow-hidden">
         <div className="text-[17px] text-gray-400 mb-7 mt-1">
           안 읽은 알림
         </div>

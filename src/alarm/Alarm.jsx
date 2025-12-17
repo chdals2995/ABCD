@@ -83,7 +83,7 @@ export default function Alarm() {
   }, []);
 
   return (
-    <div className="w-full h-full p-6 relative">
+    <div className="w-full h-screen p-6 relative overflow-hidden">
       <ToastContainer newestOnTop pauseOnHover={false} />
       <div
         className="
