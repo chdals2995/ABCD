@@ -8,86 +8,6 @@ import Caution from "../../assets/icons/caution.png";
 import Circle from "../../assets/icons/circle.png";
 
 
-<<<<<<< HEAD
-
-export default function MainBuilding({floors = 10}){
-    const [floorGroups, setFloorGroups] = useState([]);
-    const [buildingName, setBuildingName] = useState("");
-    const [alertList, setAlertList] = useState([]);
-    const [requestList, setRequestList] = useState([]);
-
-  useEffect(() => {
-    const fetchBuilding = async () => {
-      const snapshot = await get(ref(rtdb, "buildings/43c82c19-bf2a-4068-9776-dbb0edaa9cc0"));
-
-
-    const alerts = await get(ref(rtdb, "alerts"));
-    const requests= await get(ref(rtdb, "requests"));
-    
-    if (alerts.exists()) {
-      const raw = alerts.val();
-      const list = [];
-
-      Object.values(raw).forEach((byFloor) => {
-        Object.values(byFloor).forEach((byDate) => {
-          Object.values(byDate).forEach((alertItem) => {
-            list.push(alertItem);
-          });
-        });
-      });
-
-      setAlertList(list);
-    }
-
-    if (requests.exists()) {
-      setRequestList(Object.values(requests.val()));
-    }
-    if (!snapshot.exists()) return;
-
-      const data = snapshot.val();
-
-      const totalFloors = Number(data.floors); // 총 층수 (지상 + 지하)
-      const basement = Number(data.down); // 지하 층수
-      const groundFloors = totalFloors - basement; // 지상층
-
-      setBuildingName(data.name);
-
-      // 🔥 지하 그룹 (하나의 덩어리)
-      const basementGroup =
-        basement > 0
-          ? [
-              {
-                type: "basement",
-                start: 1,
-                end: basement,
-              },
-            ]
-          : [];
-
-      // 🔥 지상층 그룹 10단위로 생성
-      const groundGroupCount = Math.ceil(groundFloors / 10);
-
-      const groundGroups = Array.from(
-        { length: groundGroupCount },
-        (_, i) => ({
-          type: "ground",
-          start: i * 10 + 1,
-          end: Math.min((i + 1) * 10, groundFloors),
-        })
-      );
-
-      // 🔥 화면에서는 위 → 아래 순으로 표시해야 하므로 reverse
-      const finalGroups = [...groundGroups.reverse(), ...basementGroup];
-
-      setFloorGroups(finalGroups);
-
-      // 🔥 requests 저장
-      if (requests.exists()) setRequestList(Object.values(requests.val()));
-    };
-      
-    fetchBuilding();
-  }, []);
-=======
   const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -134,7 +54,6 @@ export default function MainBuilding({floors = 10}){
 
   return () => unsubscribeAlerts();
 }, []);
->>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
 
   // -------------------------
   // requests (오늘 + 미완료)

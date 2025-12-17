@@ -1,9 +1,6 @@
 // src/pages/Floors.jsx
 import { useEffect, useState, useMemo } from "react";
-<<<<<<< HEAD
-=======
 import { useLocation, useNavigate } from "react-router-dom";
->>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
 
 import FloorsElecData from "../components/floors/FloorsElecData";
 import FloorsGasData from "../components/floors/FloorsGasData";
@@ -181,15 +178,12 @@ function buildSelectedFloorLabel(floorName) {
 }
 
 export default function Floors() {
-<<<<<<< HEAD
-=======
   const location = useLocation();
   const navigate = useNavigate();
 
   // 🔹 Main에서 navigate("/floors", { state: { floorTarget } })로 보낸 정보
   const floorTarget = location.state?.floorTarget || null;
 
->>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
   const [groupIndex, setGroupIndex] = useState(0);
   const [floorGroups, setFloorGroups] = useState([]);
   const [allFloors, setAllFloors] = useState([]); // 🔸 전체 층 리스트 (그래프용)
@@ -259,9 +253,6 @@ export default function Floors() {
     };
   }, []);
 
-<<<<<<< HEAD
-  // 🔹 floorGroups가 준비되면 "1F가 포함된 그룹"을 초기 그룹으로 선택
-=======
   // ✅ (선택) 페이지 들어오면 주차장 첫 lotId 미리 로드
   useEffect(() => {
     let isMounted = true;
@@ -312,7 +303,6 @@ export default function Floors() {
   // 🔹 floorGroups가 준비되면
   //    1순위: Main에서 넘어온 floorTarget에 맞는 그룹으로 이동
   //    2순위: 기존처럼 1F가 포함된 그룹으로 이동
->>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
   useEffect(() => {
     if (!floorGroups.length) return;
 
@@ -589,15 +579,10 @@ export default function Floors() {
 
       {/* 🔸 전체 층 그래프 모달 */}
       {largeChart && (
-<<<<<<< HEAD
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-          {/* 카드 영역 안은 클릭해도 선택 안 풀리게 */}
-=======
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"
           onClick={closeLargeChart}
         >
->>>>>>> 63f49d55d9f45815223007293574a8ec0f919564
           <div
             className="relative bg-white rounded-[18px] shadow-lg w-[1100px] max-w-[95vw] h-[650px] max-h-[90vh] px-6 py-5 flex flex-col"
             onClick={(e) => e.stopPropagation()}
