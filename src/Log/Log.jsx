@@ -15,14 +15,18 @@ export default function Log() {
       {/* 상단 탭 */}
       <div className="flex justify-center gap-6 mb-6 text-[36px] font-bold ">
         <button
-          className={tab === "alarm" ? "text-[#054E76]" : "text-gray-400 cursor-pointer" }
+          className={`cursor-pointer ${
+            tab === "alarm" ? "text-[#054E76]" : "text-gray-400"
+          }`}
           onClick={() => setTab("alarm")}
         >
           알림기록
         </button>
 
         <button
-          className={tab === "check" ? "text-[#054E76]" : "text-gray-400 cursor-pointer"}
+          className={`cursor-pointer ${
+            tab === "check" ? "text-[#054E76]" : "text-gray-400"
+          }`}
           onClick={() => setTab("check")}
         >
           점검기록

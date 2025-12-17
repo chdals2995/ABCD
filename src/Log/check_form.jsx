@@ -60,7 +60,7 @@ export default function CheckForm({
     }
 
     const payload = {
-      id: row?.id || null,
+      id: row?.id ?? null,
       title: editTitle,
       content,
       date: checkDate,
@@ -193,3 +193,4 @@ export default function CheckForm({
     </div>
   );
 }
+  
