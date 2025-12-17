@@ -18,17 +18,3 @@
   appearance: textfield;
 }
 
-/* 이미지 드래그 방지 */
-img {
-  -webkit-user-drag: none;
-  user-drag: none;
-}
-
-/* 입력 요소는 선택 가능 */
-input,
-textarea,
-select {
-  -webkit-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}

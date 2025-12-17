@@ -10,7 +10,6 @@ import {
 
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
-import AuthStatus from "./components/Login/contexts/AuthStatus";
 import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 
@@ -18,14 +17,13 @@ import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
-// import Data from "./pages/Data";
-// import Problems from "./pages/Problems";
+import UserMain from "./pages/UserMain";
+
+import Alarm from "./alarm/Alarm";
 
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { rtdb, auth } from "./firebase/config";
-
-import Alarm from "./alarm/Alarm";
 
 /* =========================
    role별 기본 홈
@@ -62,15 +60,17 @@ function RequireRole({ allowRoles, children }) {
 
       try {
         const snap = await get(ref(rtdb, `users/${user.uid}`));
-        const r = snap.exists() ? snap.val()?.role ?? null : null;
         if (!alive) return;
+
+        const r = snap.exists() ? snap.val()?.role ?? null : null;
         setRole(r);
       } catch (e) {
         console.error("RequireRole: role load failed:", e);
         if (!alive) return;
         setRole(null);
-      } finally {
-        if (!alive) return;
+      }
+
+      if (alive) {
         setLoading(false);
       }
     });
@@ -117,7 +117,7 @@ export default function App() {
             path="/UserMain"
             element={
               <RequireRole allowRoles={["user"]}>
-                <AuthStatus />
+                <UserMain />
               </RequireRole>
             }
           />
@@ -186,27 +186,6 @@ export default function App() {
               </RequireRole>
             }
           />
-
-          
-          {/*
-          <Route
-            path="/data/*"
-            element={
-              <RequireRole allowRoles={["admin", "master"]}>
-                <Data />
-              </RequireRole>
-            }
-          />
-
-          <Route
-            path="/problems"
-            element={
-              <RequireRole allowRoles={["admin", "master"]}>
-                <Problems />
-              </RequireRole>
-            }
-          />
-          */}
 
           {/* fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
