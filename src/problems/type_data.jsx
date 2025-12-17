@@ -12,7 +12,6 @@ export default function TypeData({ data, selectedMetric }) {
     가스: "#52b7ff",
   };
 
-  // 데이터 필터링
   const filteredData = {
     전력: selectedMetric === "전력" ? data.전력 : 30,
     온도: selectedMetric === "온도" ? data.온도 : 60,
@@ -32,14 +31,25 @@ export default function TypeData({ data, selectedMetric }) {
     ],
   };
 
+  // 범례 글씨 크기 조절
+  const options = {
+    plugins: {
+      legend: {
+        labels: {
+          font: {
+            size: 18,
+            weight: "bold",
+          },
+          padding: 20,
+        },
+      },
+    },
+  };
+
   return (
-    <div className=
-        "w-full flex mt-12 select-none ">
-      {/* ============================
-          파이 차트
-      ============================ */}
-      <div className="w-[400px] h-[400px] ml-[-70px]">
-        <Pie data={chartData} />
+    <div className="w-full flex mt-12 select-none">
+      <div className="w-[480px] h-[480px] mt-[-20px]  ml-[-30px]">
+        <Pie data={chartData} options={options} />
       </div>
     </div>
   );

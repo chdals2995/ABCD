@@ -1,12 +1,9 @@
-// Report.jsx
-import { useState } from "react";
-import { ref, push } from "firebase/database";
-import { rtdb, storage } from "../firebase/config";
-import {
-  uploadBytes,
-  getDownloadURL,
-  ref as storageRef,
-} from "firebase/storage";
+// src/problems/Report.jsx
+import { useState, useMemo, useRef } from "react";
+import { ref, push, set } from "firebase/database";
+import { rtdb, storage } from "../firebase/config.js";
+import { uploadBytes, getDownloadURL, ref as storageRef } from "firebase/storage";
+
 import { toast } from "react-toastify";
 
 // 아이콘
@@ -25,26 +22,47 @@ export default function Report({ onClose }) {
   const [floor, setFloor] = useState("");
   const [content, setContent] = useState("");
   const [files, setFiles] = useState([]);
-  const [date, setDate] = useState(today);
+  const [problemDate, setProblemDate] = useState(today); // ✅ 필드명 통일
+  const [saving, setSaving] = useState(false);
 
-  const floorOptions = Array.from({ length: 35 }, (_, i) => i + 1);
+  const fileInputRef = useRef(null);
+
+  /* =========================
+     층수 계산
+  ========================= */
+  const maxFloor = useMemo(() => {
+    if (buildingType === "본관") return 20;
+    if (buildingType === "주차타워") return 35;
+    return 35;
+  }, [buildingType]);
+
+  const floorOptions = useMemo(() => {
+    return Array.from({ length: maxFloor }, (_, i) => i + 1);
+  }, [maxFloor]);
 
   const handleFileChange = (e) => {
-    setFiles(Array.from(e.target.files));
+    setFiles(Array.from(e.target.files || []));
   };
 
   /* =========================
      Firebase 저장
   ========================= */
   const saveProblem = async () => {
-    if (!type || !buildingType || !floor || !content || !date) {
-      toast.error("입력되지 않은 값이 있습니다.");
+    if (saving) return;
+
+    if (!type || !buildingType || !floor || !content.trim() || !problemDate) {
+      toast.error("입력되지 않은 값이 있습니다.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
       return;
     }
 
     try {
-      const uploadedUrls = [];
+      setSaving(true);
 
+      /* 파일 업로드 */
+      const uploadedUrls = [];
       for (const file of files) {
         const fileRef = storageRef(
           storage,
@@ -55,25 +73,40 @@ export default function Report({ onClose }) {
         uploadedUrls.push(url);
       }
 
-      const problemData = {
+      /* 데이터 */
+      const problemDataBase = {
         type,
         buildingType,
         floor,
         location: `${buildingType} ${floor}`,
-        content,
-        date,
+        content: content.trim(),
+
+        // ✅ ProblemsLog에서 사용하는 날짜
+        problemDate,
+
         images: uploadedUrls,
         createdAt: Date.now(),
         status: "미완료",
       };
 
-      await push(ref(rtdb, `problems/${type}`), problemData);
+      const listRef = ref(rtdb, `problems/${type}`);
+      const newRef = push(listRef);
+      await set(newRef, { ...problemDataBase, id: newRef.key });
 
-      toast.success("문제가 저장되었습니다.");
-      onClose();
+      toast.success("문제가 저장되었습니다.", {
+        position: "top-center",
+        autoClose: 1500,
+      });
+
+      onClose?.();
     } catch (err) {
       console.error(err);
-      toast.error("저장 중 오류가 발생했습니다.");
+      toast.error("저장 중 오류가 발생했습니다.", {
+        position: "top-center",
+        autoClose: 4000,
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -105,8 +138,8 @@ export default function Report({ onClose }) {
             <span className="font-medium mr-2">날짜:</span>
             <input
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={problemDate}
+              onChange={(e) => setProblemDate(e.target.value)}
               className="px-2 py-1 text-[15px] border-0 outline-none bg-transparent"
             />
           </div>
@@ -140,7 +173,6 @@ export default function Report({ onClose }) {
               <label className="mb-1 text-[15px] font-medium">장소</label>
 
               <div className="flex gap-2">
-                {/* 건물 */}
                 <div className="relative w-[140px]">
                   <select
                     value={buildingType}
@@ -151,8 +183,8 @@ export default function Report({ onClose }) {
                     className="w-full border border-black px-3 py-1.5 pr-8 rounded text-[15px] appearance-none outline-none bg-transparent"
                   >
                     <option value="">선택</option>
-                    <option value="본관">건물</option>
-                    <option value="주차타워">주차타워건물</option>
+                    <option value="본관">본관</option>
+                    <option value="주차타워">주차타워</option>
                   </select>
                   <img
                     src={FilterIcon}
@@ -160,7 +192,6 @@ export default function Report({ onClose }) {
                   />
                 </div>
 
-                {/* 층 */}
                 <div className="relative w-[100px]">
                   <select
                     value={floor}
@@ -188,7 +219,7 @@ export default function Report({ onClose }) {
             <label className="font-medium mr-2">첨부파일 :</label>
 
             <input
-              id="report-file-input"
+              ref={fileInputRef}
               type="file"
               multiple
               onChange={handleFileChange}
@@ -205,9 +236,7 @@ export default function Report({ onClose }) {
               <img
                 src={AttachIcon}
                 className="w-[16px] h-[16px] cursor-pointer"
-                onClick={() =>
-                  document.querySelector("#report-file-input").click()
-                }
+                onClick={() => fileInputRef.current?.click()}
               />
             </div>
           </div>
@@ -223,9 +252,10 @@ export default function Report({ onClose }) {
             />
           </div>
 
-          {/* 저장 */}
           <div className="flex justify-center">
-            <Button onClick={saveProblem}>저장</Button>
+            <Button onClick={saveProblem}>
+              {saving ? "저장중..." : "저장"}
+            </Button>
           </div>
         </div>
       </div>
