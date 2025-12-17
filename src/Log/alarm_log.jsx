@@ -26,6 +26,17 @@ function generateUserCode(length = 8) {
 }
 
 import "./datepicker_override.css";
+
+/* ================= userCode 유틸 ================= */
+function generateUserCode(length = 8) {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
 /* ================= 상태 컬러 ================= */
 const STATUS_COLOR = {
   접수: "text-[#25C310]",
@@ -314,7 +325,7 @@ export default function AlarmLog() {
             absolute left-1/2 top-1/2
             -translate-x-1/2 -translate-y-1/2
             flex items-center gap-3 text-[18px]
-            pointer-events-auto
+            pointer-events-auto 
           "
         >
           <button className="cursor-pointer" onClick={() => setPage(1)}>
