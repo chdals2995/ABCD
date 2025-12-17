@@ -25,21 +25,20 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { rtdb, auth } from "./firebase/config";
 
-import Alarm from './alarm/Alarm';
+import Alarm from "./alarm/Alarm";
 
-// ✅ role별 "기본 홈" (권한 없을 때 튕길 목적지)
+/* =========================
+   role별 기본 홈
+========================= */
 function homeByRole(role) {
   if (role === "master" || role === "admin") return "/main";
   if (role === "user") return "/UserMain";
   return "/";
 }
 
-/**
- * ✅ 역할(ROLE) 기반 라우트 가드
- * - allowRoles: 허용 role 배열 (예: ["admin","master"])
- * - 로그인 안 됨 -> "/"로
- * - 권한 없음 -> role에 맞는 홈으로(/main or /UserMain)
- */
+/* =========================
+   ROLE 가드
+========================= */
 function RequireRole({ allowRoles, children }) {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
@@ -90,12 +89,10 @@ function RequireRole({ allowRoles, children }) {
     );
   }
 
-  // 로그인 안 했으면 로그인 페이지로
   if (!loggedIn) {
     return <Navigate to="/" replace state={{ from: location.pathname }} />;
   }
 
-  // 로그인 했는데 role이 없거나 허용 role이 아니면 -> role 홈으로
   if (!allowRoles.includes(role)) {
     return <Navigate to={homeByRole(role)} replace />;
   }
@@ -103,117 +100,118 @@ function RequireRole({ allowRoles, children }) {
   return children;
 }
 
+/* =========================
+   App
+========================= */
 export default function App() {
   return (
-    <>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* ✅ 공개 */}
-            <Route path="/" element={<Login />} />
-            <Route path="/Join" element={<Join />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* 공개 */}
+          <Route path="/" element={<Login />} />
+          <Route path="/Join" element={<Join />} />
 
-            {/* ✅ user 전용 */}
-            <Route
-              path="/UserMain"
-              element={
-                <RequireRole allowRoles={["user"]}>
-                  <AuthStatus />
-                </RequireRole>
-              }
-            />
+          {/* user */}
+          <Route
+            path="/UserMain"
+            element={
+              <RequireRole allowRoles={["user"]}>
+                <AuthStatus />
+              </RequireRole>
+            }
+          />
 
-            {/* ✅ admin/master 전용 (메인도 잠금) */}
-            <Route
-              path="/main"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <MainPage />
-                </RequireRole>
-              }
-            />
+          {/* admin / master */}
+          <Route
+            path="/main"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <MainPage />
+              </RequireRole>
+            }
+          />
 
-            {/* ✅ master 전용 */}
-            <Route
-              path="/master"
-              element={
-                <RequireRole allowRoles={["master"]}>
-                  <Master />
-                </RequireRole>
-              }
-            />
+          {/* 알람 */}
+          <Route
+            path="/alarm"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <Alarm />
+              </RequireRole>
+            }
+          />
 
-            {/* ✅ admin/master만 접근 가능 */}
-            <Route
-              path="/floors"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <Floors />
-                </RequireRole>
-              }
-            />
+          <Route
+            path="/floors"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <Floors />
+              </RequireRole>
+            }
+          />
 
-            {/* ✅ 경로 대소문자/메뉴 네비 꼬임 방지용: AdminPage, adminpage 둘 다 받기 */}
-            <Route
-              path="/AdminPage"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <AdminPage />
-                </RequireRole>
-              }
-            />
-            <Route
-              path="/adminpage"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <AdminPage />
-                </RequireRole>
-              }
-            />
+          <Route
+            path="/AdminPage"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <AdminPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/adminpage"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <AdminPage />
+              </RequireRole>
+            }
+          />
 
-            <Route
-              path="/parking/:lotId"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <ParkingStatus />
-                </RequireRole>
-              }
-            />
+          <Route
+            path="/parking/:lotId"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <ParkingStatus />
+              </RequireRole>
+            }
+          />
 
-            {/*
-            <Route
-              path="/data/*"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <Data />
-                </RequireRole>
-              }
-              />
+          {/* master only */}
+          <Route
+            path="/master"
+            element={
+              <RequireRole allowRoles={["master"]}>
+                <Master />
+              </RequireRole>
+            }
+          />
 
-              {/* ✅ admin/master 전용 - 알람 */}
-              <Route
-                path="/alarm"
-                element={
-                  <RequireRole allowRoles={["admin", "master"]}>
-                    <Alarm />
-                  </RequireRole>
-                }
-            />
-            {/* <Route
-              path="/problems"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <Problems />
-                </RequireRole>
-              }
-            />
-            } */}
+          
+          {/*
+          <Route
+            path="/data/*"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <Data />
+              </RequireRole>
+            }
+          />
 
-            {/* ✅ 없는 경로는 로그인으로 */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </>
+          <Route
+            path="/problems"
+            element={
+              <RequireRole allowRoles={["admin", "master"]}>
+                <Problems />
+              </RequireRole>
+            }
+          />
+          */}
+
+          {/* fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

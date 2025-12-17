@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config";
-import { useNavigate } from "react-router-dom";
 
 // toast
 import { ToastContainer, toast } from "react-toastify";
@@ -76,7 +75,7 @@ function getReasonText(reason, metric, level) {
 }
 
 /* =========================
-   토스트 (닫기 버튼으로만 종료)
+   토스트
 ========================= */
 function showDetailToast(item) {
   const icon = item.level === "warning" ? warningIcon : cautionIcon;
@@ -115,7 +114,6 @@ function showDetailToast(item) {
 }
 
 export default function AlarmProblems() {
-  const navigate = useNavigate();
   const [items, setItems] = useState([]);
 
   /* =========================
@@ -164,22 +162,15 @@ export default function AlarmProblems() {
     update(ref(rtdb, `alerts/${item.floor}/${item.dateKey}/${item.id}`), {
       check: true,
     });
-    showDetailToast(item);
 
-    // 문제 페이지 연동은 유지 (UI 없이)
-    navigate("/problems", {
-      state: {
-        from: "alarm",
-        problemId: item.id,
-      },
-    });
+    showDetailToast(item);
   };
 
   return (
     <>
+      {/* 🔔 토스트 컨테이너 */}
       <ToastContainer newestOnTop pauseOnHover={false} />
 
-      {/* ===== 알람 패널 (알림 리스트만) ===== */}
       <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
         <div className="text-[17px] text-gray-400 mb-7 mt-1">
           안 읽은 알림

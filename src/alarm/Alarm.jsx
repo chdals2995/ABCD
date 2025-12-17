@@ -6,6 +6,10 @@ import AdminLayout from "../layout/AdminLayout.jsx";
 import { rtdb } from "../firebase/config";
 import { ref, onValue } from "firebase/database";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 import "./alarm_effects.css";
 
 export default function Alarm() {
@@ -81,7 +85,7 @@ export default function Alarm() {
 
   return (
     <div className="w-full h-full p-6 relative">
-
+      <ToastContainer newestOnTop pauseOnHover={false} />
       <div
         className="
           absolute right-0 top-[68px]
