@@ -85,7 +85,7 @@ export default function Alarm() {
       <div
         className="
           absolute right-0 top-[68px]
-          w-[372px] h-[full]
+          w-[372px] h-full
           bg-[#E6EEF2] pt-[20px]
           border-[1px] border-[#054E76] overflow-hidden
         "
