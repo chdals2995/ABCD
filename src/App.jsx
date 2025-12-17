@@ -220,6 +220,18 @@ export default function App() {
                 </RequireRole>
               }
             /> */}
+
+            <Route
+              path="/log"
+              element={
+                <RequireRole allowRoles={["admin", "master"]}>
+                  <Log />
+                </RequireRole>
+              }
+            />
+
+
+
           
 
             {/* ✅ 없는 경로는 로그인으로 */}
