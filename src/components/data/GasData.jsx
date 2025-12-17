@@ -25,6 +25,9 @@ export default function GasData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
+             <div className="mb-1 absolute top-[20px] left-[10px]">
+              <h2 className="font-semibold text-base">(건물)가스 사용량 그래프</h2>
+             </div>
               <Sdata metricKey="gas"/>
             </div>
           </div>

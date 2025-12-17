@@ -16,6 +16,9 @@ export default function TempData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
+              <h2 className="font-semibold text-base mt-[20px] ml-[10px]">
+               (건물) 실시간 온도 그래프
+              </h2>
               <Tdata metricKey="temp" showStatusColor={false} />
             </div>
           </div>
@@ -24,13 +27,19 @@ export default function TempData() {
           <div className="absolute bottom-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
 
           <div className="relative w-[529px] h-[390px] bg-white mt-[3px]">
-              {/* ✅ 추가: 월별 미리보기(좌측하단) */}
-              <Sdata metricKey="temp" preview="month" showButtons={false} /> {/* ✅ 하단: 월별 미리보기 + 버튼 제거 */}
+            <div className="mb-1 absolute top-[20px] left-[10px]">
+              <h2 className="font-semibold text-base">(건물)일별 평균 온도 그래프</h2>
+            </div>
+            {/* ✅ 기존: 일별 미리보기 */}
+              <Sdata metricKey="temp" preview="day" showButtons={false} />   {/* ✅ 상단: 일별 미리보기 + 버튼 제거 */}
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white mt-[3px] ml-[8px]">
-              {/* ✅ 기존: 일별 미리보기 */}
-              <Sdata metricKey="temp" preview="day" showButtons={false} />   {/* ✅ 상단: 일별 미리보기 + 버튼 제거 */}
+              <div className="mb-1 absolute top-[20px] left-[10px]">
+               <h2 className="font-semibold text-base">(건물)월별 평균 온도 그래프</h2>
+              </div>
+              {/* ✅ 추가: 월별 미리보기(좌측하단) */}
+              <Sdata metricKey="temp" preview="month" showButtons={false} /> {/* ✅ 하단: 월별 미리보기 + 버튼 제거 */}
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px] mt-[3px]">

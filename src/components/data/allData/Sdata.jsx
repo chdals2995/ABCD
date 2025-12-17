@@ -76,10 +76,7 @@ export default function Sdata({
 
   return (
     <div className="relative flex h-full w-full flex-col text-sm p-10">
-      <div className="mb-1 absolute top-[20px] left-[10px]">
-        <h2 className="font-semibold text-base">(건물){cfg.label} 사용량 그래프</h2>
-      </div>
-
+      
       {/* ✅ 버튼은 옵션으로 숨길 수 있게 */}
       {showButtons && (
         <div className="space-x-2 absolute top-[20px] right-[10px]">

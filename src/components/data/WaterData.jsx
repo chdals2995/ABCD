@@ -20,10 +20,16 @@ export default function WaterData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">
+              <h2 className="font-semibold text-base mt-[20px] ml-[10px]">
+               (건물) 실시간 수도 사용량 그래프
+              </h2>
               <Tdata metricKey="water" showStatusColor={false}/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
+             <div className="mb-1 absolute top-[20px] left-[10px]">
+               <h2 className="font-semibold text-base">(건물)수도 사용량 그래프</h2>
+             </div>
               <Sdata metricKey="water"/>
             </div>
           </div>

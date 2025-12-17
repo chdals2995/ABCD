@@ -137,9 +137,6 @@ const finalYMax = (yMax !== undefined ? yMax : (rt.y?.max ?? 30)); // fallback�
   
   return (
     <div className="w-full">
-    <h2 className="font-semibold text-base mt-[20px] ml-[10px]">
-      (건물) {cfg.label} 실시간 사용량 그래프
-    </h2>
 
     {/* ✅ 범례 */}
     <div className="absolute top-[70px] left-[20px] text-xs">
