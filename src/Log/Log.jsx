@@ -2,7 +2,8 @@
 import { useState } from "react";
 import AlarmLog from "../Log/alarm_log.jsx"
 import AdminLayout from "../layout/AdminLayout.jsx";
-import CheckLog from "../Log/check_log.jsx"; 
+import CheckLog from "./check_log.jsx"; 
+import Response from "./Response.jsx";
 
 export default function Log() {
  

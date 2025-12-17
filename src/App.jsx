@@ -19,9 +19,12 @@ import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
-import UserMain from "./pages/UserMain"
-// import Data from "./pages/Data";
-// import Problems from "./pages/Problems";
+import Data from "./pages/Data";
+
+
+import Log from "./Log/Log";
+
+import { AuthProvider } from "./components/Login/contexts/AuthContext";
 
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
