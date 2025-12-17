@@ -3,18 +3,41 @@ import { rtdb } from "../../../firebase/config";
 import { ref, set } from "firebase/database";
 import Button from "../../../assets/Button";
 
+function toNonNegativeIntString(value) {
+  if (value === "") return "";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0";
+  return String(Math.max(0, Math.trunc(n)));
+}
+
+function toPositiveIntString(value) {
+  if (value === "") return "";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "1";
+  return String(Math.max(1, Math.trunc(n)));
+}
+
 export default function Building() {
   const [form, setForm] = useState({
     name: "",
     down: "",
     floors: "",
-    park: "no", // 주차타워: yes / no
-    parkf: "",
   });
 
   // 입력 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // ✅ 숫자 마이너스 방지 + 정수 처리
+    if (name === "floors") {
+      setForm((prev) => ({ ...prev, floors: toPositiveIntString(value) }));
+      return;
+    }
+    if (name === "down") {
+      setForm((prev) => ({ ...prev, down: toNonNegativeIntString(value) }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -28,7 +51,9 @@ export default function Building() {
     try {
       const id = crypto.randomUUID(); // 랜덤 ID
       await set(ref(rtdb, `buildings/${id}`), {
-        ...form,
+        name: form.name,
+        floors: Number(form.floors),
+        down: form.down === "" ? 0 : Number(form.down),
         createdAt: Date.now(),
       });
 
@@ -38,8 +63,6 @@ export default function Building() {
         name: "",
         down: "",
         floors: "",
-        park: "no",
-        parkf: "",
       });
     } catch (error) {
       console.error("건물 등록 실패:", error);
@@ -63,6 +86,7 @@ export default function Building() {
               className="h-[30px]"
             />
           </div>
+
           <div className="flex justify-between w-[342px]">
             <label htmlFor="floors" className="text-[20px] mb-[10px]">
               전체 층수
@@ -72,8 +96,11 @@ export default function Building() {
               name="floors"
               value={form.floors}
               onChange={handleChange}
+              min={1}
+              step={1}
             />
           </div>
+
           <div className="w-[100px]">
             <label htmlFor="down" className="text-[20px] mb-[10px]">
               지하
@@ -83,45 +110,14 @@ export default function Building() {
               name="down"
               value={form.down}
               onChange={handleChange}
+              min={0}
+              step={1}
               className="w-[60px]"
             />
           </div>
-          <div className="flex justify-between w-[342px]">
-            <label htmlFor="park" className="text-[20px] mb-[10px]">
-              주차타워
-            </label>
-            <input
-              type="radio"
-              name="park"
-              value="yes"
-              checked={form.park === "yes"}
-              onChange={handleChange}
-            />
-            유
-            <input
-              type="radio"
-              name="park"
-              value="no"
-              checked={form.park === "no"}
-              onChange={handleChange}
-            />
-            무
-          </div>
-          {form.park === "yes" && (
-            <div className="flex justify-between w-[342px]">
-              <label htmlFor="parkf" className="text-[20px] mb-[10px]">
-                층수
-              </label>
-              <input
-                type="number"
-                name="parkf"
-                value={form.parkf}
-                onChange={handleChange}
-              />
-            </div>
-          )}
         </div>
       </div>
+
       <div className="w-[79px] mx-auto mt-[29px]">
         <Button onClick={Save}>등록</Button>
       </div>
