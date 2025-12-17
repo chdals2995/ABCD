@@ -27,6 +27,8 @@ import questionIcon from "../assets/icons/iconQuestion.png"; // 파란 원
 import { rtdb } from "../firebase/config";
 import { ref, get } from "firebase/database";
 
+const BUILDING_ID = "43c82c19-bf2a-4068-9776-dbb0edaa9cc0";
+
 // ✅ 주차장 lotId 찾을 경로 후보(프로젝트 DB에 맞게 필요하면 수정)
 const PARKING_PATH_CANDIDATES = ["parkingLots", "parkingRealtime", "parking"];
 
@@ -181,7 +183,7 @@ export default function Floors() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 🔹 Main에서 navigate("/floors", { state: { floorTarget } })로 보낸 정보
+  // 🔹 Menu에서 navigate("/floors", { state: { floorTarget } })로 보낸 정보
   const floorTarget = location.state?.floorTarget || null;
 
   const [groupIndex, setGroupIndex] = useState(0);
@@ -197,13 +199,13 @@ export default function Floors() {
   const [firstLotId, setFirstLotId] = useState(null);
   const [parkingLoading, setParkingLoading] = useState(false);
 
-  // 🔹 RTDB buildings에서 up/down 읽어서 그룹 + 전체 층 리스트 생성
+  // ✅ RTDB buildings에서 "항상 이 BUILDING_ID"의 up/down 읽어서 그룹 + 전체 층 리스트 생성
   useEffect(() => {
     let isMounted = true;
 
     async function loadBuildingFloors() {
       try {
-        const snap = await get(ref(rtdb, "buildings"));
+        const snap = await get(ref(rtdb, `buildings/${BUILDING_ID}`));
         if (!snap.exists()) {
           if (!isMounted) return;
           const fallbackGroups = buildFloorGroups(20, 0);
@@ -213,22 +215,13 @@ export default function Floors() {
           return;
         }
 
-        const data = snap.val() || {};
-        const ids = Object.keys(data);
-        if (!ids.length) {
-          if (!isMounted) return;
-          const fallbackGroups = buildFloorGroups(20, 0);
-          const fallbackAll = buildAllFloors(20, 0);
-          setFloorGroups(fallbackGroups);
-          setAllFloors(fallbackAll);
-          return;
-        }
+        const building = snap.val() || {};
 
-        // 일단 첫 번째 건물 기준
-        const firstId = ids[0];
-        const building = data[firstId] || {};
-        const up = Number(building.up || building.floors || 0);
-        const down = Number(building.down || 0);
+        const down = Number(building.down) || 0;
+        const up =
+          building.up != null
+            ? Number(building.up) || 0
+            : Math.max(0, (Number(building.floors) || 0) - down);
 
         const groups = buildFloorGroups(up, down);
         const all = buildAllFloors(up, down);
@@ -301,7 +294,7 @@ export default function Floors() {
   };
 
   // 🔹 floorGroups가 준비되면
-  //    1순위: Main에서 넘어온 floorTarget에 맞는 그룹으로 이동
+  //    1순위: Menu에서 넘어온 floorTarget에 맞는 그룹으로 이동
   //    2순위: 기존처럼 1F가 포함된 그룹으로 이동
   useEffect(() => {
     if (!floorGroups.length) return;
