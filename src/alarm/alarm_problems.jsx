@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config";
+import { useNavigate } from "react-router-dom";
 
 // toast
 import { ToastContainer, toast } from "react-toastify";
@@ -39,10 +40,9 @@ const METRIC_NORMALIZE = {
 function formatTime(ts) {
   if (!ts) return "";
   const d = new Date(ts);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes()
+  ).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
 }
 
 /* =========================
@@ -72,7 +72,6 @@ function getReasonText(reason, metric, level) {
   if (map[reason]) return `${m} ${map[reason]}`;
   if (level === "warning") return `${m} 정상 범위 초과 상태가 감지되었습니다.`;
   if (level === "caution") return `${m} 이상 상태가 감지되었습니다.`;
-
   return `${m} 상태 변화가 감지되었습니다.`;
 }
 
@@ -115,9 +114,14 @@ function showDetailToast(item) {
   );
 }
 
+/* =========================
+   메인 컴포넌트
+========================= */
 export default function AlarmProblems() {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
 
+  /* alerts 읽기 */
   useEffect(() => {
     const alertsRef = ref(rtdb, "alerts");
 
@@ -163,6 +167,10 @@ export default function AlarmProblems() {
     });
 
     showDetailToast(item);
+
+    navigate("/problems", {
+      state: { from: "alarm", problemId: item.id },
+    });
   };
 
   const handleMoreClick = () => {
@@ -173,18 +181,9 @@ export default function AlarmProblems() {
     <>
       <ToastContainer newestOnTop pauseOnHover={false} />
 
-      <div className="w-[335px] h-[full] bg-white px-[15px] py-[10px] mb-[10px] overflow-hidden">
-        {/* ✅ 왼쪽: 더보기... / 오른쪽: 안 읽은 알림 */}
-        <div className="flex items-center justify-between mb-7 mt-1">
-          <button
-            type="button"
-            onClick={handleMoreClick}
-            className="text-[15px] text-gray-400 hover:underline"
-          >
-            더보기...
-          </button>
-
-          <div className="text-[17px] text-gray-400">안 읽은 알림</div>
+      <div className="w-[335px] h-[770px] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
+        <div className="text-[17px] text-gray-400 mb-7 mt-1">
+          안 읽은 알림
         </div>
 
         <Section
@@ -205,6 +204,9 @@ export default function AlarmProblems() {
   );
 }
 
+/* =========================
+   섹션 컴포넌트
+========================= */
 function Section({ title, icon, items, onRead }) {
   return (
     <div className="mb-6">
