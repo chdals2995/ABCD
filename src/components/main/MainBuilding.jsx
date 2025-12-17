@@ -1,5 +1,6 @@
-// MainBuilding
+// src/components/main/MainBuilding.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
 import { ref, onValue } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
@@ -7,6 +8,10 @@ import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
 import Circle from "../../assets/icons/circle.png";
 
+export default function MainBuilding({ floorGroups, buildingName}) {
+  const [alertList, setAlertList] = useState([]);
+  const [requestList, setRequestList] = useState([]);
+  const navigate = useNavigate();
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -112,7 +117,7 @@ import Circle from "../../assets/icons/circle.png";
     return null;
   };
 
-//   아이콘
+  //   아이콘
   const getGroupCounts = (group) => {
     let warning = 0; // 경고
     let caution = 0; // 주의
@@ -157,67 +162,96 @@ import Circle from "../../assets/icons/circle.png";
     return { warning, caution, requests };
   };
 
+  const handleClickGroup = (group) => {
+    // 🔹 /floors로 이동하면서 "어느 구간인지" 정보를 함께 전달
+    navigate("/floors", {
+      state: {
+        floorTarget: {
+          type: group.type, // "ground" | "basement"
+          start: group.start,
+          end: group.end,
+        },
+      },
+    });
+  };
 
-    return(
-        // 건물
-        <div style={{ backgroundImage: `url(${Building})` }}
-        className="w-[350px] h-[665px] bg-cover bg-center relative">
-            {/* 층분할 */}
-            {floorGroups.map((group) => {
-                const { warning, caution, requests } = getGroupCounts(group);
+  return (
+    // 건물
+    <div
+      style={{ backgroundImage: `url(${Building})` }}
+      className="w-[350px] h-[665px] bg-cover bg-center relative"
+    >
+      {/* 층분할 */}
+      {floorGroups && floorGroups.length > 0 && floorGroups.map((group) => {
+      const { warning, caution, requests } = getGroupCounts(group);
 
-                return (
-                <div
-                    key={`${group.type}-${group.start}-${group.end}`}
-                    className="hover:bg-[#054E76]/50 group relative z-10"
-                    style={{ height: `${665/floorGroups.length}px`}}
-                >
-                    {/* 층수 표기 */}
-                    <div className="font-pyeojin group-hover:text-white ml-[10px] pt-[10px]">
-                        {/* 지하 포함*/}
-                        {group.type === "basement"
-                        ? `B${group.end}층 ~ B${group.start}층`
-                        : `${group.start}층 ~ ${group.end}층`}
-                    </div>
-                    {/* 아이콘 표시 */}
-                    <div className="absolute w-[238px] h-[55px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                      flex justify-around items-center bg-white rounded-[10px]">
-                        {/* 경고 */}
-                        {warning >= 0 && (
-                        <div className="relative">
-                          <img src={Warning} alt="경고" className="w-[50px] relative"/>
-                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-10px] z-20 
-                            font-pyeojin text-[21px] text-[#054E76]"
-                            >{warning}</p>
-                        </div>
-                        )}
-                        {/* 주의 */}
-                        {caution >= 0 && (
-                        <div className="relative">
-                          <img src={Caution} alt="주의" className="w-[50px] relative"/>
-                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-10px] z-20
-                            font-pyeojin text-[21px] text-[#054E76]"
-                            >{caution}</p>
-                        </div>
-                        )}
-                        {/* 요청 */}
-                        {requests >= 0 && (
-                        <div className="relative">
-                          <img src={Circle} alt="요청" className="w-[45px] relative"/>
-                          <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 
-                            font-pyeojin text-[21px] text-[#054E76]"
-                            >{requests}</p>
-                        </div>
-                        )}
-                    </div>
-                </div>
-            )})}
-            {/* 건물 이름 */}
-            <div className="bg-white rounded-[10px] absolute bottom-[10px] left-1/2 -translate-x-1/2
-                w-[100px] h-[32px]
-                font-pyeojin text-[24px] text-center">
-                {buildingName}
+        return (
+          <div
+            key={`${group.type}-${group.start}-${group.end}`}
+            className="hover:bg-[#054E76]/50 group relative z-10 cursor-pointer"
+            style={{ height: `${665 / floorGroups.length}px` }}
+            onClick={() => handleClickGroup(group)}
+          >
+            {/* 층수 표기 */}
+            <div className="font-pyeojin group-hover:text-white ml-[10px] pt-[10px]">
+              {/* 지하 포함*/}
+              {group.type === "basement"
+                ? `B${group.end}층 ~ B${group.start}층`
+                : `${group.start}층 ~ ${group.end}층`}
             </div>
-        </div>
-    );
+            {/* 아이콘 표시 */}
+            <div
+              className="absolute w-[238px] h-[55px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                      flex justify-around items-center bg-white rounded-[10px]"
+            >
+              {/* 경고 */}
+              {warning >= 0 && (
+                <div className="relative">
+                  <img src={Warning} alt="경고" className="w-[50px] relative" />
+                  <p
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-10px] z-20 
+                            font-pyeojin text-[21px] text-[#054E76]"
+                  >
+                    {warning}
+                  </p>
+                </div>
+              )}
+              {/* 주의 */}
+              {caution >= 0 && (
+                <div className="relative">
+                  <img src={Caution} alt="주의" className="w-[50px] relative" />
+                  <p
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[-10px] z-20
+                            font-pyeojin text-[21px] text-[#054E76]"
+                  >
+                    {caution}
+                  </p>
+                </div>
+              )}
+              {/* 요청 */}
+              {requests >= 0 && (
+                <div className="relative">
+                  <img src={Circle} alt="요청" className="w-[45px] relative" />
+                  <p
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 
+                            font-pyeojin text-[21px] text-[#054E76]"
+                  >
+                    {requests}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      {/* 건물 이름 */}
+      <div
+        className="bg-white rounded-[10px] absolute bottom-[10px] left-1/2 -translate-x-1/2
+                w-[100px] h-[32px]
+                font-pyeojin text-[24px] text-center"
+      >
+        {buildingName}
+      </div>
+    </div>
+  );
 }

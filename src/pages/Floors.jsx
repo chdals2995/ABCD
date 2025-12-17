@@ -306,12 +306,36 @@ export default function Floors() {
   useEffect(() => {
     if (!floorGroups.length) return;
 
+    if (
+      floorTarget &&
+      floorTarget.type &&
+      floorTarget.start != null &&
+      floorTarget.end != null
+    ) {
+      const { type, start, end } = floorTarget;
+
+      const startName = type === "basement" ? `B${start}` : `${start}F`;
+      const endName = type === "basement" ? `B${end}` : `${end}F`;
+
+      const idx = floorGroups.findIndex(
+        (grp) =>
+          Array.isArray(grp) && grp.includes(startName) && grp.includes(endName)
+      );
+
+      if (idx !== -1) {
+        setGroupIndex(idx);
+        setSelectedFloor(null);
+        return;
+      }
+    }
+
+    // fallback: 1F가 들어있는 그룹 또는 첫 번째 그룹
     const idxWith1F = floorGroups.findIndex(
       (grp) => Array.isArray(grp) && grp.includes("1F")
     );
-
     setGroupIndex(idxWith1F === -1 ? 0 : idxWith1F);
-  }, [floorGroups]);
+    setSelectedFloor(null);
+  }, [floorGroups, floorTarget]);
 
   const currentFloors = floorGroups[groupIndex] || [];
   const rows = Array.from({ length: 10 }, (_, i) => currentFloors[i] ?? null);

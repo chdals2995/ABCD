@@ -1,5 +1,6 @@
-// MainPark
+// src/components/main/MainPark.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
 import { ref, get ,onValue} from "firebase/database";
 
@@ -10,10 +11,8 @@ export default function MainPark() {
   const [towerEmpty, setTowerEmpty] = useState(null);
   const [flatEmpty, setFlatEmpty] = useState(null);
 
-useEffect(() => {
-  const loadParking = async () => {
-    const simSnap = await get(ref(rtdb, "parkingSimConfig"));
-    const realSnap = await get(ref(rtdb, "parkingRealtime"));
+  const [towerLotId, setTowerLotId] = useState(null);
+  const [flatLotId, setFlatLotId] = useState(null);
 
   const [towerConfigs, setTowerConfigs] = useState([]);
   const [flatConfigs, setFlatConfigs] = useState([]);
@@ -108,52 +107,50 @@ useEffect(() => {
     } else if (type === "flat" && flatLotId) {
       navigate(`/parking/${flatLotId}`);
     }
+  };
 
-    const boxCount = sections.length;
-    const boxHeight = boxCount > 0 ? 665 / boxCount : 0;
-
-    return(
-        <div style={{ backgroundImage: `url(${Park})` }} 
-            className="w-[350px] h-[665px] bg-cover bg-center relative
-            ">
-        {/* 주차 박스 */}
-        {sections.map((sec, index) => (
-            <div key={index} className="font-pyeojin hover:bg-[#054E76]/50 group relative z-10"
-                style={{ height: `${boxHeight}px` }}>
-                {/* 아이콘과 이름 */}
-                {sec.empty !== null && (
-                    <div className="w-[148px] h-[44px] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                    flex justify-around items-center bg-white rounded-[10px]">
-                        <div className="relative flex justify-around items-center">
-                            <img src={Vacant} alt={`${sec.label} 빈 자리`} className="w-[37px] h-[37px]"/>
-                            <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 font-pyeojin text-[20px]">{sec.empty}</p>
-                        </div>    
-                        <p className="text-[24px] font-pyeojin">{sec.label}</p>  
-                    </div>
-                    )}
+  return (
+    <div
+      style={{ backgroundImage: `url(${Park})` }}
+      className="w-[350px] h-[665px] bg-cover bg-center relative"
+    >
+      {/* 주차 박스 */}
+      {sections.map((sec, index) => (
+        <div
+          key={index}
+          className="font-pyeojin hover:bg-[#054E76]/50 group relative z-10 cursor-pointer"
+          style={{ height: `${boxHeight}px` }}
+          onClick={() => handleClickSection(sec.type)}
+        >
+          {/* 아이콘과 이름 */}
+          {sec.empty !== null && (
+            <div
+              className="w-[148px] h-[44px] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                    flex justify-around items-center bg-white rounded-[10px]"
+            >
+              <div className="relative flex justify-around items-center">
+                <img
+                  src={Vacant}
+                  alt={`${sec.label} 빈 자리`}
+                  className="w-[37px] h-[37px]"
+                />
+                <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 font-pyeojin text-[20px]">
+                  {sec.empty}
+                </p>
+              </div>
+              <p className="text-[24px] font-pyeojin">{sec.label}</p>
             </div>
-        ))}
-        {/* // 주차장 박스
-        //     <div className="font-pyeojin hover:bg-[#054E76]/50 group relative z-10">
-        //         {/* 아이콘과 이름 */}
-                    {/* 빈자리 수 */}
-        {/* //             {flatEmpty!== null && ( */}
-        {/* //                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-        //                 flex justify-around bg-white rounded-[10px]">
-        //                     <div className="relative">
-        //                         <img src={Vacant} alt="주차장 빈 자리"/>
-        //                         <p className="absolute left-2 top-2 z-20">{flatEmpty}</p>
-        //                     </div>
-        //                 </div>
-        //             )}
-        //     </div> */}
-        
-        
-        {/* 주차 이름 */}
-            <div className="bg-white rounded-[10px] absolute bottom-[10px] left-1/2 -translate-x-1/2
-                w-[100px] h-[32px] font-pyeojin text-[24px] text-center">
-                주차현황
-            </div>
+          )}
         </div>
-    );
+      ))}
+
+      {/* 주차 이름 */}
+      <div
+        className="bg-white rounded-[10px] absolute bottom-[10px] left-1/2 -translate-x-1/2
+                w-[100px] h-[32px] font-pyeojin text-[24px] text-center"
+      >
+        주차현황
+      </div>
+    </div>
+  );
 }
