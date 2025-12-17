@@ -92,7 +92,7 @@ export default function UserRequestForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-[520px] bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.12)] px-10 py-8 "
+      className="w-[539px] bg-white rounded-[8px] shadow-[0_2px_8px_rgba(0,0,0,0.12)] px-10 py-8 "
     >
         <h1 className="font-pyeojin font-bold text-[24px] mb-5 mt-[-10px] ml-[60%] translate-x-[-50%]">불편 사항</h1>
       {/* 제목 */}
