@@ -9,7 +9,6 @@ import { ref, onValue } from "firebase/database";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 import "./alarm_effects.css";
 
 export default function Alarm() {
@@ -88,7 +87,7 @@ export default function Alarm() {
       <ToastContainer newestOnTop pauseOnHover={false} />
       <div
         className="
-          absolute right-0 top-[68px]
+          absolute right-0 top-[88px]
           w-[372px] h-[880px]
           bg-[#E6EEF2] pt-[20px]
           border-[1px] border-[#054E76] overflow-hidden
@@ -99,7 +98,11 @@ export default function Alarm() {
           <div className="flex w-[335px] h-[48px] bg-[#054E76]">
             <div
               className={`flex flex-1 justify-center items-center text-[20px] cursor-pointer
-                ${tab === "problem" ? "bg-white text-black font-bold" : "text-white"}
+                ${
+                  tab === "problem"
+                    ? "bg-white text-black font-bold"
+                    : "text-white"
+                }
               `}
               onClick={() => setTab("problem")}
             >
@@ -108,7 +111,11 @@ export default function Alarm() {
 
             <div
               className={`flex flex-1 justify-center items-center text-[20px] cursor-pointer
-                ${tab === "request" ? "bg-white text-black font-bold" : "text-white"}
+                ${
+                  tab === "request"
+                    ? "bg-white text-black font-bold"
+                    : "text-white"
+                }
               `}
               onClick={() => setTab("request")}
             >
@@ -118,7 +125,6 @@ export default function Alarm() {
 
           {/* 내용 */}
           <div className="w-[335px] h-[850px] bg-white overflow-y-hidden">
-
             {tab === "problem" && <AlarmProblems items={problemList} />}
             {tab === "request" && <AlarmRequest items={requestList} />}
           </div>
