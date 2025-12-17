@@ -1,12 +1,7 @@
-/* 기본 박스 모델 */
-* {
-  box-sizing: border-box;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+*{
+box-sizing:border-box
 }
 
-/* 전화번호 input 스피너 제거 */
 .phone-input::-webkit-inner-spin-button,
 .phone-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -17,4 +12,3 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
-
