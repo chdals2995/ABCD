@@ -1,14 +1,14 @@
 import CloseIcon from "../assets/icons/close.png";
 import Button from "../assets/Button";
 
-export default function RequestArrival({ data, onClose, onReply }) {
+export default function RequestArrival({ data, onClose }) {
   if (!data) return null;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
       <div className="w-[630px] h-[710px] border-[5px] border-[#054E76] rounded-xl bg-[#DCE6EB] relative p-10">
 
+        {/* 닫기 */}
         <img
           src={CloseIcon}
           className="absolute top-4 right-4 w-[28px] cursor-pointer"
@@ -47,30 +47,26 @@ export default function RequestArrival({ data, onClose, onReply }) {
           <div className="mb-3 flex items-center justify-center">
             <span className="mr-3 text-[18px] font-medium">장소 :</span>
 
-            <div className="relative mr-2">
-              <select
-                value={data.building ?? ""}
-                disabled
-                className="border border-gray-400 px-2 py-1 w-[150px] text-[17px] bg-gray-100 cursor-default appearance-none"
-              >
-                <option value="main">건물</option>
-                <option value="tower">주차타워건물</option>
-              </select>
-            </div>
+            <select
+              value={data.building ?? ""}
+              disabled
+              className="border border-gray-400 px-2 py-1 w-[150px] text-[17px] bg-gray-100 cursor-default"
+            >
+              <option value="main">건물</option>
+              <option value="tower">주차타워건물</option>
+            </select>
 
-            <div className="relative">
-              <select
-                value={data.floor ?? ""}
-                disabled
-                className="border border-gray-400 px-2 py-1 w-[120px] text-[17px] bg-gray-100 cursor-default appearance-none"
-              >
-                {Array.from({ length: 20 }, (_, i) => i + 1).map((f) => (
-                  <option key={f} value={`${f}F`}>
-                    {f}F
-                  </option>
-                ))}
-              </select>
-            </div>
+            <select
+              value={data.floor ?? ""}
+              disabled
+              className="border border-gray-400 px-2 py-1 w-[120px] text-[17px] bg-gray-100 cursor-default ml-2"
+            >
+              {Array.from({ length: 20 }, (_, i) => i + 1).map((f) => (
+                <option key={f} value={`${f}F`}>
+                  {f}F
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* 항목 */}
@@ -78,12 +74,7 @@ export default function RequestArrival({ data, onClose, onReply }) {
             <span className="font-medium mr-3">항목 :</span>
             {["전기", "온도", "수도", "가스"].map((t) => (
               <label key={t} className="mr-4">
-                <input
-                  type="radio"
-                  checked={data.type === t}
-                  disabled
-                />{" "}
-                {t}
+                <input type="radio" checked={data.type === t} disabled /> {t}
               </label>
             ))}
           </div>
@@ -98,10 +89,10 @@ export default function RequestArrival({ data, onClose, onReply }) {
           </div>
         </div>
 
-        {/* 답장 버튼만 활성 */}
+        {/* ✅ 버튼 텍스트만 변경 */}
         <div className="w-full flex justify-center mt-6">
-          <Button onClick={onReply}>
-            <span className="whitespace-nowrap">답장</span>
+          <Button onClick={onClose}>
+            <span className="whitespace-nowrap">확인</span>
           </Button>
         </div>
       </div>
