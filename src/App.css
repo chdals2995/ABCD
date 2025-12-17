@@ -12,25 +12,3 @@ box-sizing:border-box
   -moz-appearance: textfield;
   appearance: textfield;
 }
-
-/* 🔒 전체 요소 텍스트 선택 비활성화 */
-* {
-  -webkit-user-select: none; /* 크롬, 사파리 */
-  -ms-user-select: none;     /* 옛날 IE */
-  user-select: none;         /* 표준 */
-}
-
-/* 🖼 기본 이미지 드래그 방지 */
-img {
-  -webkit-user-drag: none;
-  user-drag: none;
-}
-
-/* ✏️ 입력창/텍스트영역은 선택 가능하도록 예외 (필요 없으면 이 블록 삭제해도 됨) */
-input,
-textarea,
-select {
-  -webkit-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
-}
