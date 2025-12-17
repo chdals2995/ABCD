@@ -27,7 +27,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { rtdb, auth } from "./firebase/config";
 
-import 
+import Log from "./Log/Log";
 
 // ✅ role별 "기본 홈" (권한 없을 때 튕길 목적지)
 function homeByRole(role) {
@@ -192,6 +192,7 @@ export default function App() {
                 </RequireRole>
               }
             />
+
             {/* <Route
               path="/problems"
               element={
@@ -200,6 +201,18 @@ export default function App() {
                 </RequireRole>
               }
             /> */}
+
+            <Route
+              path="/log"
+              element={
+                <RequireRole allowRoles={["admin", "master"]}>
+                  <Log />
+                </RequireRole>
+              }
+            />
+
+
+
           
 
             {/* ✅ 없는 경로는 로그인으로 */}
