@@ -2,111 +2,114 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { rtdb } from "../../firebase/config";
-import { ref, get } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import Building from "../../assets/imgs/building.png";
 import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
 import Circle from "../../assets/icons/circle.png";
 
-export default function MainBuilding({ floors = 10 }) {
-  const [floorGroups, setFloorGroups] = useState([]);
-  const [buildingName, setBuildingName] = useState("");
+export default function MainBuilding({ floorGroups, buildingName}) {
   const [alertList, setAlertList] = useState([]);
   const [requestList, setRequestList] = useState([]);
   const navigate = useNavigate();
 
+  const today = new Date().toISOString().slice(0, 10);
+
   useEffect(() => {
-    const fetchBuilding = async () => {
-      const snapshot = await get(
-        ref(rtdb, "buildings/43c82c19-bf2a-4068-9776-dbb0edaa9cc0")
-      );
+  // -------------------------
+  // alerts (오늘 + 문제만)
+  // -------------------------
+  const alertRef = ref(rtdb, "alerts");
 
-      const alerts = await get(ref(rtdb, "alerts"));
-      const requests = await get(ref(rtdb, "requests"));
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-      if (alerts.exists()) {
-        const raw = alerts.val();
-        const list = [];
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
 
-        Object.values(raw).forEach((byFloor) => {
-          Object.values(byFloor).forEach((byDate) => {
-            Object.values(byDate).forEach((alertItem) => {
-              list.push(alertItem);
-            });
-          });
+  const unsubscribeAlerts = onValue(alertRef, (snap) => {
+    if (!snap.exists()) {
+      setAlertList([]);
+      return;
+    }
+
+    const list = [];
+
+    Object.values(snap.val()).forEach((byFloor) => {
+      Object.values(byFloor).forEach((byDate) => {
+        Object.values(byDate).forEach((alert) => {
+          // ✅ normal 제외
+          if (alert.level === "normal") return;
+
+          // ✅ 오늘만 (timestamp 기준)
+          const time = Number(alert.createdAt);
+          if (
+            time < todayStart.getTime() ||
+            time > todayEnd.getTime()
+          )
+            return;
+
+          list.push(alert);
         });
+      });
+    });
 
-        setAlertList(list);
-      }
+    setAlertList(list);
+  });
 
-      if (requests.exists()) {
-        setRequestList(Object.values(requests.val()));
-      }
+  return () => unsubscribeAlerts();
+}, []);
 
-      if (!snapshot.exists()) return;
+  // -------------------------
+  // requests (오늘 + 미완료)
+  // -------------------------
+  useEffect(() => {
+  const requestRef = ref(rtdb, "requests");
 
-      const data = snapshot.val();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-      const totalFloors = Number(data.floors); // 총 층수 (지상 + 지하)
-      const basement = Number(data.down); // 지하 층수
-      const groundFloors = totalFloors - basement; // 지상층
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
 
-      setBuildingName(data.name);
+  const unsubscribeRequests = onValue(requestRef, (snap) => {
+    if (!snap.exists()) {
+      setRequestList([]);
+      return;
+    }
 
-      // 🔥 지하 그룹 (하나의 덩어리)
-      const basementGroup =
-        basement > 0
-          ? [
-              {
-                type: "basement",
-                start: 1,
-                end: basement,
-              },
-            ]
-          : [];
+    const list = Object.values(snap.val()).filter((r) => {
+      if (r.status === "완료") return false;
 
-      // 🔥 지상층 그룹 10단위로 생성
-      const groundGroupCount = Math.ceil(groundFloors / 10);
+      const time = Number(r.createdAt);
+      return (
+        time >= todayStart.getTime() &&
+        time <= todayEnd.getTime()
+      );
+    });
 
-      const groundGroups = Array.from({ length: groundGroupCount }, (_, i) => ({
-        type: "ground",
-        start: i * 10 + 1,
-        end: Math.min((i + 1) * 10, groundFloors),
-      }));
+    setRequestList(list);
+  });
 
-      // 🔥 화면에서는 위 → 아래 순으로 표시해야 하므로 reverse
-      const finalGroups = [...groundGroups.reverse(), ...basementGroup];
+  return () => unsubscribeRequests();
+}, []);
 
-      setFloorGroups(finalGroups);
 
-      // 🔥 requests 저장
-      if (requests.exists()) setRequestList(Object.values(requests.val()));
-    };
-
-    fetchBuilding();
-  }, []);
-
-  // 🔥 층 문자열 파싱 함수 (10F, 1층, B1 → 모두 처리)
+  // ===============================
+  // 층 나누기
+  // ===============================
   const parseFloor = (str) => {
     if (!str) return null;
     const s = str.trim();
 
-    // B2, B10 → 지하층
     if (s.startsWith("B")) {
       return { type: "basement", number: Number(s.replace(/[^0-9]/g, "")) };
     }
 
-    // 10F, 3F → 지상층
-    if (s.endsWith("F")) {
+    if (s.endsWith("F") || s.includes("층")) {
       return { type: "ground", number: Number(s.replace(/[^0-9]/g, "")) };
     }
 
-    // 1층, 10층 → 지상층
-    if (s.includes("층")) {
-      return { type: "ground", number: Number(s.replace(/[^0-9]/g, "")) };
-    }
-
-    // 숫자만 있는 경우 → 지상층
     if (!isNaN(Number(s))) {
       return { type: "ground", number: Number(s) };
     }
@@ -124,6 +127,8 @@ export default function MainBuilding({ floors = 10 }) {
     // ① 경고(alerts) 카운트
     // -------------------------
     alertList.forEach((a) => {
+      if (a.level === "normal") return;
+
       const parsed = parseFloor(a.floor);
       if (!parsed) return;
 
@@ -141,6 +146,9 @@ export default function MainBuilding({ floors = 10 }) {
     // ② 요청(requests) 카운트
     // -------------------------
     requestList.forEach((r) => {
+
+      if (r.status === "완료") return;
+
       const parsed = parseFloor(r.floor);
       if (!parsed) return;
 
@@ -174,8 +182,8 @@ export default function MainBuilding({ floors = 10 }) {
       className="w-[350px] h-[665px] bg-cover bg-center relative"
     >
       {/* 층분할 */}
-      {floorGroups.map((group) => {
-        const { warning, caution, requests } = getGroupCounts(group);
+      {floorGroups && floorGroups.length > 0 && floorGroups.map((group) => {
+      const { warning, caution, requests } = getGroupCounts(group);
 
         return (
           <div

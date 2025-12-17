@@ -20,31 +20,39 @@ function round1(v) {
 function getYAxisRange(values) {
   const valid = values.filter((v) => typeof v === "number" && !Number.isNaN(v));
 
-  if (!valid.length) {
-    return { yMin: 0, yMax: 1 };
-  }
+  if (!valid.length) return { yMin: 0, yMax: 1 };
 
   let minVal = Math.min(...valid);
   let maxVal = Math.max(...valid);
 
   if (minVal === maxVal) {
     const padding = maxVal === 0 ? 1 : maxVal * 0.5;
-    const yMin = Math.max(0, minVal - padding);
-    const yMax = maxVal + padding;
-    return { yMin, yMax };
+    return { yMin: Math.max(0, minVal - padding), yMax: maxVal + padding };
   }
 
   const range = maxVal - minVal;
-
   let yMin = minVal - range / 3;
   let yMax = maxVal + range / 3;
-
   if (yMin < 0) yMin = 0;
 
   return { yMin, yMax };
 }
 
-export default function FloorsElecData({ floorIds = [], tall = false }) {
+/**
+ * floorIds: 표시할 층 리스트
+ * tall: 큰 모달용 높이
+ * assumeKwSum:
+ *  - false(기본): aggDay.elecSum이 "kWh"라고 가정하고 그대로 표시
+ *  - true: aggDay.elecSum이 "kW 샘플합(누적합)"이라고 가정하고 kWh로 환산
+ * sampleSeconds:
+ *  - assumeKwSum=true일 때만 사용 (예: 10초마다 샘플이면 10)
+ */
+export default function FloorsElecData({
+  floorIds = [],
+  tall = false,
+  assumeKwSum = false,
+  sampleSeconds = 10,
+}) {
   const [state, setState] = useState({
     loading: true,
     labels: [],
@@ -52,6 +60,7 @@ export default function FloorsElecData({ floorIds = [], tall = false }) {
   });
 
   const chartHeightClass = tall ? "h-[420px]" : "h-[260px]";
+  const UNIT = "kWh";
 
   useEffect(() => {
     let isMounted = true;
@@ -71,18 +80,27 @@ export default function FloorsElecData({ floorIds = [], tall = false }) {
           return;
         }
 
+        const dtHours =
+          assumeKwSum && Number(sampleSeconds) > 0
+            ? Number(sampleSeconds) / 3600
+            : 0;
+
         const results = await Promise.all(
           ids.map(async (floorId) => {
             const daySnap = await get(
               ref(rtdb, `aggDay/${floorId}/${todayKey}`)
             );
 
-            if (!daySnap.exists()) {
-              return { floor: floorId, value: 0 };
-            }
+            if (!daySnap.exists()) return { floor: floorId, value: 0 };
 
             const data = daySnap.val() || {};
-            const elecSum = data.elecSum ?? 0;
+            let elecSum = Number(data.elecSum ?? 0) || 0;
+
+            // ✅ elecSum이 "kW 샘플합"이라면 kWh로 환산
+            if (assumeKwSum && dtHours > 0) {
+              elecSum = elecSum * dtHours;
+            }
+
             return { floor: floorId, value: elecSum };
           })
         );
@@ -92,11 +110,7 @@ export default function FloorsElecData({ floorIds = [], tall = false }) {
         const labels = results.map((r) => r.floor);
         const values = results.map((r) => round1(r.value));
 
-        setState({
-          loading: false,
-          labels,
-          values,
-        });
+        setState({ loading: false, labels, values });
       } catch (err) {
         console.error("FloorsElecData fetchData error:", err);
         if (!isMounted) return;
@@ -111,17 +125,16 @@ export default function FloorsElecData({ floorIds = [], tall = false }) {
       isMounted = false;
       clearInterval(timerId);
     };
-  }, [floorIds]);
+  }, [floorIds, assumeKwSum, sampleSeconds]);
 
   const { loading, labels, values } = state;
-
   const { yMin, yMax } = getYAxisRange(values);
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: "오늘 전기 사용량 (kWh)",
+        label: `오늘 전기 사용량 (${UNIT})`,
         data: values,
         backgroundColor: "#FF9130",
         borderRadius: 6,
@@ -138,7 +151,7 @@ export default function FloorsElecData({ floorIds = [], tall = false }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y ?? 0;
-            return ` ${v.toLocaleString()} kWh`;
+            return ` ${Number(v).toLocaleString()} ${UNIT}`;
           },
         },
       },
@@ -151,7 +164,7 @@ export default function FloorsElecData({ floorIds = [], tall = false }) {
         min: yMin,
         max: yMax,
         beginAtZero: false,
-        title: { display: true, text: "오늘 누적 전기 사용량 (kWh)" },
+        title: { display: true, text: `오늘 누적 전기 사용량 (${UNIT})` },
       },
     },
   };

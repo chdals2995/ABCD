@@ -1,5 +1,5 @@
 // src/pages/ParkingStatus.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import AdminLayout from "../layout/AdminLayout";
@@ -56,6 +56,47 @@ export default function ParkingStatus() {
   const [config, setConfig] = useState(null); // parkingSimConfig/{lotId}
   const [parkingType, setParkingType] = useState("tower"); // "tower" | "flat"
 
+  // ✅ 전체 주차장 목록(이전/다음 네비용)
+  const [lotIds, setLotIds] = useState([]);
+  const [lotListLoaded, setLotListLoaded] = useState(false);
+
+  // ✅ parkingSimConfig 전체에서 lotId 목록 가져오기
+  useEffect(() => {
+    const listRef = ref(rtdb, "parkingSimConfig");
+
+    const unsub = onValue(
+      listRef,
+      (snap) => {
+        const obj = snap.val() || {};
+        const ids = Object.keys(obj).sort((a, b) => a.localeCompare(b)); // "첫번째/마지막" 기준
+        setLotIds(ids);
+        setLotListLoaded(true);
+      },
+      () => {
+        setLotIds([]);
+        setLotListLoaded(true);
+      }
+    );
+
+    return () => unsub();
+  }, []);
+
+  const currentIndex = useMemo(() => {
+    if (!lotId) return -1;
+    return lotIds.indexOf(lotId);
+  }, [lotIds, lotId]);
+
+  const prevLotId = useMemo(() => {
+    if (currentIndex <= 0) return null; // 첫번째면 이전 없음
+    return lotIds[currentIndex - 1] ?? null;
+  }, [currentIndex, lotIds]);
+
+  const nextLotId = useMemo(() => {
+    if (currentIndex < 0) return null;
+    if (currentIndex >= lotIds.length - 1) return null; // 마지막이면 다음 없음
+    return lotIds[currentIndex + 1] ?? null;
+  }, [currentIndex, lotIds]);
+
   useEffect(() => {
     if (!lotId) return;
 
@@ -104,9 +145,9 @@ export default function ParkingStatus() {
       const cfg = snap.val();
       if (cfg) {
         setConfig(cfg);
-        if (cfg.type) {
-          setParkingType(cfg.type); // "tower" or "flat"
-        }
+        if (cfg.type) setParkingType(cfg.type); // "tower" or "flat"
+      } else {
+        setConfig(null);
       }
     });
 
@@ -117,7 +158,6 @@ export default function ParkingStatus() {
   }, [lotId]);
 
   // ------- 통계 계산 -------
-
   const totalSlotsRealtime = slots.length;
   const occupiedCount = slots.filter((s) => s.occupied).length;
   const freeCount = totalSlotsRealtime - occupiedCount;
@@ -150,24 +190,47 @@ export default function ParkingStatus() {
         type="button"
         onClick={() => navigate("/floors")}
         className="
-          fixed
-          left-[180px]
-          top-[180px]
-          z-20
-          bg-[#0888D4]
-          text-white
-          text-sm
-          font-semibold
-          px-4
-          py-2
-          rounded-[8px]
-          shadow
-          hover:bg-[#054E76]
-          transition
+          fixed left-[180px] top-[180px] z-20
+          bg-[#0888D4] text-white text-sm font-semibold
+          px-4 py-2 rounded-[8px] shadow
+          hover:bg-[#054E76] transition
         "
       >
         건물 보기
       </button>
+
+      {/* ✅ 이전/다음 주차장 버튼 (첫번째/마지막이면 자동 숨김) */}
+      {lotListLoaded && prevLotId && (
+        <button
+          type="button"
+          onClick={() => navigate(`/parking/${prevLotId}`)}
+          className="
+            fixed left-[180px] top-[235px] z-20
+            bg-white text-[#054E76] text-sm font-semibold
+            px-4 py-2 rounded-[8px] shadow
+            border border-[#B5DCF3]
+            hover:bg-[#F3FAFF] transition
+          "
+        >
+          ← 이전 주차장
+        </button>
+      )}
+
+      {lotListLoaded && nextLotId && (
+        <button
+          type="button"
+          onClick={() => navigate(`/parking/${nextLotId}`)}
+          className="
+            fixed left-[310px] top-[235px] z-20
+            bg-white text-[#054E76] text-sm font-semibold
+            px-4 py-2 rounded-[8px] shadow
+            border border-[#B5DCF3]
+            hover:bg-[#F3FAFF] transition
+          "
+        >
+          다음 주차장 →
+        </button>
+      )}
 
       {/* 🔹 실제 내용: 위쪽은 레이아웃 높이만큼 띄우기 */}
       <div className="min-h-screen pt-[120px] pb-10">
@@ -213,6 +276,13 @@ export default function ParkingStatus() {
                   <p className="text-xs text-gray-500 mt-1">
                     타입: {parkingType === "flat" ? "평면" : "타워"}
                   </p>
+
+                  {/* (선택) 현재 몇 번째인지 */}
+                  {lotListLoaded && currentIndex >= 0 && lotIds.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {currentIndex + 1} / {lotIds.length}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-10 text-sm">

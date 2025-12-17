@@ -20,22 +20,35 @@ function formatDateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
+function roundN(v, digits = 1) {
+  const num = Number(v);
+  if (!Number.isFinite(num)) return 0;
+  const p = 10 ** digits;
+  return Math.round((num + Number.EPSILON) * p) / p;
+}
+
 function getYAxisRange(values) {
-  const valid = values.filter((v) => typeof v === "number" && !Number.isNaN(v));
+  const valid = values.filter(
+    (v) => typeof v === "number" && Number.isFinite(v)
+  );
   if (!valid.length) return { yMin: 0, yMax: 1 };
 
   let minVal = Math.min(...valid);
   let maxVal = Math.max(...valid);
 
   if (minVal === maxVal) {
-    const padding = maxVal === 0 ? 1 : maxVal * 0.5;
-    return { yMin: minVal - padding, yMax: maxVal + padding };
+    const padding = maxVal === 0 ? 1 : Math.abs(maxVal) * 0.5;
+    return {
+      yMin: roundN(minVal - padding, 1),
+      yMax: roundN(maxVal + padding, 1),
+    };
   }
 
   const range = maxVal - minVal;
   let yMin = minVal - range / 3;
   let yMax = maxVal + range / 3;
-  return { yMin, yMax };
+
+  return { yMin: roundN(yMin, 1), yMax: roundN(yMax, 1) };
 }
 
 // "HH:mm" → 분만 추출
@@ -93,14 +106,10 @@ export default function SelectedFloorTempData({ floor }) {
           }
 
           labels.push(key.slice(0, 5)); // "HH:mm"
-          values.push(temp != null ? Number(temp) : 0);
+          values.push(temp != null ? roundN(temp, 1) : 0); // ✅ 1자리 반올림
         });
 
-        setState({
-          loading: false,
-          labels,
-          values,
-        });
+        setState({ loading: false, labels, values });
       },
       (err) => {
         console.error("SelectedFloorTempData onValue error:", err);
@@ -118,11 +127,13 @@ export default function SelectedFloorTempData({ floor }) {
   const { loading, labels, values } = state;
   const { yMin, yMax } = getYAxisRange(values);
 
+  const Y_TITLE = "온도 (℃)";
+
   const chartData = {
     labels,
     datasets: [
       {
-        label: `${floor} 온도 (℃)`,
+        label: `${floor} ${Y_TITLE}`,
         data: values,
         borderColor: "#F97373",
         backgroundColor: "rgba(249,115,115,0.2)",
@@ -141,7 +152,7 @@ export default function SelectedFloorTempData({ floor }) {
         callbacks: {
           label: (ctx) => {
             const v = ctx.parsed.y ?? 0;
-            return ` ${v.toLocaleString()} kWh`;
+            return ` ${roundN(v, 1).toFixed(1)} ℃`;
           },
         },
       },
@@ -150,12 +161,13 @@ export default function SelectedFloorTempData({ floor }) {
       x: {
         title: { display: true, text: "시간 (10분 단위)" },
         ticks: {
-          autoSkip: false, // ✅ 자동 건너뛰기 끄기
+          autoSkip: false,
+          maxRotation: 0,
+          minRotation: 0,
           callback: function (value) {
-            // ✅ 실제 라벨 문자열을 안전하게 가져오기
             const label = this.getLabelForValue(value);
             const minute = getMinuteFromLabel(label);
-            if (minute == null || minute % 10 !== 0) return ""; // 10분 단위만 표시
+            if (minute == null || minute % 10 !== 0) return "";
             return label;
           },
         },
@@ -164,7 +176,11 @@ export default function SelectedFloorTempData({ floor }) {
         min: yMin,
         max: yMax,
         beginAtZero: false,
-        title: { display: true, text: "전기 사용량 (kWh)" },
+        title: { display: true, text: Y_TITLE },
+        ticks: {
+          precision: 1, // ✅ Chart.js에게도 “소수 1자리” 힌트
+          callback: (val) => roundN(val, 1).toFixed(1), // ✅ 눈금 표시 강제 포맷
+        },
       },
     },
   };
@@ -177,6 +193,7 @@ export default function SelectedFloorTempData({ floor }) {
           <span className="text-xs text-gray-400">데이터 불러오는 중...</span>
         )}
       </div>
+
       <div className="w-full h-[160px]">
         {labels.length === 0 && !loading ? (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
