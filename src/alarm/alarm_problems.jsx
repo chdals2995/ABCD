@@ -78,7 +78,7 @@ function getReasonText(reason, metric, level) {
 }
 
 /* =========================
-   토스트
+   토스트 (❗닫기 버튼으로만 종료)
 ========================= */
 function showDetailToast(item) {
   const icon = item.level === "warning" ? warningIcon : cautionIcon;
@@ -107,7 +107,10 @@ function showDetailToast(item) {
     </div>,
     {
       position: "top-center",
-      autoClose: item.level === "warning" ? 3500 : 2500,
+      autoClose: false,      // 자동 닫힘 ❌
+      closeButton: true,     // X 버튼만 ⭕
+      closeOnClick: false,
+      draggable: false,
       hideProgressBar: true,
     }
   );
@@ -160,7 +163,7 @@ export default function AlarmProblems() {
   const cautionItems = items.filter((i) => i.level === "caution");
 
   /* =========================
-     🔥 미해결 리스트용
+     미해결 리스트용
   ========================= */
   const unsolvedItems = useMemo(() => {
     return items.map((item) => ({
@@ -185,8 +188,7 @@ export default function AlarmProblems() {
 
       <div className="flex gap-6">
         {/* ===== 알람 패널 ===== */}
-        <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px]
-        mt-5 ">
+        <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px] mt-5">
           <div className="text-[17px] text-gray-400 mb-7 mt-1">
             안 읽은 알림
           </div>
@@ -206,7 +208,7 @@ export default function AlarmProblems() {
           />
         </div>
 
-        {/* ===== 미해결 항목 (문제 페이지로 이동) ===== */}
+        {/* ===== 미해결 항목 ===== */}
         <UnsolvedList
           items={unsolvedItems}
           onSelectProblem={(id) => {
@@ -244,10 +246,7 @@ function Section({ title, icon, items, onRead }) {
             <div
               key={item.id}
               onClick={() => onRead(item)}
-              className="
-              flex justify-between
-              border-b py-3 mb-3 
-              cursor-pointer"
+              className="flex justify-between border-b py-3 mb-3 cursor-pointer"
             >
               <span className="text-[15px] w-[180px] truncate">
                 {getReasonText(item.reason, item.metric, item.level)}
