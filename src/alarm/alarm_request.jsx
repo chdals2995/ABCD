@@ -5,6 +5,7 @@ import CheckForm from "../Log/check_form";
 export default function AlarmRequest({ items = [] }) {
   const [statusFilter, setStatusFilter] = useState("전체");
 
+  // 선택 + 보기 모달
   const [selectedRow, setSelectedRow] = useState(null);
   const [openDetail, setOpenDetail] = useState(false);
 
@@ -68,7 +69,7 @@ export default function AlarmRequest({ items = [] }) {
               key={item.id}
               onClick={() => {
                 setSelectedRow(item);
-                setOpenDetail(true);
+                setOpenDetail(true); // ✅ 보기만
               }}
               className="flex justify-between items-center py-2 pb-4 border-b border-gray-300 cursor-pointer"
             >
@@ -99,7 +100,7 @@ export default function AlarmRequest({ items = [] }) {
 
       {openDetail && selectedRow && (
         <CheckForm
-          mode="view"
+          mode="view"              // ⭐ 핵심
           row={{
             id: selectedRow.id,
             title: selectedRow.title,
