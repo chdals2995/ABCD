@@ -5,11 +5,12 @@ import Logo from '../assets/logos/logo.png';
 
 
 
-export default function AdminLayout({MainLogo, logoSize}){
+export default function AdminLayout({logoSize, floorGroups}){
     return(
         <div>
-            <Menu customLogo={MainLogo}
-                logoClass={logoSize}/>
+            <Menu
+                logoSize={logoSize}
+                floorGroups={floorGroups}/>
             <TopMenu/>
         </div>
     );

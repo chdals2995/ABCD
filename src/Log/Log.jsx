@@ -1,8 +1,8 @@
 // Log.jsx (기록 페이지)
 import { useState } from "react";
-import AlarmLog from "../Log/alarm_log.jsx"
+import AlarmLog from "./alarm_log.jsx"
 import AdminLayout from "../layout/AdminLayout.jsx";
-import CheckLog from "../Log/check_log.jsx"; 
+import CheckLog from "./check_log.jsx"; 
 
 export default function Log() {
  

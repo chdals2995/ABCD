@@ -98,6 +98,12 @@ function getReasonText(reason, metric) {
     case "back_to_normal_from_warning":
       return `${metricLabel}가(이) 경고 상태에서 정상으로 복귀했습니다.`;
 
+    // ✅ 하루 1회 재알림(유지) reason 추가
+    case "still_caution":
+      return `${metricLabel} 주의 상태가 다음날에도 지속되고 있습니다.`;
+    case "still_warning":
+      return `${metricLabel} 경고 상태가 다음날에도 지속되고 있습니다.`;
+
     default:
       return "이상 상태가 감지되었습니다.";
   }
@@ -119,7 +125,7 @@ export default function ProblemList({ floor }) {
     return merged;
   }, [alertItems, requestItems]);
 
-  // 🔹 alerts/{floor}/{today} (오늘 알림만)
+  // 🔹 alerts/{normalizedFloor}/{today} (오늘 알림만)
   useEffect(() => {
     if (!floor || !normalizedFloor) {
       setAlertItems([]);
@@ -129,7 +135,9 @@ export default function ProblemList({ floor }) {
 
     let isMounted = true;
     const todayKey = formatDateKey(new Date());
-    const alertsRef = ref(rtdb, `alerts/${floor}/${todayKey}`);
+
+    // ✅ 여기 핵심: floor가 아니라 normalizedFloor로 읽기
+    const alertsRef = ref(rtdb, `alerts/${normalizedFloor}/${todayKey}`);
 
     setLoadingAlerts(true);
 
@@ -233,7 +241,6 @@ export default function ProblemList({ floor }) {
   // 뱃지 색상
   const levelColor = (item) => {
     if (item.kind === "request") {
-      // 완료는 리스트에서 이미 걸러졌으니까 여기선 접수/진행 중만 존재
       return "bg-[#88C5F7]";
     }
     if (item.level === "warning") return "bg-[#FF7070]";
@@ -249,8 +256,16 @@ export default function ProblemList({ floor }) {
     }
 
     const { level, reason } = item;
-    if (level === "warning") return "경고";
-    if (level === "caution") return "주의";
+
+    if (level === "warning") {
+      // (선택) 유지 재알림이면 배지에 표시하고 싶으면 아래처럼
+      // if (reason === "still_warning") return "경고·지속";
+      return "경고";
+    }
+    if (level === "caution") {
+      // if (reason === "still_caution") return "주의·지속";
+      return "주의";
+    }
     if (level === "normal") {
       if (
         reason === "caution_cleared" ||
