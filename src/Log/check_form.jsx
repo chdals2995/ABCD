@@ -7,29 +7,33 @@ import Button from "../assets/Button";
 export default function CheckForm({
   onClose,
   title,
-  mode = "create",   // create | edit
+  mode = "create", // create | edit
   row,
   onSave,
 }) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  /* 제목 */
   const [editTitle, setEditTitle] = useState(
-    mode === "edit" ? row?.title : title
+    mode === "edit" ? row?.title ?? "" : title ?? ""
   );
 
-  // 날짜
+  /* ✅ 날짜 (핵심) */
   const [checkDate, setCheckDate] = useState(
-    mode === "edit" ? row?.date ?? "" : ""
+    mode === "edit" ? row?.date ?? today : today
   );
 
+  /* 내용 */
   const [content, setContent] = useState(
-    mode === "edit" ? row?.content : ""
+    mode === "edit" ? row?.content ?? "" : ""
   );
 
-  // 상시 / 정기
+  /* 상시 / 정기 */
   const [checkType, setCheckType] = useState(
     mode === "edit" ? row?.checkType ?? "상시" : "상시"
   );
 
-  // 수정 모드 제어
+  /* 수정 모드 제어 */
   const [isEditing, setIsEditing] = useState(mode === "create");
 
   const buttonLabel =
@@ -39,18 +43,21 @@ export default function CheckForm({
         : "수정"
       : "저장";
 
+  /* =====================
+     저장
+     ⭐ date 무조건 포함
+  ===================== */
   const handleSave = () => {
-    // edit 모드에서 처음 클릭 → 수정 가능 상태로만 전환
     if (mode === "edit" && !isEditing) {
       setIsEditing(true);
       return;
     }
 
     const payload = {
-      id: row?.id || null,
+      id: row?.id ?? null,
       title: editTitle,
       content,
-      date: checkDate,
+      date: checkDate || today,   // ✅ 절대 빈 값 안 들어감
       status: mode === "edit" ? row?.status : "미완료",
       checkType,
     };
@@ -170,3 +177,4 @@ export default function CheckForm({
     </div>
   );
 }
+  

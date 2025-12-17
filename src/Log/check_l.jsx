@@ -3,11 +3,9 @@ import { rtdb } from "../firebase/config";
 
 export default function CheckL({ row, index, onClickItem }) {
   const toggleStatus = async (e) => {
-    e.stopPropagation(); // 행 클릭(상세/수정) 막기
+    e.stopPropagation();
 
     const nextStatus = row.status === "완료" ? "미완료" : "완료";
-
-    // ⭐ todos 기준으로 수정
     await update(ref(rtdb, `todos/${row.id}`), {
       status: nextStatus,
     });
@@ -32,10 +30,9 @@ export default function CheckL({ row, index, onClickItem }) {
       <div className="flex flex-col items-center">
         <span>{row.title}</span>
         <span
-          className={`
-            mt-1 text-[16px]
-            ${row.checkType === "정기" ? "text-blue-600" : "text-[#054E76]"}
-          `}
+          className={`mt-1 text-[16px] ${
+            row.checkType === "정기" ? "text-blue-600" : "text-[#054E76]"
+          }`}
         >
           {row.checkType} 점검
         </span>
@@ -44,18 +41,19 @@ export default function CheckL({ row, index, onClickItem }) {
       {/* 내용 */}
       <div className="text-center">{row.content}</div>
 
-      {/* 점검일 */}
-      <div className="text-center">{row.date}</div>
+      {/* ✅ 점검일 (핵심) */}
+      <div className="text-center">
+        {row.date ? row.date.replace(/-/g, ".") : "-"}
+      </div>
 
-      {/* 상태 (토글만 연결) */}
+      {/* 상태 */}
       <div
-        className="text-center"
+        className="text-center font-medium"
         style={{
           color: row.status === "완료" ? "#0E5FF0" : "#CA3535",
-          fontWeight: "500",
           cursor: "pointer",
         }}
-        onClick={toggleStatus}   // ⭐ 여기만 변경
+        onClick={toggleStatus}
       >
         {row.status}
       </div>
