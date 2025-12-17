@@ -8,30 +8,37 @@ import Warning from "../../assets/icons/warning.png";
 import Caution from "../../assets/icons/caution.png";
 import Circle from "../../assets/icons/circle.png";
 
-export default function MainBuilding({ floors = 10 }) {
-  const [floorGroups, setFloorGroups] = useState([]);
-  const [buildingName, setBuildingName] = useState("");
+export default function MainBuilding({ floorGroups, buildingName}) {
   const [alertList, setAlertList] = useState([]);
   const [requestList, setRequestList] = useState([]);
   const navigate = useNavigate();
 
+  const today = new Date().toISOString().slice(0, 10);
+
   useEffect(() => {
-    const fetchBuilding = async () => {
-      const snapshot = await get(
-        ref(rtdb, "buildings/43c82c19-bf2a-4068-9776-dbb0edaa9cc0")
-      );
+  // -------------------------
+  // alerts (오늘 + 문제만)
+  // -------------------------
+  const alertRef = ref(rtdb, "alerts");
 
-      const alerts = await get(ref(rtdb, "alerts"));
-      const requests = await get(ref(rtdb, "requests"));
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-      if (alerts.exists()) {
-        const raw = alerts.val();
-        const list = [];
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
 
-      Object.values(snap.val()).forEach((byFloor) => {
-        Object.values(byFloor).forEach((byDate) => {
-          Object.values(byDate).forEach((alert) => {
-            // ✅ normal 제외
+  const unsubscribeAlerts = onValue(alertRef, (snap) => {
+    if (!snap.exists()) {
+      setAlertList([]);
+      return;
+    }
+
+    const list = [];
+
+    Object.values(snap.val()).forEach((byFloor) => {
+      Object.values(byFloor).forEach((byDate) => {
+        Object.values(byDate).forEach((alert) => {
+          // ✅ normal 제외
           if (alert.level === "normal") return;
 
           // ✅ 오늘만 (timestamp 기준)
@@ -43,9 +50,9 @@ export default function MainBuilding({ floors = 10 }) {
             return;
 
           list.push(alert);
-          });
         });
       });
+    });
 
     setAlertList(list);
   });

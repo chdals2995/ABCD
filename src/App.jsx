@@ -19,18 +19,15 @@ import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
-import Data from "./pages/Data";
-
-
-import Log from "./Log/Log";
-
-import { AuthProvider } from "./components/Login/contexts/AuthContext";
+import UserMain from "./pages/UserMain"
+// import Data from "./pages/Data";
+// import Problems from "./pages/Problems";
 
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { rtdb, auth } from "./firebase/config";
 
-import Log from "./Log/Log";
+import Alarm from "./alarm/Alarm";
 
 // ✅ role별 "기본 홈" (권한 없을 때 튕길 목적지)
 function homeByRole(role) {
@@ -112,6 +109,7 @@ export default function App() {
   return (
     <>
       <AuthProvider>
+        <BrowserRouter>
           <Routes>
             {/* ✅ 공개 */}
             <Route path="/" element={<Login />} />
@@ -211,23 +209,12 @@ export default function App() {
                 </RequireRole>
               }
             /> */}
-
-            <Route
-              path="/log"
-              element={
-                <RequireRole allowRoles={["admin", "master"]}>
-                  <Log />
-                </RequireRole>
-              }
-            />
-
-
-
           
 
             {/* ✅ 없는 경로는 로그인으로 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+        </BrowserRouter>
       </AuthProvider>
     </>
   );
