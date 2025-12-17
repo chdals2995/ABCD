@@ -3,6 +3,7 @@ export const metricConfig = {
   elec: {
     label: "전력",
     unit: "kWh",
+    problems: { path: "problems", type: "전력" }, // ✅ 추가
     day: {
       path: "aggDayBuilding",
       sumField: "elecSum",
@@ -39,6 +40,7 @@ export const metricConfig = {
   gas: {
     label: "가스",
     unit: "L/h",
+    problems: { path: "problems", type: "가스" }, // ✅ 추가
     day: {
       path: "aggDayBuilding",
       sumField: "gasSum",
@@ -76,6 +78,7 @@ export const metricConfig = {
   water: {
     label: "수도",
     unit: "㎥/h",
+    problems: { path: "problems", type: "수도" }, // ✅ 추가
     day: {
       path: "aggDayBuilding",
       sumField: "waterSum",
@@ -112,6 +115,7 @@ export const metricConfig = {
   temp: {
     label: "온도",
     unit: "℃",
+    problems: { path: "problems", type: "온도" }, // ✅ 추가
     day: {
       path: "aggDayBuilding",
       sumField: "tempAvg",
