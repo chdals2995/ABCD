@@ -178,13 +178,13 @@ export default function QuarterData({
       {/* ===== 분기별 데이터 카드 ===== */}
       <div
         className="
-          w-[350px] h-[440px]
+          w-[350px] h-[470px]
           bg-white border rounded-xl
-          p-6 text-center ml-3
+          p-6 text-center ml-3 
         "
       >
         {/* 제목 */}
-        <div className="text-[18px] font-bold mb-2 mt-4">
+        <div className="text-[23px] font-bold mb-2 mt-4">
           분기별 발생 수 ({selectedMetric})
         </div>
 
@@ -195,7 +195,7 @@ export default function QuarterData({
         </div>
 
         {/* 테이블 */}
-        <table className="w-full text-[14px] border-collapse">
+        <table className="w-full text-[16px] border-collapse">
           <thead>
             <tr className="bg-[#054E76] text-white h-[40px]">
               <th className="px-5 text-center font-medium rounded-l-md">
