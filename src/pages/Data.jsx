@@ -19,7 +19,7 @@ export default function Data() {
 
       <nav className="absolute left-[50%] top-[50px] z-99 translate-x-[-50%]">
         <NavLink
-          to="/Data/ElecData"
+          to="/data/elecData"
           className={({ isActive }) =>
             `${baseClass} ${isActive ? activeClass : inactiveClass}`
           }
@@ -28,7 +28,7 @@ export default function Data() {
         </NavLink>
 
         <NavLink
-          to="/Data/TempData"
+          to="/data/tempData"
           className={({ isActive }) =>
             `${baseClass} ${isActive ? activeClass : inactiveClass}`
           }
@@ -37,7 +37,7 @@ export default function Data() {
         </NavLink>
 
         <NavLink
-          to="/Data/WaterData"
+          to="/data/waterData"
           className={({ isActive }) =>
             `${baseClass} ${isActive ? activeClass : inactiveClass}`
           }
@@ -46,7 +46,7 @@ export default function Data() {
         </NavLink>
 
         <NavLink
-          to="/Data/GasData"
+          to="/data/gasData"
           className={({ isActive }) =>
             `${baseClass} ${isActive ? activeClass : inactiveClass}`
           }
@@ -57,10 +57,10 @@ export default function Data() {
 
       <div className="w-full h-full bg-[rgba(5,78,118,0.1)] bg-center">
         <Routes>
-          <Route path="ElecData" element={<ElecData />} />
-          <Route path="WaterData" element={<WaterData />} />
-          <Route path="TempData" element={<TempData />} />
-          <Route path="GasData" element={<GasData />} />
+          <Route path="elecData" element={<ElecData />} />
+          <Route path="waterData" element={<WaterData />} />
+          <Route path="tempData" element={<TempData />} />
+          <Route path="gasData" element={<GasData />} />
         </Routes>
       </div>
     </div>
