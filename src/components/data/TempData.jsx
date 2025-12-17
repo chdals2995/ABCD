@@ -11,7 +11,7 @@ export default function TempData() {
         <div className="relative w-[1619px] h-[810px] bg-transparent">
           {/* 위쪽 3개 카드 */}
           <div className="absolute top-[5px] flex justify-center items-center w-[1619px] h-1/2 bg-transparent p-[5px]">
-            <div className="relative w-[529px] h-[390px] bg-white mr-[8px] rounded-xl border-white">
+            <div className="relative w-[529px] h-[390px] bg-white rounded-xl border-white">
               <Error metricKey="temp"/>
             </div>
 
