@@ -12,7 +12,7 @@ import CloseButton from "../../assets/CloseButton";
 function formatDate(value) {
   if (!value) return "";
   const d = new Date(value);
-  const yy = String(d.getFullYear()).slice(2); // "2025" → "25"
+  const yy = String(d.getFullYear()).slice(2);
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yy}.${mm}.${dd}`;
@@ -63,24 +63,20 @@ function combineDateTime(dateStr, timeStr) {
 export default function Todo() {
   const [items, setItems] = useState([]);
 
-  // 작성 / 수정 모달
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 현재 작성/수정 폼
   const [form, setForm] = useState({
-    target: "", // 점검 대상
-    description: "", // 점검 유형/내용
+    target: "",
+    description: "",
     startDate: "",
     startTime: "",
     endDate: "",
     endTime: "",
   });
 
-  // 어떤 항목 수정 중인지 (null이면 새 작성)
   const [editingId, setEditingId] = useState(null);
   const isEditing = editingId !== null;
 
-  // 점검 목록 실시간 구독 (todos)
   useEffect(() => {
     const todosRef = ref(rtdb, "todos");
 
@@ -106,7 +102,6 @@ export default function Todo() {
             periodLabel: buildPeriodLabel(startAt, endAt),
           };
         })
-        // 일정 시작일(없으면 createdAt) 기준 최신 순
         .sort((a, b) => {
           const aKey = a.startAt || a.createdAt || 0;
           const bKey = b.startAt || b.createdAt || 0;
@@ -119,13 +114,11 @@ export default function Todo() {
     return () => unsub();
   }, []);
 
-  // 입력 변경
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 새 점검 항목 추가 버튼 (+)
   const handleCreateClick = () => {
     setEditingId(null);
     setForm({
@@ -139,7 +132,6 @@ export default function Todo() {
     setIsModalOpen(true);
   };
 
-  // 리스트에서 항목 클릭 → 수정 모달
   const handleEditClick = (item) => {
     setEditingId(item.id);
     setForm({
@@ -153,7 +145,6 @@ export default function Todo() {
     setIsModalOpen(true);
   };
 
-  // 작성 / 수정 submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -164,26 +155,14 @@ export default function Todo() {
     const endAt = combineDateTime(form.endDate, form.endTime);
 
     try {
-      // 필수값 체크
-      if (!target) {
-        alert("점검 대상을 입력해주세요.");
-        return;
-      }
-      if (!description) {
-        alert("점검 유형/내용을 입력해주세요.");
-        return;
-      }
-      if (!form.startDate || !form.endDate) {
-        alert("점검 일정을 입력해주세요.");
-        return;
-      }
-      if (startAt && endAt && startAt > endAt) {
-        alert("시작 시간이 종료 시간보다 늦을 수 없습니다.");
-        return;
-      }
+      if (!target) return alert("점검 대상을 입력해주세요.");
+      if (!description) return alert("점검 유형/내용을 입력해주세요.");
+      if (!form.startDate || !form.endDate)
+        return alert("점검 일정을 입력해주세요.");
+      if (startAt && endAt && startAt > endAt)
+        return alert("시작 시간이 종료 시간보다 늦을 수 없습니다.");
 
       if (isEditing) {
-        // 수정
         const targetRef = ref(rtdb, `todos/${editingId}`);
         await update(targetRef, {
           title: target,
@@ -196,7 +175,6 @@ export default function Todo() {
           updatedBy: auth.currentUser?.uid || null,
         });
       } else {
-        // 새 항목
         const listRef = ref(rtdb, "todos");
         const newRef = push(listRef);
 
@@ -229,7 +207,6 @@ export default function Todo() {
     }
   };
 
-  // 삭제 버튼
   const handleDelete = async () => {
     if (!isEditing) return;
     const ok = window.confirm("이 점검 항목을 삭제하시겠습니까?");
@@ -260,6 +237,11 @@ export default function Todo() {
     setEditingId(null);
   };
 
+  // ✅ 나중에 log 페이지 연결용(지금은 자리만)
+  const handleMoreClick = () => {
+    // TODO: navigate("/log") 같은거 연결 예정
+  };
+
   return (
     <div
       className="
@@ -270,24 +252,30 @@ export default function Todo() {
         flex flex-col
       "
     >
-      {/* 제목 */}
-      <h1 className="font-bold font-pyeojin text-[25px] border-b border-b-[#666666]">
-        점검 목록
-      </h1>
+      {/* ✅ 제목줄: 왼쪽 타이틀 / 오른쪽 더보기... */}
+      <div className="flex items-end justify-between border-b border-b-[#666666] pb-2">
+        <h1 className="font-bold font-pyeojin text-[25px]">점검 목록</h1>
+
+        <button
+          type="button"
+          onClick={handleMoreClick}
+          className="text-[15px] text-gray-500 hover:underline"
+        >
+          더보기...
+        </button>
+      </div>
 
       {/* 리스트 + 스크롤 영역 */}
       <div className="mt-[14px] flex-1 overflow-y-auto pr-1 pb-4">
         <ul className="space-y-[6px] mb-4">
           {items.map((item) => (
             <li key={item.id} className="border-b border-[#000000] pb-[6px]">
-              {/* 한 카드 전체 클릭 → 수정 */}
               <button
                 type="button"
                 onClick={() => handleEditClick(item)}
                 className="w-full text-left"
               >
                 <div className="flex flex-col gap-[2px] py-[2px]">
-                  {/* 1줄차: 점검 대상 + 시작/종료일 */}
                   <div className="flex items-center justify-between">
                     <span className="font-bold truncate max-w-[60%]">
                       {item.target}
@@ -297,7 +285,6 @@ export default function Todo() {
                     </span>
                   </div>
 
-                  {/* 2줄차: 점검 내용 */}
                   <div className="text-[14px] text-gray-800 whitespace-normal break-words">
                     {item.description}
                   </div>
@@ -329,7 +316,7 @@ export default function Todo() {
         </div>
       </div>
 
-      {/* 작성 / 수정 모달 (점검 등록) */}
+      {/* 작성 / 수정 모달 */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -345,7 +332,6 @@ export default function Todo() {
             text-[14px]
           "
         >
-          {/* 헤더 */}
           <div className="flex items-center justify-between mb-4">
             <div className="w-6" />
             <h2 className="flex-1 text-center text-[35px] font-pyeojin">
@@ -354,7 +340,6 @@ export default function Todo() {
             <CloseButton onClick={handleCloseModal} />
           </div>
 
-          {/* 점검 대상 */}
           <div className="mb-4">
             <label className="block mb-1 text-[20px]">점검 대상</label>
             <input
@@ -373,7 +358,6 @@ export default function Todo() {
             />
           </div>
 
-          {/* 점검 유형/내용 */}
           <div className="mb-4">
             <label className="block mb-1 text-[20px]">점검 유형/내용</label>
             <input
@@ -392,13 +376,11 @@ export default function Todo() {
             />
           </div>
 
-          {/* 점검 일정 */}
           <div className="mb-6">
             <label className="block mb-1 text-[20px]">점검 일정</label>
 
             <div className="flex items-center gap-2">
               <div className="flex">
-                {/* 시작 날짜 */}
                 <input
                   type="date"
                   name="startDate"
@@ -414,7 +396,6 @@ export default function Todo() {
                   "
                 />
 
-                {/* 시작 시간 */}
                 <input
                   type="time"
                   name="startTime"
@@ -432,8 +413,8 @@ export default function Todo() {
               </div>
 
               <span className="mx-1">~</span>
+
               <div className="flex">
-                {/* 종료 날짜 */}
                 <input
                   type="date"
                   name="endDate"
@@ -449,7 +430,6 @@ export default function Todo() {
                   "
                 />
 
-                {/* 종료 시간 */}
                 <input
                   type="time"
                   name="endTime"
@@ -468,7 +448,6 @@ export default function Todo() {
             </div>
           </div>
 
-          {/* 작성 / 수정 / 삭제 버튼 */}
           <div className="flex justify-center mt-2 gap-4">
             {isEditing && (
               <button

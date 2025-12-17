@@ -6,6 +6,7 @@ import MainPark from "../components/main/MainPark";
 import { useEffect, useState } from "react";
 import { rtdb } from "../firebase/config";
 import { ref, get } from "firebase/database";
+import { NavLink } from "react-router-dom";
 
 export default function MainPage() {
   const [floorGroups, setFloorGroups] = useState([]);
@@ -50,19 +51,71 @@ export default function MainPage() {
     fetchBuilding();
   }, []);
 
+  const baseTabClass = "hover:text-[#054E76] transition-colors";
+  const activeTabClass = "text-[#054E76] font-bold";
+  const inactiveTabClass = "text-gray-600";
+
   return (
     <div className="bg-[url('./assets/imgs/background.png')] bg-cover bg-center h-screen">
       <AdminLayout logoSize="w-[290px] h-[113px]" floorGroups={floorGroups} />
 
       <div>
+        {/* ✅ Data 페이지 라우트로 매핑 */}
         <ul
           className="w-[394px] flex justify-between font-pyeojin text-[28px]
-          absolute top-[81px] left-1/2 -translate-x-1/2 cursor-pointer"
+          absolute top-[81px] left-1/2 -translate-x-1/2"
         >
-          <li className="hover:text-[#054E76]">전력</li>
-          <li className="hover:text-[#054E76]">온도</li>
-          <li className="hover:text-[#054E76]">수도</li>
-          <li className="hover:text-[#054E76]">가스</li>
+          <li>
+            <NavLink
+              to="/data/elecData"
+              className={({ isActive }) =>
+                `${baseTabClass} ${
+                  isActive ? activeTabClass : inactiveTabClass
+                }`
+              }
+            >
+              전력
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/data/tempData"
+              className={({ isActive }) =>
+                `${baseTabClass} ${
+                  isActive ? activeTabClass : inactiveTabClass
+                }`
+              }
+            >
+              온도
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/data/waterData"
+              className={({ isActive }) =>
+                `${baseTabClass} ${
+                  isActive ? activeTabClass : inactiveTabClass
+                }`
+              }
+            >
+              수도
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink
+              to="/data/gasData"
+              className={({ isActive }) =>
+                `${baseTabClass} ${
+                  isActive ? activeTabClass : inactiveTabClass
+                }`
+              }
+            >
+              가스
+            </NavLink>
+          </li>
         </ul>
 
         <div className="flex justify-between w-[745px] mx-auto mt-[30px]">
