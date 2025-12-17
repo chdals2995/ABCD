@@ -10,10 +10,11 @@ import {
 
 import Join from "./pages/login/Join";
 import Login from "./pages/login/Login";
-import Data from "./pages/Data";
+import AuthStatus from "./components/Login/contexts/AuthStatus";
 import MainPage from "./pages/MainPage";
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 
+import Data from "./pages/Data"
 import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
@@ -180,7 +181,7 @@ export default function App() {
               }
             />
 
-            {/*
+            
             <Route
               path="/data/*"
               element={
@@ -189,15 +190,15 @@ export default function App() {
                 </RequireRole>
               }
             />
-            <Route
+            {/* <Route
               path="/problems"
               element={
                 <RequireRole allowRoles={["admin", "master"]}>
                   <Problems />
                 </RequireRole>
               }
-            />
-            */}
+            /> */}
+          
 
             {/* ✅ 없는 경로는 로그인으로 */}
             <Route path="*" element={<Navigate to="/" replace />} />
