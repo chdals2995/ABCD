@@ -108,7 +108,7 @@ export default function AlarmRequest() {
       {/* ✅ 상세 모달 */}
       {openDetail && selectedRow && (
         <CheckForm
-          mode="edit"
+          mode="view"  // edit → view
           row={{
             id: selectedRow.id,
             title: selectedRow.title,
@@ -118,10 +118,6 @@ export default function AlarmRequest() {
             checkType: "상시",
           }}
           onClose={() => setOpenDetail(false)}
-          onSave={(payload) => {
-            // 여기서는 아직 저장 안 함 (연동 단계에서 처리)
-            console.log("REQUEST DETAIL PAYLOAD", payload);
-          }}
         />
       )}
     </>

@@ -7,41 +7,54 @@ import Button from "../assets/Button";
 export default function CheckForm({
   onClose,
   title,
-  mode = "create",   // create | edit
+  mode = "create", // create | edit | view
   row,
   onSave,
 }) {
-  const [editTitle, setEditTitle] = useState(
-    mode === "edit" ? row?.title : title
-  );
+  const isView = mode === "view";
+  const isEdit = mode === "edit";
 
-  // 날짜
-  const [checkDate, setCheckDate] = useState(
-    mode === "edit" ? row?.date ?? "" : ""
-  );
+  /* =========================
+     edit / create 전용 state
+     (🔥 view 모드에서는 사용 안 함)
+  ========================= */
+  const [editTitle, setEditTitle] = useState(row?.title || title || "");
+  const [checkDate, setCheckDate] = useState(row?.date ?? "");
+  const [content, setContent] = useState(row?.content || "");
+  const [checkType, setCheckType] = useState(row?.checkType ?? "상시");
 
-  const [content, setContent] = useState(
-    mode === "edit" ? row?.content : ""
-  );
-
-  // 상시 / 정기
-  const [checkType, setCheckType] = useState(
-    mode === "edit" ? row?.checkType ?? "상시" : "상시"
-  );
-
-  // 수정 모드 제어
+  // edit 모드에서만 수정 토글
   const [isEditing, setIsEditing] = useState(mode === "create");
 
-  const buttonLabel =
-    mode === "edit"
-      ? isEditing
-        ? "저장"
-        : "수정"
-      : "저장";
+  /* =========================
+     실제 표시 값 (view / edit 분리)
+  ========================= */
+  const displayTitle = isView ? row?.title || "" : editTitle;
+  const displayDate = isView ? row?.date || "" : checkDate;
+  const displayContent = isView ? row?.content || "" : content;
+  const displayCheckType = isView ? row?.checkType || "상시" : checkType;
 
+  /* =========================
+     버튼 텍스트
+  ========================= */
+  const buttonLabel = (() => {
+    if (isView) return "확인";
+    if (isEdit) return isEditing ? "저장" : "수정";
+    return "저장";
+  })();
+
+  /* =========================
+     버튼 동작
+  ========================= */
   const handleSave = () => {
-    // edit 모드에서 처음 클릭 → 수정 가능 상태로만 전환
-    if (mode === "edit" && !isEditing) {
+    // view 모드 → 닫기만
+    if (isView) {
+      onClose();
+      return;
+    }
+
+    // edit 모드 첫 클릭 → 수정 활성화
+    if (isEdit && !isEditing) {
       setIsEditing(true);
       return;
     }
@@ -51,11 +64,11 @@ export default function CheckForm({
       title: editTitle,
       content,
       date: checkDate,
-      status: mode === "edit" ? row?.status : "미완료",
+      status: isEdit ? row?.status : "미완료",
       checkType,
     };
 
-    onSave && onSave(payload);
+    onSave?.(payload);
     onClose();
   };
 
@@ -94,9 +107,9 @@ export default function CheckForm({
               border-b pb-1 outline-none
               w-[350px]
             "
-            value={editTitle}
+            value={displayTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            disabled={mode === "edit" && !isEditing}
+            disabled={isView || (isEdit && !isEditing)}
           />
         </div>
 
@@ -107,10 +120,14 @@ export default function CheckForm({
           {/* 첨부파일 */}
           <div className="flex items-center gap-2 mt-4 ml-1">
             <p className="text-[18px]">첨부파일</p>
-            <label htmlFor="fileUpload" className="cursor-pointer">
-              <img src={AttachmentIcon} className="w-[26px]" />
-            </label>
-            <input id="fileUpload" type="file" className="hidden" />
+            {!isView && (
+              <>
+                <label htmlFor="fileUpload" className="cursor-pointer">
+                  <img src={AttachmentIcon} className="w-[26px]" />
+                </label>
+                <input id="fileUpload" type="file" className="hidden" />
+              </>
+            )}
           </div>
 
           {/* 점검 날짜 */}
@@ -119,9 +136,9 @@ export default function CheckForm({
             <input
               type="date"
               className="border px-3 py-2 text-[17px] bg-white"
-              value={checkDate}
+              value={displayDate}
               onChange={(e) => setCheckDate(e.target.value)}
-              disabled={mode === "edit" && !isEditing}
+              disabled={isView || (isEdit && !isEditing)}
             />
           </div>
 
@@ -130,9 +147,9 @@ export default function CheckForm({
             <p className="text-[18px] mb-1">점검</p>
             <select
               className="border px-3 py-2 text-[17px] bg-white w-[140px]"
-              value={checkType}
+              value={displayCheckType}
               onChange={(e) => setCheckType(e.target.value)}
-              disabled={mode === "edit" && !isEditing}
+              disabled={isView || (isEdit && !isEditing)}
             >
               <option value="상시">상시 점검</option>
               <option value="정기">정기 점검</option>
@@ -149,16 +166,22 @@ export default function CheckForm({
               mt-6 ml-1
             "
             placeholder="내용을 입력해주세요."
-            value={content}
+            value={displayContent}
             onChange={(e) => setContent(e.target.value)}
-            disabled={mode === "edit" && !isEditing}
+            disabled={isView || (isEdit && !isEditing)}
           />
         </div>
 
         {/* 안내 문구 */}
-        {mode === "edit" && !isEditing && (
+        {isEdit && !isEditing && (
           <p className="text-gray-500 text-[16px] mt-2 text-center">
             수정하려면 아래의 ‘수정’ 버튼을 눌러주세요.
+          </p>
+        )}
+
+        {isView && (
+          <p className="text-gray-500 text-[16px] mt-2 text-center">
+            요청 내역 확인 화면입니다.
           </p>
         )}
 
