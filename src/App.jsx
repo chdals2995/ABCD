@@ -19,7 +19,7 @@ import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
-//import AuthStatus from "./components/Login/contexts/AuthStatus"
+import AuthStatus from "./components/Login/contexts/AuthStatus"
 import UserMain from "./pages/UserMain"
 // import Data from "./pages/Data";
 // import Problems from "./pages/Problems";
