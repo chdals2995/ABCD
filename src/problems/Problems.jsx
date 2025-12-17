@@ -250,7 +250,8 @@ export default function Problems() {
           <div className="w-[1150px]">
             <div className="flex items-start ml-[110px]">
               <div className="w-[420px]">
-                <TypeData data={typeData} selectedMetric={selectedMetric} />
+                <TypeData data={typeData} selectedMetric={selectedMetric} items={problems} />
+
               </div>
 
               <div className="flex flex-col ml-10">
