@@ -185,8 +185,9 @@ export default function AlarmProblems() {
 
       <div className="flex gap-6">
         {/* ===== 알람 패널 ===== */}
-        <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px]">
-          <div className="text-[12px] text-gray-400 mb-5 mt-3">
+        <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px]
+        mt-5 ">
+          <div className="text-[17px] text-gray-400 mb-7 mt-1">
             안 읽은 알림
           </div>
 
@@ -228,12 +229,12 @@ export default function AlarmProblems() {
 function Section({ title, icon, items, onRead }) {
   return (
     <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-5">
         <img src={icon} className="w-[18px] h-[18px]" />
         <span className="text-[20px] font-semibold">{title}</span>
       </div>
 
-      <div className="max-h-[260px] overflow-y-auto hide-scrollbar">
+      <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
         {items.length === 0 ? (
           <div className="text-gray-400 text-[14px] py-2">
             항목 없음
@@ -243,7 +244,10 @@ function Section({ title, icon, items, onRead }) {
             <div
               key={item.id}
               onClick={() => onRead(item)}
-              className="flex justify-between border-b py-2 mb-3 cursor-pointer"
+              className="
+              flex justify-between
+              border-b py-3 mb-3 
+              cursor-pointer"
             >
               <span className="text-[15px] w-[180px] truncate">
                 {getReasonText(item.reason, item.metric, item.level)}

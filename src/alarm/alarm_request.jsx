@@ -47,7 +47,7 @@ export default function AlarmRequest() {
     <>
       <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
         {/* 상태 필터 */}
-        <div className="flex justify-end mb-[10px] gap-[8px] text-[14px]">
+        <div className="flex justify-end mb-[30px] gap-[8px] text-[17px] ">
           {["전체", "접수", "처리중", "완료"].map((status) => {
             const isActive = statusFilter === status;
 
