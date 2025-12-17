@@ -1,31 +1,49 @@
-import CloseIcon from "../../assets/icons/close.png";
+import { useState } from "react";
+import CloseIcon from "../assets/icons/close.png";
 import Button from "../assets/Button";
 
+export default function Response({ onClose, onSend, data }) {
+  // ✅ 초기값을 함수로 계산 (useEffect 제거)
+  const [title, setTitle] = useState(() => {
+    if (data?.title) return `Re: ${data.title}`;
+    return "Re: 요청사항";
+  });
 
-export default function Response({ onClose, onSend }) {
+  const [reply, setReply] = useState("");
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-      {/* 바깥 박스 */}
       <div className="w-[700px] bg-white rounded-lg relative p-10">
-
-        {/* 닫기 버튼 */}
+        {/* 닫기 */}
         <img
           src={CloseIcon}
           className="absolute top-4 right-4 w-[28px] cursor-pointer"
           onClick={onClose}
         />
 
-        {/* 타이틀 */}
-        <h2 className="text-[24px] text-center font-medium mb-6">
-          Re: 요청사항
-        </h2>
+        {/* 제목 input */}
+        <div className="flex justify-center mb-6">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="제목을 입력하세요"
+            className="
+              w-[420px]
+              text-[24px]
+              font-medium
+              text-center
+              border-b-2 border-[#054E76]
+              bg-transparent
+              outline-none
+            "
+          />
+        </div>
 
-        {/* 상태 표시 영역 */}
-        <div className="bg-[#E6EEF2] rounded-lg p-6">
-
-          {/* 상태 라벨 */}
-          <div className="flex justify-center gap-8 text-[18px] mb-4">
+        {/* 본문 영역 */}
+        <div className="bg-[#E6EEF2] rounded-lg p-6 w-[580px] h-[550px] ml-[25px]">
+          {/* 상태 표시 */}
+          <div className="flex justify-center gap-22 text-[18px] mb-4 mt-10">
             <span className="flex items-center gap-2">
               ● <span>접수</span>
             </span>
@@ -37,24 +55,32 @@ export default function Response({ onClose, onSend }) {
             </span>
           </div>
 
-          {/* 답신 입력 영역 */}
+          {/* 답장 내용 */}
           <div className="flex justify-center">
             <textarea
-              placeholder="내용"
+              placeholder="내용을 입력하세요."
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
               className="
-                w-[630px] h-[400px]
+                w-[430px] h-[400px]
                 border border-gray-400
                 p-4 text-[18px]
-                resize-none
+                resize-none bg-white
               "
             />
           </div>
         </div>
 
-        {/* 보내기 버튼 */}
+        {/* 보내기 */}
         <div className="flex justify-center mt-6">
           <Button
-            onClick={onSend}
+            onClick={() =>
+              onSend?.({
+                title,
+                content: reply,
+              })
+            }
+            disabled={!reply.trim() || !title.trim()}
             className="
               w-[155px] h-[68px]
               border border-black

@@ -19,7 +19,7 @@ import ParkingStatus from "./pages/ParkingStatus";
 import Data from "./pages/Data";
 
 
-import Log from "./Log/log";
+import Log from "./Log/Log";
 
 import { AuthProvider } from "./components/Login/contexts/AuthContext";
 

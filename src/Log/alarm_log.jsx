@@ -6,13 +6,13 @@ import CalendarIcon from "../assets/icons/calendar_icon.png";
 import choiceIcon from "../assets/icons/choice_icon.png";
 
 import AlarmL from "../Log/alarm_l.jsx";
-import RequestArrival from "../Log/request_arrival.jsx";
+import RequestArrival from "../Log/request_arrival.jsx"; // ✅ 요청 내역(수신/상세 보기)
+import Response from "../Log/Response.jsx";               // ✅ 답장 작성+저장
 import Button from "../assets/Button.jsx";
 
 import DatePicker from "react-datepicker";
 import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
-
 import "./datepicker_override.css";
 
 /* ================= userCode 유틸 ================= */
@@ -67,7 +67,6 @@ export default function AlarmLog() {
 
       const updates = {};
       const list = Object.entries(val).map(([id, item]) => {
-        // ⭐ userCode 없으면 생성해서 DB에 즉시 보정
         let userCode = item.userCode;
         if (!userCode) {
           userCode = generateUserCode();
@@ -78,9 +77,14 @@ export default function AlarmLog() {
           id,
           userCode,
           user: item.user ?? "",
+          title: item.title ?? "",
           content: item.content ?? "",
           date: item.date ?? "",
           status: item.status ?? "접수",
+          building: item.building ?? "",
+          floor: item.floor ?? "",
+          type: item.type ?? "",
+          reply: item.reply ?? null,
         };
       });
 
@@ -97,7 +101,6 @@ export default function AlarmLog() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
   const datePickerRef = useRef(null);
-
   const formattedDate = formatDate(selectedDate);
 
   let filtered = [...data];
@@ -110,9 +113,8 @@ export default function AlarmLog() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
 
-  const toggleRow = (id) => {
+  const toggleRow = (id) =>
     setCheckedRows((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const cancelEdit = () => {
     setEditMode(false);
@@ -134,14 +136,16 @@ export default function AlarmLog() {
     setCheckedRows(next);
   };
 
-  /* ================= 상세 ================= */
-  const [showArrival, setShowArrival] = useState(false);
+  /* ================= 모달 ================= */
+  const [showRequest, setShowRequest] = useState(false); // ✅ RequestArrival(요청 내역)
+  const [showResponse, setShowResponse] = useState(false); // ✅ Response(답장 저장)
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const openArrival = (row) => {
+  const openRequest = (row) => {
     if (editMode) return;
+    setShowResponse(false); // 🔥 답장창 남아있으면 닫기
     setSelectedRow(row);
-    setShowArrival(true);
+    setShowRequest(true);   // ✅ 요청 내역 먼저
   };
 
   /* ================= 토스트 ================= */
@@ -166,13 +170,10 @@ export default function AlarmLog() {
     }
 
     let changed = 0;
-
     Object.entries(checkedRows).forEach(([id, checked]) => {
       if (checked) {
         changed += 1;
-        update(ref(rtdb, `requests/${id}`), {
-          status: pendingStatus,
-        });
+        update(ref(rtdb, `requests/${id}`), { status: pendingStatus });
       }
     });
 
@@ -187,12 +188,11 @@ export default function AlarmLog() {
 
   return (
     <div className="w-full max-w-[1100px] mx-auto mt-[30px] mb-[40px]">
-
       {/* ================= 필터 ================= */}
       <div className="flex justify-between items-center mb-4 text-[18px]">
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold cursor-pointer "
+            className="text-[#054E76] font-semibold cursor-pointer"
             onClick={() => {
               setSelectedDate(null);
               setStatusFilter(null);
@@ -228,7 +228,7 @@ export default function AlarmLog() {
               <button
                 onClick={() => setStatusFilter(t)}
                 className={`cursor-pointer ${
-                  statusFilter === t && `${STATUS_COLOR[t]} font-bold`
+                  statusFilter === t ? `${STATUS_COLOR[t]} font-bold` : ""
                 }`}
               >
                 {t}
@@ -240,8 +240,10 @@ export default function AlarmLog() {
       </div>
 
       {/* ================= 헤더 ================= */}
-      <div className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px]
-        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
+      <div
+        className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px]
+        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center"
+      >
         <div className="text-center">No.</div>
 
         <div className="flex justify-center">
@@ -274,7 +276,7 @@ export default function AlarmLog() {
           editMode={editMode}
           checked={!!checkedRows[row.id]}
           toggleRow={() => toggleRow(row.id)}
-          onClickContent={() => openArrival(row)}
+          onClickContent={() => openRequest(row)} // ✅ 요청 내역(RequestArrival) 먼저
           onToggleStatus={(r) => {
             const next = STATUS_NEXT[r.status];
             update(ref(rtdb, `requests/${r.id}`), { status: next });
@@ -291,11 +293,18 @@ export default function AlarmLog() {
             absolute left-1/2 top-1/2
             -translate-x-1/2 -translate-y-1/2
             flex items-center gap-3 text-[18px]
-            pointer-events-auto 
+            pointer-events-auto
           "
         >
-          <button className="cursor-pointer" onClick={() => setPage(1)}>{"<<"}</button>
-          <button className="cursor-pointer"   onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
+          <button className="cursor-pointer" onClick={() => setPage(1)}>
+            {"<<"}
+          </button>
+          <button
+            className="cursor-pointer"
+            onClick={() => page > 1 && setPage(page - 1)}
+          >
+            {"<"}
+          </button>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
@@ -307,8 +316,15 @@ export default function AlarmLog() {
             </button>
           ))}
 
-          <button className="cursor-pointer" onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
-          <button  className="cursor-pointer" onClick={() => setPage(totalPages)}>{">>"}</button>
+          <button
+            className="cursor-pointer"
+            onClick={() => page < totalPages && setPage(page + 1)}
+          >
+            {">"}
+          </button>
+          <button className="cursor-pointer" onClick={() => setPage(totalPages)}>
+            {">>"}
+          </button>
         </div>
 
         <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-3 mr-5 pointer-events-auto">
@@ -317,9 +333,7 @@ export default function AlarmLog() {
           {editMode && (
             <>
               <div className="relative w-[90px]">
-                <Button onClick={() => setDropdownOpen(!dropdownOpen)}>
-                  옵션 ▼
-                </Button>
+                <Button onClick={() => setDropdownOpen(!dropdownOpen)}>옵션 ▼</Button>
 
                 {dropdownOpen && (
                   <div className="absolute right-0 w-[90px] bg-white border shadow text-center">
@@ -343,18 +357,52 @@ export default function AlarmLog() {
         </div>
       </div>
 
-      {/* ================= 상세 모달 ================= */}
-      {showArrival && selectedRow && (
+      {/* ================= 모달 (한 번에 하나만) ================= */}
+      {selectedRow && showRequest ? (
         <RequestArrival
           data={selectedRow}
-          onClose={() => setShowArrival(false)}
+          onClose={() => setShowRequest(false)}
+          onReply={() => {
+            setShowRequest(false);
+            setShowResponse(true);
+          }}
         />
-      )}
+      ) : selectedRow && showResponse ? (
+        <Response
+          data={selectedRow}
+          mode="reply"
+          onClose={() => setShowResponse(false)}
+          onSend={async (payload) => {
+            // payload가 문자열이든 객체든 둘 다 대응
+            const replyContent =
+              typeof payload === "string" ? payload : payload?.content ?? "";
+            const replyTitle =
+              typeof payload === "string" ? (selectedRow.title ?? "") : payload?.title ?? (selectedRow.title ?? "");
+
+            if (!replyContent?.trim()) return;
+
+            await update(ref(rtdb, `requests/${selectedRow.id}`), {
+              status: "완료",
+              reply: {
+                title: replyTitle,
+                content: replyContent,
+                createdAt: Date.now(),
+                sender: "admin",
+              },
+            });
+
+            showToast("답장이 저장되었습니다.");
+            setShowResponse(false);
+          }}
+        />
+      ) : null}
 
       {/* ================= 토스트 ================= */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2
-                        bg-black text-white px-5 py-3 rounded-xl text-[16px] opacity-90">
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2
+                        bg-black text-white px-5 py-3 rounded-xl text-[16px] opacity-90"
+        >
           {toast}
         </div>
       )}
