@@ -173,7 +173,7 @@ export default function AlarmProblems() {
     <>
       <ToastContainer newestOnTop pauseOnHover={false} />
 
-      <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
+      <div className="w-[335px] h-[full] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
         {/* ✅ 왼쪽: 더보기... / 오른쪽: 안 읽은 알림 */}
         <div className="flex items-center justify-between mb-7 mt-1">
           <button
