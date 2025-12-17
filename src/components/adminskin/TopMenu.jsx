@@ -29,9 +29,6 @@ export default function TopMenu() {
 
   const navigate = useNavigate();
 
-  const prevLatestAlertTime = useRef(0);
-
-
   const METRIC_LABEL = {
     elec: "전기",
     water: "수도",
@@ -77,7 +74,6 @@ export default function TopMenu() {
     const alertsRef = ref(rtdb, "alerts");
     const requestsRef = ref(rtdb, "requests");
 
-    // alerts
     const handleAlerts = (snapshot) => {
     if (!snapshot.exists()) {
     setAlertCount(0);
@@ -88,23 +84,30 @@ export default function TopMenu() {
 
     const raw = snapshot.val();
     const latestMap = {};
-    
+
     Object.entries(raw).forEach(([floorKey, byFloor]) => {
-      Object.values(byFloor).forEach((byDate) => {
-        Object.values(byDate).forEach((alertItem) => {
-          const floor = alertItem.floor || floorKey;
-          const metric = alertItem.metric;
-          if (!floor || !metric) return;
+    Object.values(byFloor).forEach((byDate) => {
+    Object.values(byDate).forEach((alertItem) => {
+      const floor = alertItem.floor || floorKey;
+      const metric = alertItem.metric;
 
-          const key = `${floor}-${metric}`;
-          const time = Number(alertItem.createdAt) || 0;
+      if (!floor || !metric) return;
 
-          if (!latestMap[key] || time > Number(latestMap[key].createdAt || 0)) {
-            latestMap[key] = { ...alertItem, floor };
-          }
-        });
-      });
+      const key = `${floor}-${metric}`;
+      const time = Number(alertItem.createdAt) || 0;
+
+      if (
+        !latestMap[key] ||
+        time > Number(latestMap[key].createdAt || 0)
+      ) {
+        latestMap[key] = {
+          ...alertItem,
+          floor, // 보정된 floor
+        };
+      }
     });
+  });
+});
 
     
     let count = 0;
@@ -126,9 +129,9 @@ export default function TopMenu() {
 
     if (
   !isInitialAlertLoad.current &&
+  count > prevAlertCount.current &&
   newAlert &&
-  (newAlert.level === "warning" || newAlert.level === "caution") &&
-  Number(newAlert.createdAt) > prevLatestAlertTime.current
+  (newAlert.level === "warning" || newAlert.level === "caution")
 ) {
   const baseMessage = getReasonText(newAlert.reason, newAlert.metric);
 
@@ -141,75 +144,70 @@ export default function TopMenu() {
       message: baseMessage,
     });
 
-  clearTimeout(notificationTimer.current);
-        notificationTimer.current = setTimeout(
-          () => setNotification(null),
-          5000
-        );
-      }
-    }
-
+  if (notificationTimer.current) clearTimeout(notificationTimer.current);
+  notificationTimer.current = setTimeout(() => setNotification(null), 5000);
+  } }
     prevAlertCount.current = count;
-    prevLatestAlertTime.current = latestTime;
     isInitialAlertLoad.current = false;
   };
 
-   // 🔥 REQUESTS
-  // =========================
-  const handleRequests = (snapshot) => {
-    if (!snapshot.exists()) {
-      setRequestCount(0);
-      prevRequestCount.current = 0;
-      isInitialRequestLoad.current = false;
-      return;
-    }
+   const handleRequests = (snapshot) => {
 
-    const raw = snapshot.val();
-    const active = Object.values(raw).filter(
-      (r) => r.status !== "완료"
-    );
+  if (isInitialAlertLoad.current) {
+  prevAlertCount.current = count;
+  isInitialAlertLoad.current = false;
+  return;
+  }
 
-    const count = active.length;
-    setRequestCount(count);
+  const raw = snapshot.val();
 
-    if (isInitialRequestLoad.current) {
-      prevRequestCount.current = count;
-      isInitialRequestLoad.current = false;
-      return;
-    }
+  // ✅ 완료되지 않은 요청만 필터
+  const activeRequests = Object.values(raw).filter(
+    (req) => req.status !== "완료"
+  );
 
-    if (count > prevRequestCount.current) {
-      const newReq = active
-        .sort((a, b) => Number(a.createdAt) - Number(b.createdAt))
-        .pop();
+  const count = activeRequests.length;
+  setRequestCount(count);
 
-      setNotification({
-        type: "request",
-        icon: login,
-        floor: newReq.floor,
-        room: newReq.room,
-        message: newReq.title,
-      });
+  // 🔥 새 요청이 생겼을 때만 알림
+  if (!isInitialRequestLoad.current && count > prevRequestCount.current) {
+    const newRequest = activeRequests
+      .sort((a, b) => Number(a.createdAt) - Number(b.createdAt))
+      .pop();
+      
+  setNotification({
+    type: "request",
+    icon: login,
+    floor: newRequest.floor,
+    room: newRequest.room,
+    message: newRequest.title
+  });
 
-      clearTimeout(notificationTimer.current);
-      notificationTimer.current = setTimeout(
-        () => setNotification(null),
-        3000
-      );
-    }
+  if (notificationTimer.current) {
+          clearTimeout(notificationTimer.current);
+        }
+
+        notificationTimer.current = setTimeout(
+          () => setNotification(null),
+          3000
+        );
+      }
 
     prevRequestCount.current = count;
+    isInitialRequestLoad.current = false;
   };
 
-  const unAlert = onValue(alertsRef, handleAlerts);
-  const unReq = onValue(requestsRef, handleRequests);
+  const unsubscribeAlerts = onValue(alertsRef, handleAlerts);
+    const unsubscribeRequests = onValue(requestsRef, handleRequests);
 
-  return () => {
-    unAlert();
-    unReq();
-    clearTimeout(notificationTimer.current);
-  };
-}, []);
+    return () => {
+      unsubscribeAlerts();
+      unsubscribeRequests();
+      if (notificationTimer.current) {
+        clearTimeout(notificationTimer.current);
+      }
+    };
+  }, []);
 
     useEffect(() => {
     const auth = getAuth();
