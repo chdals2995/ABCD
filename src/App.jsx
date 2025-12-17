@@ -19,12 +19,15 @@ import Floors from "./pages/Floors";
 import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
+import UserMain from "./pages/UserMain"
 // import Data from "./pages/Data";
 // import Problems from "./pages/Problems";
 
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { rtdb, auth } from "./firebase/config";
+
+import Alarm from "./alarm/Alarm";
 
 // ✅ role별 "기본 홈" (권한 없을 때 튕길 목적지)
 function homeByRole(role) {
@@ -117,7 +120,7 @@ export default function App() {
               path="/UserMain"
               element={
                 <RequireRole allowRoles={["user"]}>
-                  <AuthStatus />
+                  <UserMain/>
                 </RequireRole>
               }
             />
@@ -188,6 +191,16 @@ export default function App() {
                 </RequireRole>
               }
             />
+
+            <Route
+              path="/alarm"
+              element={
+                <RequireRole allowRoles={["admin", "master"]}>
+                  <Alarm />
+                </RequireRole>
+              }
+            />
+
             {/* <Route
               path="/problems"
               element={

@@ -1,0 +1,64 @@
+/* ===================================================================
+                     여기서부턴 내가 추가한 영역  
+================================================================= */
+
+
+
+
+/* AlarmRequest 리스트 스크롤: 스크롤은 되되, 바는 숨김 */
+.SCROLL_CONTAINER {
+  overflow: visible;   /* 또는 삭제 */
+  max-height: none;    /* 삭제 */
+}
+
+.scroll-area {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE */
+}
+
+.scroll-area::-webkit-scrollbar {
+  display: none;                  /* Chrome, Safari */
+}
+
+/* 요청 들어올 시, 새로운 요청인 걸 구분짓기 위한 깜빡임 애니메이션 */
+
+
+
+
+@keyframes blink-dot {
+  0% { opacity: 1; }
+  10% { opacity: 0.9; }
+  20% { opacity: 0.8; }
+  30% { opacity: 0.7; }
+  40% { opacity: 0.6; }
+  50% { opacity: 0.5; }
+  60% { opacity: 0.4; }
+  70% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+
+.blink-dot {
+  display: inline-block;   /* ⭐ 이게 핵심 */
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: red;
+  animation: blink-dot 1.8s infinite ease-in-out;
+}
+
+
+
+/* 화살표 애니메이션으로 스크롤 예고해주는 역할 */
+
+
+@keyframes arrowBounce {
+  0%   { transform: translateY(0); opacity: 0.4; }
+  50%  { transform: translateY(6px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.4; }
+}
+
+
+.arrow-bounce {
+  animation: arrowBounce 1.4s ease-in-out infinite;
+}
