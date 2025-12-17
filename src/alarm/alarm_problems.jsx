@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config";
 import { useNavigate } from "react-router-dom";
@@ -11,8 +11,6 @@ import "react-toastify/dist/ReactToastify.css";
 import warningIcon from "../assets/icons/iconRed.png";
 import cautionIcon from "../assets/icons/alert.png";
 
-// 컴포넌트
-import UnsolvedList from "../problems/unsolved_list";
 import "./hide_scrollbar.css";
 
 /* =========================
@@ -78,7 +76,7 @@ function getReasonText(reason, metric, level) {
 }
 
 /* =========================
-   토스트 (❗닫기 버튼으로만 종료)
+   토스트 (닫기 버튼으로만 종료)
 ========================= */
 function showDetailToast(item) {
   const icon = item.level === "warning" ? warningIcon : cautionIcon;
@@ -107,8 +105,8 @@ function showDetailToast(item) {
     </div>,
     {
       position: "top-center",
-      autoClose: false,      // 자동 닫힘 ❌
-      closeButton: true,     // X 버튼만 ⭕
+      autoClose: false,
+      closeButton: true,
       closeOnClick: false,
       draggable: false,
       hideProgressBar: true,
@@ -162,63 +160,43 @@ export default function AlarmProblems() {
   const warningItems = items.filter((i) => i.level === "warning");
   const cautionItems = items.filter((i) => i.level === "caution");
 
-  /* =========================
-     미해결 리스트용
-  ========================= */
-  const unsolvedItems = useMemo(() => {
-    return items.map((item) => ({
-      id: item.id,
-      metric: METRIC_NORMALIZE[item.metric] || item.metric,
-      floor: item.floor,
-      createdAt: item.createdAt,
-      reason: getReasonText(item.reason, item.metric, item.level),
-    }));
-  }, [items]);
-
   const handleRead = (item) => {
     update(ref(rtdb, `alerts/${item.floor}/${item.dateKey}/${item.id}`), {
       check: true,
     });
     showDetailToast(item);
+
+    // 문제 페이지 연동은 유지 (UI 없이)
+    navigate("/problems", {
+      state: {
+        from: "alarm",
+        problemId: item.id,
+      },
+    });
   };
 
   return (
     <>
       <ToastContainer newestOnTop pauseOnHover={false} />
 
-      <div className="flex gap-6">
-        {/* ===== 알람 패널 ===== */}
-        <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px] mt-5">
-          <div className="text-[17px] text-gray-400 mb-7 mt-1">
-            안 읽은 알림
-          </div>
-
-          <Section
-            title="경고"
-            icon={warningIcon}
-            items={warningItems}
-            onRead={handleRead}
-          />
-
-          <Section
-            title="주의"
-            icon={cautionIcon}
-            items={cautionItems}
-            onRead={handleRead}
-          />
+      {/* ===== 알람 패널 (알림 리스트만) ===== */}
+      <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
+        <div className="text-[17px] text-gray-400 mb-7 mt-1">
+          안 읽은 알림
         </div>
 
-        {/* ===== 미해결 항목 ===== */}
-        <UnsolvedList
-          items={unsolvedItems}
-          onSelectProblem={(id) => {
-            navigate("/problems", {
-              state: {
-                from: "alarm",
-                problemId: id,
-              },
-            });
-          }}
+        <Section
+          title="경고"
+          icon={warningIcon}
+          items={warningItems}
+          onRead={handleRead}
+        />
+
+        <Section
+          title="주의"
+          icon={cautionIcon}
+          items={cautionItems}
+          onRead={handleRead}
         />
       </div>
     </>
@@ -238,9 +216,7 @@ function Section({ title, icon, items, onRead }) {
 
       <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
         {items.length === 0 ? (
-          <div className="text-gray-400 text-[14px] py-2">
-            항목 없음
-          </div>
+          <div className="text-gray-400 text-[14px] py-2">항목 없음</div>
         ) : (
           items.map((item) => (
             <div

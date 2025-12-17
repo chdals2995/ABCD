@@ -114,7 +114,7 @@ export default function Alarm() {
           </div>
 
           {/* 내용 */}
-          <div className="w-[335px] h-[850px] overflow-y-auto bg-white scrollbar-hide scroll-area">
+          <div className="w-[335px] h-[850px] bg-white overflow-y-hidden">
 
             {tab === "problem" && <AlarmProblems items={problemList} />}
             {tab === "request" && <AlarmRequest items={requestList} />}
