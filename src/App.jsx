@@ -21,7 +21,6 @@ import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
 import UserMain from "./pages/UserMain"
 // import Data from "./pages/Data";
-import Problems from "./problems/problems"
 
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
