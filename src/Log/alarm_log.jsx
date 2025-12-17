@@ -14,6 +14,17 @@ import { ko } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 
 import "./datepicker_override.css";
+
+/* ================= userCode 유틸 ================= */
+function generateUserCode(length = 8) {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
 /* ================= 상태 컬러 ================= */
 const STATUS_COLOR = {
   접수: "text-[#25C310]",
@@ -54,13 +65,28 @@ export default function AlarmLog() {
       const val = snapshot.val();
       if (!val) return setData([]);
 
-      const list = Object.entries(val).map(([id, item]) => ({
-        id,
-        user: item.user ?? "",
-        content: item.content ?? "",
-        date: item.date ?? "",
-        status: item.status ?? "접수",
-      }));
+      const updates = {};
+      const list = Object.entries(val).map(([id, item]) => {
+        // ⭐ userCode 없으면 생성해서 DB에 즉시 보정
+        let userCode = item.userCode;
+        if (!userCode) {
+          userCode = generateUserCode();
+          updates[`requests/${id}/userCode`] = userCode;
+        }
+
+        return {
+          id,
+          userCode,
+          user: item.user ?? "",
+          content: item.content ?? "",
+          date: item.date ?? "",
+          status: item.status ?? "접수",
+        };
+      });
+
+      if (Object.keys(updates).length > 0) {
+        update(ref(rtdb), updates);
+      }
 
       list.sort((a, b) => (a.date > b.date ? -1 : 1));
       setData(list);
@@ -249,109 +275,69 @@ export default function AlarmLog() {
           checked={!!checkedRows[row.id]}
           toggleRow={() => toggleRow(row.id)}
           onClickContent={() => openArrival(row)}
-           onToggleStatus={(r) => {
-
-          const next = STATUS_NEXT[r.status];
-          update(ref(rtdb, `requests/${r.id}`), {
-            status: next,
-          });
-
-          setStatusFilter(null); // ⭐ 추가
-          showToast(`상태가 '${next}'로 변경되었습니다.`);
+          onToggleStatus={(r) => {
+            const next = STATUS_NEXT[r.status];
+            update(ref(rtdb, `requests/${r.id}`), { status: next });
+            setStatusFilter(null);
+            showToast(`상태가 '${next}'로 변경되었습니다.`);
           }}
-          />
+        />
       ))}
 
       {/* ================= 페이지네이션 + 버튼 ================= */}
       <div className="relative my-8 w-full h-[40px] pointer-events-none">
-        {/* CENTER */}
         <div
           className="
             absolute left-1/2 top-1/2
             -translate-x-1/2 -translate-y-1/2
             flex items-center gap-3 text-[18px]
-            pointer-events-auto
+            pointer-events-auto 
           "
         >
-          <button type="button" className="cursor-pointer px-2" onClick={() => setPage(1)}>
-            {"<<"}
-          </button>
-
-          <button
-            type="button"
-            className="cursor-pointer px-2"
-            onClick={() => page > 1 && setPage(page - 1)}
-          >
-            {"<"}
-          </button>
+          <button className="cursor-pointer" onClick={() => setPage(1)}>{"<<"}</button>
+          <button className="cursor-pointer"   onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
-              type="button"
-              className={`cursor-pointer px-2 ${
-                page === n ? "font-bold text-[#054E76]" : ""
-              }`}
+              className={page === n ? "font-bold text-[#054E76]" : "cursor-pointer"}
               onClick={() => setPage(n)}
             >
               {n}
             </button>
           ))}
 
-          <button
-            type="button"
-            className="cursor-pointer px-2"
-            onClick={() => page < totalPages && setPage(page + 1)}
-          >
-            {">"}
-          </button>
-
-          <button
-            type="button"
-            className="cursor-pointer px-2"
-            onClick={() => setPage(totalPages)}
-          >
-            {">>"}
-          </button>
+          <button className="cursor-pointer" onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
+          <button  className="cursor-pointer" onClick={() => setPage(totalPages)}>{">>"}</button>
         </div>
 
-
-
-        {/* 오른쪽 */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-3 mr-5 pointer-events-auto">
           {!editMode && <Button onClick={() => setEditMode(true)}>수정</Button>}
 
           {editMode && (
             <>
               <div className="relative w-[90px]">
-                <Button className="w-[90px]" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                <Button onClick={() => setDropdownOpen(!dropdownOpen)}>
                   옵션 ▼
                 </Button>
 
                 {dropdownOpen && (
                   <div className="absolute right-0 w-[90px] bg-white border shadow text-center">
-                    {["접수", "처리중", "완료"].map((s) => {
-                      const isSelected = pendingStatus === s;
-                      return (
-                        <div
-                          key={s}
-                          onClick={() => changeStatus(s)}
-                          className={`
-                            py-2 cursor-pointer
-                            ${STATUS_COLOR[s]}
-                            ${isSelected ? "font-bold bg-gray-100" : "hover:bg-gray-50"}
-                          `}
-                        >
-                          {s}
-                        </div>
-                      );
-                    })}
+                    {["접수", "처리중", "완료"].map((s) => (
+                      <div
+                        key={s}
+                        onClick={() => changeStatus(s)}
+                        className={`py-2 cursor-pointer ${STATUS_COLOR[s]}`}
+                      >
+                        {s}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
-              <Button className="w-[90px]" onClick={cancelEdit}>취소</Button>
-              <Button className="w-[90px]" onClick={applyChanges}>완료</Button>
+              <Button onClick={cancelEdit}>취소</Button>
+              <Button onClick={applyChanges}>완료</Button>
             </>
           )}
         </div>
@@ -359,7 +345,10 @@ export default function AlarmLog() {
 
       {/* ================= 상세 모달 ================= */}
       {showArrival && selectedRow && (
-        <RequestArrival data={selectedRow} onClose={() => setShowArrival(false)} />
+        <RequestArrival
+          data={selectedRow}
+          onClose={() => setShowArrival(false)}
+        />
       )}
 
       {/* ================= 토스트 ================= */}

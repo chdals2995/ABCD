@@ -1,4 +1,3 @@
-// AlarmL.jsx
 import choiceIcon from "../assets/icons/choice_icon.png";
 
 export default function AlarmL({
@@ -7,8 +6,8 @@ export default function AlarmL({
   checked,
   toggleRow,
   editMode,
-  onClickContent,   // ← 추가
-  onToggleStatus,   // ← 추가22
+  onClickContent,
+  onToggleStatus,
 }) {
   return (
     <div
@@ -30,7 +29,9 @@ export default function AlarmL({
         {editMode && (
           <div className="cursor-pointer" onClick={toggleRow}>
             <div className="w-[25px] h-[25px] bg-[#C8C8C8] rounded-[3px] flex items-center justify-center">
-              {checked && <img src={choiceIcon} className="w-[14px] h-[14px]" />}
+              {checked && (
+                <img src={choiceIcon} className="w-[14px] h-[14px]" />
+              )}
             </div>
           </div>
         )}
@@ -38,10 +39,10 @@ export default function AlarmL({
 
       {/* 아이디 */}
       <div className="flex items-center justify-center text-center break-all leading-tight">
-        {row.user || row.id}
+        {row.userCode || row.user || row.id}
       </div>
 
-      {/* 내용(클릭 시 RequestArrival 열림) */}
+      {/* 내용 */}
       <div
         className="
           w-[440px]
@@ -64,18 +65,18 @@ export default function AlarmL({
       <div className="text-center">
         <span
           className={`cursor-pointer select-none ${
-              row.status === "접수"
-                ? "text-[#25C310]"
-                : row.status === "처리중"
-                ? "text-[#FF3B3B]"
-                : "text-[#367CFF]"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (editMode) return;
-              onToggleStatus && onToggleStatus(row);
-            }}
-          >
+            row.status === "접수"
+              ? "text-[#25C310]"
+              : row.status === "처리중"
+              ? "text-[#FF3B3B]"
+              : "text-[#367CFF]"
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (editMode) return;
+            onToggleStatus && onToggleStatus(row);
+          }}
+        >
           {row.status}
         </span>
       </div>
