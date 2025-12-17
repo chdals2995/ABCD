@@ -1,4 +1,5 @@
 // src/components/allData/Error.jsx
+import { useNavigate } from "react-router-dom";
 import { useProblems } from "../../../hooks/dataPage/useProblems";
 
 function fmtDate(d) {
@@ -7,9 +8,16 @@ function fmtDate(d) {
 }
 
 export default function Error({ metricKey = "elec", limit = 10, onClickItem }) {
+  const navigate = useNavigate();
   const { items, loading } = useProblems({ metricKey, limit });
 
   const isEmpty = !loading && items.length === 0;
+
+  const handleClick = (p) => {
+    onClickItem?.(p);            // 필요하면 부모 콜백도 실행
+    navigate("/problems");       // ✅ problems 페이지로 이동
+    // 만약 상세로 가고 싶으면: navigate(`/problems/${p.id}`)
+  };
 
   return (
     <div className="w-full h-full bg-white rounded-xl flex flex-col">
@@ -25,9 +33,6 @@ export default function Error({ metricKey = "elec", limit = 10, onClickItem }) {
         {isEmpty && (
           <>
             <div className="p-4 text-sm text-gray-500">문제 데이터가 없습니다.</div>
-            <div className="ml-[50%] mt-[5%] translate-x-[-50%] text-center text-gray-500">
-              빈 항목.
-            </div>
           </>
         )}
 
@@ -35,7 +40,7 @@ export default function Error({ metricKey = "elec", limit = 10, onClickItem }) {
           items.map((p) => (
             <button
               key={p.id}
-              onClick={() => onClickItem?.(p)}
+              onClick={() => handleClick(p)}
               className="w-full text-left px-4 py-2 hover:bg-[#054E76]/10 flex items-center justify-between"
             >
               <div className="min-w-0">

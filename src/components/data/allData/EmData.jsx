@@ -229,8 +229,8 @@ export default function EmData({
         // month -> row map
         const byMonth = new Map();
         for (const [month, row] of entries) {
-          const usage = computeMonthlyUsage(month, row, safeMetricKey);
-          byMonth.set(month, { month, usage, costWon: usage * rate });
+          const usage = pickSum(row, safeMetricKey); // ✅ aggMonthBuilding의 월 합계 그대로
+byMonth.set(month, { month, usage, costWon: usage * rate });
         }
 
         // ✅ 1~12월 고정(없는 달은 0)

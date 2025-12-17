@@ -21,11 +21,11 @@ export default function ElecData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">
-              <Sdata metricKey="elec" />
+              <Tdata metricKey="elec" />
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata metricKey="elec" />
+             <Sdata metricKey="elec" /> 
             </div>
           </div>
 
@@ -40,7 +40,9 @@ export default function ElecData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px] mt-[3px]">
-              <MaxData metricKey="elec" />
+              <MaxData  metricKey="elec"
+                        placeKeysPath="aggDay"
+                        dayPerPlacePath="aggDay" />
             </div>
           </div>
         </div>

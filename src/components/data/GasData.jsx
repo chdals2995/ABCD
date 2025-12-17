@@ -21,11 +21,11 @@ export default function GasData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">
-              <Sdata metricKey="gas"/>
+              <Tdata metricKey="gas" showStatusColor={false}/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata metricKey="gas" showStatusColor={false}/>
+              <Sdata metricKey="gas"/>
             </div>
           </div>
 
@@ -40,7 +40,10 @@ export default function GasData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px] mt-[3px]">
-              <MaxData metricKey="gas" />
+              <MaxData  
+              metricKey="gas"
+              placeKeysPath="aggDay"
+              dayPerPlacePath="aggDay" />
             </div>
           </div>
         </div>

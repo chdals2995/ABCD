@@ -20,11 +20,11 @@ export default function WaterData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white">
-              <Sdata metricKey="water"/>
+              <Tdata metricKey="water" showStatusColor={false}/>
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px]">
-              <Tdata metricKey="water" showStatusColor={false}/>
+              <Sdata metricKey="water"/>
             </div>
           </div>
 
@@ -39,7 +39,10 @@ export default function WaterData() {
             </div>
 
             <div className="relative w-[529px] h-[390px] bg-white ml-[8px] mt-[3px]">
-              <MaxData metricKey="water" />
+              <MaxData
+               metricKey="water"
+               placeKeysPath="aggDay"
+               dayPerPlacePath="aggDay"/>
             </div>
           </div>
         </div>
