@@ -43,32 +43,48 @@ export default function AlarmRequest() {
     return item.status === statusFilter;
   });
 
+  // ✅ 나중에 log 페이지 연결용(지금은 자리만)
+  const handleMoreClick = () => {
+    // TODO: navigate("/log") 같은거 연결 예정
+  };
+
   return (
     <>
       <div className="w-[335px] h-[698px] pt-[20px] px-[15px] bg-white">
-        {/* 상태 필터 */}
-        <div className="flex justify-end mb-[30px] gap-[8px] text-[17px] ">
-          {["전체", "접수", "처리중", "완료"].map((status) => {
-            const isActive = statusFilter === status;
+        {/* ✅ 필터 왼쪽에 '더보기...' 자리 확보 */}
+        <div className="flex items-center justify-between mb-[30px] text-[17px]">
+          <button
+            type="button"
+            onClick={handleMoreClick}
+            className="text-[15px] text-gray-400 hover:underline"
+          >
+            더보기...
+          </button>
 
-            const colorClass = (() => {
-              if (!isActive) return "text-gray-500";
-              if (status === "접수") return "text-[#25C310] font-bold";
-              if (status === "처리중") return "text-[#FF3B3B] font-bold";
-              if (status === "완료") return "text-[#367CFF] font-bold";
-              return "text-[#054e76] font-bold";
-            })();
+          {/* 상태 필터 */}
+          <div className="flex gap-[8px]">
+            {["전체", "접수", "처리중", "완료"].map((status) => {
+              const isActive = statusFilter === status;
 
-            return (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-2 hover:underline ${colorClass}`}
-              >
-                {status}
-              </button>
-            );
-          })}
+              const colorClass = (() => {
+                if (!isActive) return "text-gray-500";
+                if (status === "접수") return "text-[#25C310] font-bold";
+                if (status === "처리중") return "text-[#FF3B3B] font-bold";
+                if (status === "완료") return "text-[#367CFF] font-bold";
+                return "text-[#054e76] font-bold";
+              })();
+
+              return (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-2 hover:underline ${colorClass}`}
+                >
+                  {status}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* 요청 리스트 */}
@@ -108,7 +124,7 @@ export default function AlarmRequest() {
       {/* ✅ 상세 모달 */}
       {openDetail && selectedRow && (
         <CheckForm
-          mode="view"  // edit → view
+          mode="view"
           row={{
             id: selectedRow.id,
             title: selectedRow.title,

@@ -1,3 +1,4 @@
+// AlarmProblems.jsx (변경된 부분 포함 전체)
 import { useEffect, useState } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { rtdb } from "../firebase/config";
@@ -51,7 +52,8 @@ function getReasonText(reason, metric, level) {
   const m = METRIC_NORMALIZE[metric] || metric || "";
 
   const map = {
-    sustained_warning_from_normal: "정상 범위를 초과한 상태가 지속되고 있습니다.",
+    sustained_warning_from_normal:
+      "정상 범위를 초과한 상태가 지속되고 있습니다.",
     normal_to_warning: "정상 상태에서 경고 단계로 전환되었습니다.",
     caution_to_warning: "주의 단계에서 경고 단계로 전환되었습니다.",
     still_warning: "경고 상태가 지속되고 있습니다.",
@@ -84,7 +86,7 @@ function showDetailToast(item) {
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
         <div className="flex gap-2 items-center">
-          <img src={icon} className="w-[18px] h-[18px]" />
+          <img src={icon} className="w-[18px] h-[18px]" alt="" />
           <span className="text-[18px] font-bold">
             {item.level === "warning" ? "경고" : "주의"}
           </span>
@@ -116,9 +118,6 @@ function showDetailToast(item) {
 export default function AlarmProblems() {
   const [items, setItems] = useState([]);
 
-  /* =========================
-     alerts 읽기
-  ========================= */
   useEffect(() => {
     const alertsRef = ref(rtdb, "alerts");
 
@@ -166,14 +165,26 @@ export default function AlarmProblems() {
     showDetailToast(item);
   };
 
+  const handleMoreClick = () => {
+    // TODO: navigate("/log") 같은거 연결 예정
+  };
+
   return (
     <>
-      {/* 🔔 토스트 컨테이너 */}
       <ToastContainer newestOnTop pauseOnHover={false} />
 
       <div className="w-[335px] h-[698px] bg-white px-[15px] py-[10px] mt-5 overflow-hidden">
-        <div className="text-[17px] text-gray-400 mb-7 mt-1">
-          안 읽은 알림
+        {/* ✅ 왼쪽: 더보기... / 오른쪽: 안 읽은 알림 */}
+        <div className="flex items-center justify-between mb-7 mt-1">
+          <button
+            type="button"
+            onClick={handleMoreClick}
+            className="text-[15px] text-gray-400 hover:underline"
+          >
+            더보기...
+          </button>
+
+          <div className="text-[17px] text-gray-400">안 읽은 알림</div>
         </div>
 
         <Section
@@ -194,14 +205,11 @@ export default function AlarmProblems() {
   );
 }
 
-/* =========================
-   섹션
-========================= */
 function Section({ title, icon, items, onRead }) {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-5">
-        <img src={icon} className="w-[18px] h-[18px]" />
+        <img src={icon} className="w-[18px] h-[18px]" alt="" />
         <span className="text-[20px] font-semibold">{title}</span>
       </div>
 
