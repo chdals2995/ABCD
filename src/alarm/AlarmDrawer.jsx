@@ -68,7 +68,7 @@ export default function AlarmDrawer({ open, tab, onClose, onTabChange }) {
       className="
         fixed right-0 top-[68px]
         w-[372px] h-[calc(100vh-68px)]
-        bg-[#E6EEF2] pt-[20px]
+        bg-[#E6EEF2] pt-[20px] pb-[12px]
         border-l-[1px]
         border-b-[1px] border-[#054E76]
         overflow-hidden z-[9999]
