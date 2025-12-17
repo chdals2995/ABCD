@@ -23,35 +23,41 @@ function formatDate(d) {
   return `${y}-${m}-${day}`;
 }
 
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function todayDot() {
   const d = new Date();
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export default function CheckLog() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saved, setSaved] = useState(false);
 
-  /* ✅ 말풍선 토스트(필터 안내) */
-  const [showFilterGuide, setShowFilterGuide] = useState(true);
-
-  /* 필터 */
+  /* ===== 필터 ===== */
   const [selectedDate, setSelectedDate] = useState(null);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState(null);
-  const [statusFilter, setStatusFilter] = useState(null); // "완료" | "미완료" | null
+  const [activeFilter, setActiveFilter] = useState(null);
+  // "상시" | "정기" | "미완료" | "완료" | null
+
   const datePickerRef = useRef(null);
   const formattedDate = formatDate(selectedDate);
 
-  /* 폼 */
+  /* ===== 폼 ===== */
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create");
   const [selectedRow, setSelectedRow] = useState(null);
 
-  /* DB 로드 (todos 단일) */
+  /* ===== DB 로드 ===== */
   useEffect(() => {
     const todosRef = ref(rtdb, "todos");
 
@@ -65,11 +71,11 @@ export default function CheckLog() {
 
       const list = Object.entries(val).map(([id, v]) => ({
         id,
-        title: v.title,
-        content: v.content,
-        date: v.date,
-        status: v.status ?? "미완료",
-        checkType: v.checkType ?? "정기",
+        title: v.title ?? v.target ?? "",
+        content: v.content ?? v.description ?? "",
+        date: v.date ?? null,
+        status: v.status ?? (v.done ? "완료" : "미완료"),
+        checkType: v.checkType ?? "상시",
         createdAt: v.createdAt ?? 0,
       }));
 
@@ -78,57 +84,29 @@ export default function CheckLog() {
     });
   }, []);
 
-  /* ✅ 최초 1회만 표시(자동으로 안 사라짐) - eslint 회피(동기 setState 금지) */
-  useEffect(() => {
-    const KEY = "check_log_filter_guide";
-    const seen = localStorage.getItem(KEY);
-
-    if (!seen) {
-      localStorage.setItem(KEY, "true");
-      setTimeout(() => setShowFilterGuide(true), 0); // eslint 회피용
-    }
-  }, []);
-
-  /* 저장 / 수정 (todos 단일) */
+  /* ===== 저장 / 수정 ===== */
   const handleFormSave = async (payload) => {
-    if (formMode === "create" && !payload.date) {
-      alert("점검 날짜를 선택해주세요.");
-      return;
-    }
-
+    const finalDate = payload.date ?? todayStr();
     const todosRef = ref(rtdb, "todos");
 
     if (formMode === "create") {
       await push(todosRef, {
         title: payload.title,
         content: payload.content,
-        date: payload.date,
+        date: finalDate,
         status: "미완료",
         checkType: payload.checkType ?? "상시",
         createdAt: Date.now(),
       });
     } else {
-      const updateData = {
+      await update(ref(rtdb, `todos/${payload.id}`), {
         title: payload.title,
         content: payload.content,
+        date: finalDate,
         checkType: payload.checkType ?? "상시",
-      };
-
-      if (payload.date && payload.date !== selectedRow?.date) {
-        updateData.date = payload.date;
-      }
-
-      await update(ref(rtdb, `todos/${payload.id}`), updateData);
+        updatedAt: Date.now(),
+      });
     }
-
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  /* 상태 토글 */
-  const toggleStatus = async (row) => {
-    const nextStatus = row.status === "완료" ? "미완료" : "완료";
-    await update(ref(rtdb, `todos/${row.id}`), { status: nextStatus });
   };
 
   const handleItemClick = (row) => {
@@ -137,22 +115,30 @@ export default function CheckLog() {
     setFormOpen(true);
   };
 
-  /* 필터 */
+  /* ===== 필터 적용 (단일 필터) ===== */
   let filtered = data;
 
-  if (formattedDate) filtered = filtered.filter((row) => row.date === formattedDate);
+  if (formattedDate) {
+    filtered = filtered.filter((row) => row.date === formattedDate);
+  }
 
   if (search.trim()) {
     filtered = filtered.filter(
-      (row) => row.title?.includes(search) || row.content?.includes(search)
+      (row) =>
+        row.title.includes(search) ||
+        row.content.includes(search)
     );
   }
 
-  if (typeFilter) filtered = filtered.filter((row) => row.checkType === typeFilter);
+  if (activeFilter) {
+    filtered = filtered.filter(
+      (row) =>
+        row.checkType === activeFilter ||
+        row.status === activeFilter
+    );
+  }
 
-  if (statusFilter) filtered = filtered.filter((row) => row.status === statusFilter);
-
-  /* 페이징 */
+  /* ===== 페이징 ===== */
   const itemsPerPage = 6;
   const [page, setPage] = useState(1);
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -172,13 +158,11 @@ export default function CheckLog() {
       <div className="flex justify-between items-center mb-5 text-[18px]">
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold"
+            className="text-[#054E76] font-semibold cursor-pointer"
             onClick={() => {
               setSelectedDate(null);
               setSearch("");
-              setTypeFilter(null);
-              setStatusFilter(null);
-              setShowFilterGuide(false);
+              setActiveFilter(null);
             }}
           >
             전체
@@ -212,80 +196,52 @@ export default function CheckLog() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <img src={SearchIcon} className="w-[35px]" />
+            <img src={SearchIcon} className="w-[35px] cursor-pointer" />
           </div>
         </div>
 
-        {/* 우측 필터 */}
-        <div className="flex items-center gap-4 relative">
-          {/* ✅ 필터 안내 말풍선 (필터 누르면 닫힘 / X로도 닫힘) */}
-          {showFilterGuide && (
-            <div className="absolute right-0 bottom-full mb-4 z-50">
-              <div className="relative bg-[#054E76] text-white text-[15px] leading-5 px-4 py-3 rounded-2xl shadow-lg max-w-[260px]">
-                <button
-                  type="button"
-                  onClick={() => setShowFilterGuide(false)}
-                  className="absolute top-2 right-3 text-white/80 hover:text-white"
-                >
-                  ×
-                </button>
-
-                상시/정기 + 완료/미완료<br />
-                둘을 같이 선택해서<br />
-                필터를 조합할 수 있습니다.
-
-                <div className="absolute top-full right-10 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#054E76]" />
-              </div>
-            </div>
-          )}
-
-          {["상시", "정기"].map((t, idx) => (
-            <div key={t} className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setTypeFilter(t);
-                  setShowFilterGuide(false);
-                }}
-                className={`cursor-pointer transition-colors ${
-                  typeFilter === t ? "text-[#054E76] font-bold" : "text-gray-400"
-                }`}
-              >
-                {t} 점검
-              </button>
-              {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
-            </div>
+        {/* 우측 필터 (단일) */}
+        <div className="flex items-center gap-4">
+          {["상시", "정기"].map((t) => (
+            <button
+              key={t}
+              onClick={() =>
+                setActiveFilter(activeFilter === t ? null : t)
+              }
+              className={`cursor-pointer ${
+                activeFilter === t
+                  ? "text-[#054E76] font-bold"
+                  : "text-gray-400"
+              }`}
+            >
+              {t} 점검
+            </button>
           ))}
 
           <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />
 
-          {["미완료", "완료"].map((s, idx) => (
-            <div key={s} className="flex items-center gap-4">
-              <button
-                onClick={() => {
-                  setStatusFilter(s);
-                  setShowFilterGuide(false);
-                }}
-                className={`cursor-pointer transition-colors ${
-                  statusFilter === s
-                    ? s === "완료"
-                      ? "text-[#0E5FF0] font-bold"
-                      : "text-[#CA3535] font-bold"
-                    : "text-gray-400"
-                }`}
-              >
-                {s}
-              </button>
-              {idx < 1 && <div className="w-[2px] h-[20px] bg-[#B5B5B5]" />}
-            </div>
+          {["미완료", "완료"].map((s) => (
+            <button
+              key={s}
+              onClick={() =>
+                setActiveFilter(activeFilter === s ? null : s)
+              }
+              className={`cursor-pointer ${
+                activeFilter === s
+                  ? s === "완료"
+                    ? "text-[#0E5FF0] font-bold"
+                    : "text-[#CA3535] font-bold"
+                  : "text-gray-400"
+              }`}
+            >
+              {s}
+            </button>
           ))}
         </div>
       </div>
 
       {/* 헤더 */}
-      <div
-        className="grid grid-cols-[60px_300px_1fr_200px_150px]
-        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center"
-      >
+      <div className="grid grid-cols-[60px_300px_1fr_200px_150px] h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
         <div className="text-center">No.</div>
         <div className="text-center">점검항목</div>
         <div className="text-center">내용</div>
@@ -300,7 +256,6 @@ export default function CheckLog() {
           row={row}
           index={(page - 1) * itemsPerPage + i}
           onClickItem={handleItemClick}
-          onToggleStatus={toggleStatus}
         />
       ))}
 
@@ -309,21 +264,21 @@ export default function CheckLog() {
         <div className="w-[120px]" />
 
         <div className="flex justify-center gap-3 text-[18px]">
-          <button onClick={() => setPage(1)}>{"<<"}</button>
-          <button onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
+          <button className="cursor-pointer" onClick={() => setPage(1)}>{"<<"}</button>
+          <button className="cursor-pointer" onClick={() => page > 1 && setPage(page - 1)}>{"<"}</button>
 
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               onClick={() => setPage(n)}
-              className={page === n ? "font-bold text-[#054E76]" : ""}
+              className={page === n ? "font-bold text-[#054E76]" : "cursor-pointer"}
             >
               {n}
             </button>
           ))}
 
-          <button onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
-          <button onClick={() => setPage(totalPages)}>{">>"}</button>
+          <button className="cursor-pointer" onClick={() => page < totalPages && setPage(page + 1)}>{">"}</button>
+          <button className="cursor-pointer" onClick={() => setPage(totalPages)}>{">>"}</button>
         </div>
 
         <div className="w-[120px] flex justify-end mr-8 mb-1">
@@ -348,13 +303,6 @@ export default function CheckLog() {
           row={selectedRow}
           onSave={handleFormSave}
         />
-      )}
-
-      {/* 저장 토스트 */}
-      {saved && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-3 rounded-lg">
-          저장되었습니다.
-        </div>
       )}
     </div>
   );

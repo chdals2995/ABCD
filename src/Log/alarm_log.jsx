@@ -224,7 +224,7 @@ export default function AlarmLog() {
       <div className="flex justify-between items-center mb-4 text-[18px]">
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold cursor-pointer"
+            className="text-[#054E76] font-semibold cursor-pointer "
             onClick={() => {
               setSelectedDate(null);
               setStatusFilter(null);
