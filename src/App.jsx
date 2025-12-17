@@ -28,6 +28,7 @@ import { ref, get } from "firebase/database";
 import { rtdb, auth } from "./firebase/config";
 
 import Alarm from "./alarm/Alarm";
+import Problems from "./problems/problems";
 
 // ✅ role별 "기본 홈" (권한 없을 때 튕길 목적지)
 function homeByRole(role) {
@@ -201,14 +202,14 @@ export default function App() {
               }
             />
 
-            {/* <Route
+            * <Route
               path="/problems"
               element={
                 <RequireRole allowRoles={["admin", "master"]}>
                   <Problems />
                 </RequireRole>
               }
-            /> */}
+            /> 
           
 
             {/* ✅ 없는 경로는 로그인으로 */}
