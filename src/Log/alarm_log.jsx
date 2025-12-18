@@ -126,10 +126,16 @@ export default function AlarmLog() {
     setDropdownOpen(false);
   };
 
-  /* ================= 페이징 (단일 페이지 고정) ================= */
+  /* ================= 페이징 ================= */
   const itemsPerPage = 6;
-  const [page] = useState(1); // setPage 제거 (ESLint 해결)
-  const shown = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const safePage = totalPages === 0 ? 1 : Math.min(page, totalPages);
+
+  const shown = filtered.slice(
+    (safePage - 1) * itemsPerPage,
+    safePage * itemsPerPage
+  );
 
   const toggleAllCurrentPage = () => {
     const allOn = shown.length > 0 && shown.every((r) => checkedRows[r.id]);
@@ -150,25 +156,26 @@ export default function AlarmLog() {
     setShowRequest(true);
   };
 
-  /* ================= 토스트 ================= */
-  const [toast, setToast] = useState("");
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 2000);
+  /* ================= 상태 변경 미니 안내 ================= */
+  const [statusHint, setStatusHint] = useState("");
+
+  const handleToggleStatus = (row) => {
+    const next = STATUS_NEXT[row.status];
+    update(ref(rtdb, `requests/${row.id}`), { status: next });
+
+    // 🔕 토스트 대신 작은 안내 문구
+    setStatusHint(`상태가 '${next}'로 변경되었습니다.`);
+    setTimeout(() => setStatusHint(""), 1500);
   };
 
-  /* ================= 상태 변경 ================= */
+  /* ================= 일괄 상태 변경 ================= */
   const changeStatus = (newStatus) => {
     setPendingStatus(newStatus);
     setDropdownOpen(false);
-    showToast(`상태 '${newStatus}' 로 변경하려면 완료를 누르세요.`);
   };
 
   const applyChanges = () => {
-    if (!pendingStatus) {
-      showToast("변경할 상태를 선택하세요.");
-      return;
-    }
+    if (!pendingStatus) return;
 
     let changed = 0;
     Object.entries(checkedRows).forEach(([id, checked]) => {
@@ -178,12 +185,11 @@ export default function AlarmLog() {
       }
     });
 
-    if (changed === 0) {
-      showToast("선택된 항목이 없습니다.");
-      return;
+    if (changed > 0) {
+      setStatusHint(`상태가 '${pendingStatus}'로 변경되었습니다.`);
+      setTimeout(() => setStatusHint(""), 1500);
     }
 
-    showToast("수정이 완료되었습니다.");
     cancelEdit();
   };
 
@@ -193,10 +199,11 @@ export default function AlarmLog() {
       <div className="flex justify-between items-center mb-4 text-[18px]">
         <div className="flex items-center gap-4">
           <button
-            className="text-[#054E76] font-semibold"
+            className="text-[#054E76] font-semibold cursor-pointer"
             onClick={() => {
               setSelectedDate(null);
               setStatusFilter(null);
+              setPage(1);
             }}
           >
             전체
@@ -217,7 +224,10 @@ export default function AlarmLog() {
           <DatePicker
             ref={datePickerRef}
             selected={selectedDate}
-            onChange={(d) => setSelectedDate(d)}
+            onChange={(d) => {
+              setSelectedDate(d);
+              setPage(1);
+            }}
             locale={ko}
             className="hidden"
           />
@@ -227,7 +237,10 @@ export default function AlarmLog() {
           {["접수", "처리중", "완료"].map((t, idx) => (
             <div key={t} className="flex items-center gap-4">
               <button
-                onClick={() => setStatusFilter(t)}
+                onClick={() => {
+                  setStatusFilter(t);
+                  setPage(1);
+                }}
                 className={`cursor-pointer ${
                   statusFilter === t ? `${STATUS_COLOR[t]} font-bold` : ""
                 }`}
@@ -240,7 +253,7 @@ export default function AlarmLog() {
         </div>
       </div>
 
-      {/* ================= 헤더 (파란바) ================= */}
+      {/* ================= 헤더 ================= */}
       <div className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px]
         h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
         <div className="text-center">No.</div>
@@ -250,10 +263,9 @@ export default function AlarmLog() {
               className="w-[25px] h-[25px] bg-white/40 rounded flex items-center justify-center cursor-pointer"
               onClick={toggleAllCurrentPage}
             >
-              {shown.length > 0 &&
-                shown.every((r) => checkedRows[r.id]) && (
-                  <img src={choiceIcon} className="w-[14px] h-[14px]" />
-                )}
+              {shown.length > 0 && shown.every((r) => checkedRows[r.id]) && (
+                <img src={choiceIcon} className="w-[14px] h-[14px]" />
+              )}
             </div>
           )}
         </div>
@@ -268,27 +280,92 @@ export default function AlarmLog() {
         <AlarmL
           key={row.id}
           row={row}
-          index={idx}
+          index={(safePage - 1) * itemsPerPage + idx + 1}
           editMode={editMode}
           checked={!!checkedRows[row.id]}
           toggleRow={() => toggleRow(row.id)}
           onClickContent={() => openRequest(row)}
-          onToggleStatus={(r) => {
-            const next = STATUS_NEXT[r.status];
-            update(ref(rtdb, `requests/${r.id}`), { status: next });
-            setStatusFilter(null);
-            showToast(`상태가 '${next}'로 변경되었습니다.`);
-          }}
+          onToggleStatus={() => handleToggleStatus(row)}
         />
       ))}
 
-      {/* ================= 하단 버튼 ================= */}
-      <div className="flex justify-end mt-6 gap-3">
+  
+
+     {/* ================= 하단 컨트롤 바 ================= */}
+    <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center">
+      
+      {/* 왼쪽 (비워둠 – 정렬용) */}
+      <div />
+
+      {/* 가운데: 페이징 + 상태 안내 */}
+      <div className="flex flex-col items-center gap-2">
+        {totalPages > 1 && (
+          <div className="flex items-center gap-3 text-[18px]">
+            <button
+              onClick={() => setPage(1)}
+              disabled={safePage === 1}
+              className="px-2 cursor-pointer disabled:opacity-30"
+            >
+              {"<<"}
+            </button>
+
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="px-2 cursor-pointer disabled:opacity-30"
+            >
+              {"<"}
+            </button>
+
+            {Array.from({ length: totalPages }).map((_, i) => {
+              const p = i + 1;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`px-2 cursor-pointer ${
+                    safePage === p ? "text-[#054E76] font-bold" : ""
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="px-2 cursor-pointer disabled:opacity-30"
+            >
+              {">"}
+            </button>
+
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={safePage === totalPages}
+              className="px-2 cursor-pointer disabled:opacity-30"
+            >
+              {">>"}
+            </button>
+          </div>
+        )}
+
+        {/* 상태 변경 안내 (자리 고정) */}
+        <div className="h-[22px] text-[17px] text-gray-500">
+          {statusHint}
+        </div>
+      </div>
+
+      {/* 오른쪽: 수정 버튼 */}
+      <div className="flex justify-end  mr-[20px] mb-13">
         {!editMode && <Button onClick={() => setEditMode(true)}>수정</Button>}
+
         {editMode && (
-          <>
+          <div className="flex gap-3">
             <div className="relative w-[90px]">
-              <Button onClick={() => setDropdownOpen(!dropdownOpen)}>옵션 ▼</Button>
+              <Button onClick={() => setDropdownOpen(!dropdownOpen)}>
+                옵션 ▼
+              </Button>
               {dropdownOpen && (
                 <div className="absolute right-0 w-[90px] bg-white border shadow text-center">
                   {["접수", "처리중", "완료"].map((s) => (
@@ -305,9 +382,10 @@ export default function AlarmLog() {
             </div>
             <Button onClick={cancelEdit}>취소</Button>
             <Button onClick={applyChanges}>완료</Button>
-          </>
+          </div>
         )}
       </div>
+    </div>
 
       {/* ================= 모달 ================= */}
       {selectedRow && showRequest && (
@@ -346,18 +424,9 @@ export default function AlarmLog() {
               },
             });
 
-            showToast("답장이 저장되었습니다.");
             setShowResponse(false);
           }}
         />
-      )}
-
-      {/* ================= 토스트 ================= */}
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2
-          bg-black text-white px-5 py-3 rounded-xl text-[16px] opacity-90">
-          {toast}
-        </div>
       )}
     </div>
   );
