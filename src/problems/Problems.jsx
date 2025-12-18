@@ -85,7 +85,7 @@ export default function Problems() {
 
   // ✅ 메뉴에서 넘어온 metric 반영 (알람 유입보다 우선순위 낮게)
   useEffect(() => {
-    if (fromAlarm) return; // 알람 유입이면 아래 로직들이 결정
+    if (fromAlarm) return;
     const mapped = normalizeMetric(navMetric);
     if (mapped) setSelectedMetric(mapped);
   }, [fromAlarm, navMetric]);
@@ -170,7 +170,6 @@ export default function Problems() {
 
   /* =========================
      🚨 미해결 alerts
-     기준: status !== done
 ========================= */
   const [unsolvedAlerts, setUnsolvedAlerts] = useState([]);
 
@@ -193,7 +192,7 @@ export default function Problems() {
               uid: `alert:${floor}:${dateKey}:${id}`,
               id,
               kind: "alert",
-              metric: normalizeMetric(v.metric) || v.metric, // ✅ 정규화
+              metric: normalizeMetric(v.metric) || v.metric,
               level: v.level,
               floor,
               dateKey,
@@ -211,7 +210,6 @@ export default function Problems() {
 
   /* =========================
      📩 미해결 requests
-     기준: 접수 / 처리중
 ========================= */
   const [unsolvedRequests, setUnsolvedRequests] = useState([]);
 
@@ -229,7 +227,7 @@ export default function Problems() {
           uid: `request:${child.key}`,
           id: child.key,
           kind: "request",
-          metric: normalizeMetric(v.type) || v.type, // ✅ 정규화 (type이 elec/전기 등이어도 OK)
+          metric: normalizeMetric(v.type) || v.type,
           floor: v.floor,
           createdAt: Number(v.createdAt) || 0,
           reason: v.title || v.content,
@@ -243,7 +241,7 @@ export default function Problems() {
   }, []);
 
   /* =========================
-     request로 알람 유입 시: request의 metric으로 상단 필터 매핑
+     request 알람 유입 시 metric 반영
   ========================= */
   useEffect(() => {
     if (!fromAlarm) return;
@@ -255,9 +253,6 @@ export default function Problems() {
     if (mapped) setSelectedMetric(mapped);
   }, [fromAlarm, kindFromAlarm, alarmRequestId, unsolvedRequests]);
 
-  /* =========================
-     최종 미해결 리스트
-  ========================= */
   const unsolvedItems = useMemo(
     () => interleaveMerge(unsolvedAlerts, unsolvedRequests),
     [unsolvedAlerts, unsolvedRequests]
@@ -266,95 +261,107 @@ export default function Problems() {
   const startDate = new Date("2025-01-01");
   const endDate = new Date("2025-12-31");
 
+  // ✅ 폭 조절용 (원하면 여기만 숫자 조절)
+  const LEFT_CHART_W = 420; // 파이 박스 폭(여기 늘리면 상단 좌측이 커짐)
+  const RIGHT_ASIDE_W = 380; // 미해결 리스트 폭
+
   return (
     <div className="w-full h-full">
       <AdminLayout />
 
-      <div className="ml-[330px] mt-10 ">
-        {/* ===== 상단 필터 ===== */}
-        <div className="grid grid-cols-5 mb-10 w-[1150px] ">
-          {["전체", "전력", "온도", "수도", "가스"].map((label) => {
-            const value = label === "전체" ? "all" : label;
-            const active = selectedMetric === value;
+      <div className="ml-[330px] pt-6 px-6">
+        <div className="w-full max-w-[1500px]">
+          {/* ===== 상단 필터 ===== */}
+          <div className="grid grid-cols-5 gap-3 mb-6">
+            {["전체", "전력", "온도", "수도", "가스"].map((label) => {
+              const value = label === "전체" ? "all" : label;
+              const active = selectedMetric === value;
 
-            return (
-              <div key={label} className="flex justify-center">
-                <button
-                  onClick={() => setSelectedMetric(value)}
-                  className={`
-                    w-[170px] h-[65px]
-                    flex items-center justify-center gap-2
-                    text-[34px] font-bold
-                    rounded-[20px]
-                    transition cursor-pointer
-                    ${
-                      active
-                        ? "bg-white shadow-md text-[#054E76]"
-                        : "text-[#999]"
+              return (
+                <div key={label} className="flex justify-center">
+                  <button
+                    onClick={() => setSelectedMetric(value)}
+                    className={`
+                      w-[160px] h-[56px]
+                      flex items-center justify-center gap-2
+                      text-[28px] font-bold
+                      rounded-[16px]
+                      transition cursor-pointer
+                      ${
+                        active
+                          ? "bg-white shadow-md text-[#054E76]"
+                          : "text-[#999]"
+                      }
+                    `}
+                  >
+                    {label}
+                    {active && value !== "all" && (
+                      <img src={FilterIcon} className="w-[26px] h-[26px]" />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ===== 본문: flex로 좌(메인) + 우(미해결) ===== */}
+          <section className="flex items-start">
+            {/* ✅ 좌측 메인: 폭 자동 확장 */}
+            <div className="flex-1 min-w-0 max-w-[900px] mr-[100px]">
+              {/* 상단: 파이 + 분기 */}
+              <div className="flex items-start">
+                <div style={{ width: LEFT_CHART_W }}>
+                  <TypeData
+                    data={typeData}
+                    selectedMetric={selectedMetric}
+                    items={problems}
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <QuarterData
+                    items={problems}
+                    selectedMetric={
+                      selectedMetric === "all" ? "전력" : selectedMetric
                     }
-                  `}
-                >
-                  {label}
-                  {active && value !== "all" && (
-                    <img src={FilterIcon} className="w-[35px] h-[35px]" />
-                  )}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ===== 본문 ===== */}
-        <section className="flex items-start gap-6">
-          <div className="w-[1150px]">
-            <div className="flex items-start ml-[110px]">
-              <div className="w-[420px]">
-                <TypeData
-                  data={typeData}
-                  selectedMetric={selectedMetric}
-                  items={problems}
-                />
+                    startDate={startDate}
+                    endDate={endDate}
+                  />
+                </div>
               </div>
 
-              <div className="flex flex-col ml-10">
-                <QuarterData
-                  items={problems}
-                  selectedMetric={
-                    selectedMetric === "all" ? "전력" : selectedMetric
-                  }
-                  startDate={startDate}
-                  endDate={endDate}
+              {/* ✅ 하단: 원인내역(타입별) — 좌측 메인 전체 폭으로! */}
+              <div className="mt-6">
+                <ProblemsLog
+                  problems={problems}
+                  fromAlarm={fromAlarm}
+                  alarmProblemId={alarmProblemId}
                 />
               </div>
             </div>
 
-            <section className="mt-12">
-              <ProblemsLog
-                problems={problems}
-                fromAlarm={fromAlarm}
-                alarmProblemId={alarmProblemId}
+            {/* ✅ 우측: 미해결 고정폭 */}
+            <div className="shrink-0" style={{ width: RIGHT_ASIDE_W }}>
+              <UnsolvedList
+                items={unsolvedItems}
+                onSelectProblem={(id) => {
+                  const picked = unsolvedItems.find((x) => x.id === id);
+                  const kind = picked?.kind || "alert";
+
+                  navigate("/problems", {
+                    state: {
+                      from: "alarm",
+                      kind,
+                      metric: normalizeMetric(picked?.metric) || null,
+                      problemId: kind === "alert" ? id : null,
+                      requestId: kind === "request" ? id : null,
+                    },
+                  });
+                }}
               />
-            </section>
-          </div>
-
-          <UnsolvedList
-            items={unsolvedItems}
-            onSelectProblem={(id) => {
-              const picked = unsolvedItems.find((x) => x.id === id);
-              const kind = picked?.kind || "alert";
-
-              navigate("/problems", {
-                state: {
-                  from: "alarm",
-                  kind,
-                  metric: normalizeMetric(picked?.metric) || null, // ✅ 같이 넘겨두면 더 확실
-                  problemId: kind === "alert" ? id : null,
-                  requestId: kind === "request" ? id : null,
-                },
-              });
-            }}
-          />
-        </section>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
