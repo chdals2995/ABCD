@@ -1,4 +1,3 @@
-// src/Problems/unsolved_list.jsx
 import { useMemo, useState } from "react";
 
 import AlertIcon from "../assets/icons/alert.png"; // ⚠️
@@ -33,16 +32,12 @@ function getMetricKorean(metric) {
 }
 
 /* =========================
-   ✅ 문장 단위 줄바꿈
-   - "… 돌아와 주의 상태가 해제되었습니다."
-   → 두 문단으로 분리
+   문장 단위 줄바꿈
 ========================= */
 function wrapText(text) {
   if (!text) return "";
 
   let s = String(text).trim();
-
-  // 대표적인 종결 패턴 기준으로 문단 분리
   s = s
     .replace(/돌아와\s+/g, "돌아와\n")
     .replace(/되었습니다\./g, "되었습니다.\n")
@@ -77,10 +72,23 @@ function getReasonText(reason, metric, level) {
 
 export default function UnsolvedList({ items = [], onSelectProblem }) {
   const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState("all"); // all | request | problem
+
+  /* =========================
+     🔎 요청 / 문제 필터
+  ========================= */
+  const filteredItems = useMemo(() => {
+    if (filter === "all") return items;
+    if (filter === "request")
+      return items.filter((i) => i.kind === "request");
+    if (filter === "problem")
+      return items.filter((i) => i.kind !== "request");
+    return items;
+  }, [items, filter]);
 
   const totalPages = useMemo(
-    () => Math.ceil(items.length / PAGE_SIZE),
-    [items.length]
+    () => Math.ceil(filteredItems.length / PAGE_SIZE),
+    [filteredItems.length]
   );
 
   const safePage = useMemo(() => {
@@ -92,8 +100,8 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
 
   const visibleItems = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
-    return items.slice(start, start + PAGE_SIZE);
-  }, [items, safePage]);
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, safePage]);
 
   const pageNumbers = useMemo(() => {
     if (totalPages <= PAGE_WINDOW) {
@@ -123,8 +131,32 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
 
   return (
     <div className="w-[450px] h-[1047px] mr-[40px] mt-6 bg-white border rounded-xl p-6">
-      <div className="text-[22px] font-bold text-center mt-5 mb-8">
+      <div className="text-[22px] font-bold text-center mt-5 mb-4">
         미해결 항목
+      </div>
+
+      {/* ✅ 요청 / 문제 필터 */}
+      <div className="flex justify-center gap-4 text-[16px] mb-6">
+        {[
+          { key: "all", label: "전체" },
+          { key: "request", label: "요청" },
+          { key: "problem", label: "문제" },
+        ].map((f) => (
+          <button
+            key={f.key}
+            onClick={() => {
+              setFilter(f.key);
+              setPage(1);
+            }}
+            className={`px-3 py-1 rounded-full border ${
+              filter === f.key
+                ? "bg-[#054E76] text-white border-[#054E76]"
+                : "text-gray-500 border-gray-300"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       <div className="mt-2 mb-5 border-b border-gray-200" />
