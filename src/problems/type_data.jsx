@@ -2,9 +2,54 @@
 import React, { useMemo } from "react";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
 
-ChartJS.register(ArcElement, Tooltip, ChartDataLabels);
+ChartJS.register(ArcElement, Tooltip);
+
+// ✅ chartjs-plugin-datalabels 없이: 파이 조각 안에 텍스트 그리는 커스텀 플러그인
+const pieInnerTextPlugin = {
+  id: "pieInnerTextPlugin",
+  afterDatasetsDraw(chart, args, pluginOptions) {
+    const { ctx, data } = chart;
+    const dataset = data?.datasets?.[0];
+    if (!dataset) return;
+
+    const values = (dataset.data || []).map((v) => Number(v || 0));
+    const total = values.reduce((a, b) => a + b, 0);
+    if (!total) return;
+
+    const meta = chart.getDatasetMeta(0);
+    const minPct = pluginOptions?.minPercentage ?? 5;
+
+    const color = pluginOptions?.color ?? "#054E76";
+    const fontSize = pluginOptions?.fontSize ?? 16;
+    const fontWeight = pluginOptions?.fontWeight ?? "bold";
+    const fontFamily = pluginOptions?.fontFamily ?? "sans-serif";
+    const lineGap = pluginOptions?.lineGap ?? 2;
+    const lineH = fontSize + lineGap;
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = color;
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+
+    meta.data.forEach((arc, i) => {
+      const v = values[i];
+      if (!v) return;
+
+      const pct = (v / total) * 100;
+      if (pct < minPct) return; // 너무 작은 조각은 숨김(겹침 방지)
+
+      // Arc 내부 중심 좌표(Chart.js 기본 제공)
+      const { x, y } = arc.getCenterPoint ? arc.getCenterPoint() : arc.tooltipPosition();
+
+      ctx.fillText(`${v}건`, x, y - lineH / 2);
+      ctx.fillText(`${pct.toFixed(0)}%`, x, y + lineH / 2);
+    });
+
+    ctx.restore();
+  },
+};
 
 export default function TypeData({ data, selectedMetric, items = [] }) {
   // ✅ 전체(all)일 때 타입별 색상
@@ -53,16 +98,8 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
   // ✅ 원인 분류 설정(타입별)
   const CAUSE_CONFIG = {
     전력: {
-      order: [
-        "운영/사용 패턴",
-        "설정/제어 문제",
-        "설비 고장/성능 저하",
-        "안전/누수·누출",
-        "계측/데이터 이상",
-        "기타",
-      ],
+      order: ["운영/사용 패턴", "설정/제어 문제", "설비 고장/성능 저하", "안전/누수·누출", "계측/데이터 이상", "기타"],
       colors: CAUSE_COLORS.전력,
-      // 우선순위: 안전 > 데이터 > 설정 > 설비 > 운영
       rules: [
         { key: "안전/누수·누출", patterns: ["누전", "절연", "접지", "누설전류", "감전", "rcd", "elb"] },
         { key: "계측/데이터 이상", patterns: ["ct", "미터", "계량", "계측", "센서", "데이터", "통신", "누락", "오류", "이상", "튐", "스파이크", "고정값", "결측"] },
@@ -71,18 +108,9 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
         { key: "운영/사용 패턴", patterns: ["피크", "과부하", "부하", "대기전력", "상시", "점등", "조명", "야간", "24시간", "사용량"] },
       ],
     },
-
     온도: {
-      order: [
-        "설정/제어 문제",
-        "설비 고장/성능 저하",
-        "외부환경/건물 요인",
-        "운영/사용 패턴",
-        "계측/데이터 이상",
-        "기타",
-      ],
+      order: ["설정/제어 문제", "설비 고장/성능 저하", "외부환경/건물 요인", "운영/사용 패턴", "계측/데이터 이상", "기타"],
       colors: CAUSE_COLORS.온도,
-      // 우선순위: 데이터 > 설비 > 설정 > 외부 > 운영
       rules: [
         { key: "계측/데이터 이상", patterns: ["온도센서", "센서", "sensor", "교정", "캘리브", "calib", "offset", "위치", "통신", "데이터", "스파이크", "결측", "튐", "고정값", "오류"] },
         { key: "설비 고장/성능 저하", patterns: ["냉난방", "hvac", "고장", "에러", "풍량", "필터", "막힘", "밸브", "댐퍼", "고착", "팬", "코일", "압축기", "히트펌프"] },
@@ -91,18 +119,9 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
         { key: "운영/사용 패턴", patterns: ["인원", "밀집", "내부발열", "발열", "회의", "행사", "사용"] },
       ],
     },
-
     수도: {
-      order: [
-        "안전/누수·누출",
-        "운영/사용 패턴",
-        "설정/제어 문제",
-        "계획된 작업/행사",
-        "계측/데이터 이상",
-        "기타",
-      ],
+      order: ["안전/누수·누출", "운영/사용 패턴", "설정/제어 문제", "계획된 작업/행사", "계측/데이터 이상", "기타"],
       colors: CAUSE_COLORS.수도,
-      // 우선순위: 누수 > 데이터 > 제어 > 작업 > 운영
       rules: [
         { key: "안전/누수·누출", patterns: ["누수", "새는", "배관", "파손", "누출", "침수", "야간", "유량 유지"] },
         { key: "계측/데이터 이상", patterns: ["유량계", "미터", "계량", "통신", "데이터", "결측", "스파이크", "튐", "고정값", "오류"] },
@@ -111,17 +130,9 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
         { key: "운영/사용 패턴", patterns: ["샤워", "급탕", "피크", "변기", "수전", "방치", "사용", "집중", "시간대"] },
       ],
     },
-
     가스: {
-      order: [
-        "안전/누수·누출",
-        "운영/사용 패턴",
-        "설비 고장/성능 저하",
-        "설정/제어 문제",
-        "기타",
-      ],
+      order: ["안전/누수·누출", "운영/사용 패턴", "설비 고장/성능 저하", "설정/제어 문제", "기타"],
       colors: CAUSE_COLORS.가스,
-      // 우선순위: 안전 > 설비 > 설정 > 운영
       rules: [
         { key: "안전/누수·누출", patterns: ["누출", "누설", "감지기", "경보", "환기", "가스 냄새", "가스밸브", "경보기"] },
         { key: "설비 고장/성능 저하", patterns: ["연소", "버너", "노즐", "효율", "점화", "레귤레이터", "압력 이상", "고장", "불량"] },
@@ -134,7 +145,6 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
   const isAll = selectedMetric === "all";
   const config = CAUSE_CONFIG[selectedMetric];
 
-  // ✅ 원인 그룹별 카운트 만들기 (ProblemsLog items 기준)
   const causeData = useMemo(() => {
     if (!config) return {};
 
@@ -156,7 +166,6 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
       counts[picked] = (counts[picked] || 0) + 1;
     }
 
-    // 0인 항목 제거
     const cleaned = {};
     config.order.forEach((k) => {
       if ((counts[k] || 0) > 0) cleaned[k] = counts[k];
@@ -203,7 +212,6 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
         },
       },
 
-      // ✅ hover tooltip
       tooltip: {
         callbacks: {
           label: (ctx) => {
@@ -215,24 +223,14 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
         },
       },
 
-      // ✅ 파이 조각 안에 "건수 + 비율" 표시
-      datalabels: {
+      // ✅ 커스텀 플러그인 옵션(원하면 조절)
+      pieInnerTextPlugin: {
+        minPercentage: 5,
         color: "#054E76",
-        textAlign: "center",
-        font: { size: 16, weight: "bold" },
-        anchor: "center",
-        align: "center",
-        formatter: (value, ctx) => {
-          const arr = ctx.chart.data.datasets[0].data || [];
-          const total = arr.reduce((a, b) => a + b, 0);
-          const pct = total ? (value / total) * 100 : 0;
-
-          // 너무 작은 조각은 표시 안함(겹침 방지)
-          if (pct < 5) return "";
-
-          // 두 줄 표시(추천)
-          return [`${value}건`, `${pct.toFixed(0)}%`];
-        },
+        fontSize: 16,
+        fontWeight: "bold",
+        // fontFamily: "sans-serif",
+        // lineGap: 2,
       },
     },
   };
@@ -240,7 +238,11 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
   return (
     <div className="w-full flex mt-12 select-none">
       <div className="w-[480px] h-[480px] mt-[-20px] ml-[-30px]">
-        <Pie data={chartData} options={options} />
+        <Pie
+          data={chartData}
+          options={options}
+          plugins={[pieInnerTextPlugin]}  // ✅ 여기만 추가
+        />
       </div>
     </div>
   );
