@@ -25,7 +25,7 @@ function generateUserCode(length = 8) {
   return result;
 }
 
-/* ================= 상태 ================= */
+/* ================= 상태 컬러 ================= */
 const STATUS_COLOR = {
   접수: "text-[#25C310]",
   처리중: "text-[#FF3B3B]",
@@ -38,7 +38,7 @@ const STATUS_NEXT = {
   완료: "접수",
 };
 
-/* ================= 날짜 ================= */
+/* ================= 날짜 유틸 ================= */
 function formatDate(d) {
   if (!d) return null;
   const y = d.getFullYear();
@@ -57,7 +57,7 @@ function todayDot() {
 export default function AlarmLog() {
   const [data, setData] = useState([]);
 
-  /* ================= DB ================= */
+  /* ================= DB 로드 ================= */
   useEffect(() => {
     const requestsRef = ref(rtdb, "requests");
 
@@ -104,7 +104,6 @@ export default function AlarmLog() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
   const datePickerRef = useRef(null);
-
   const formattedDate = formatDate(selectedDate);
 
   let filtered = [...data];
@@ -127,10 +126,9 @@ export default function AlarmLog() {
     setDropdownOpen(false);
   };
 
-  /* ================= 페이징 ================= */
+  /* ================= 페이징 (단일 페이지 고정) ================= */
   const itemsPerPage = 6;
-  const [page, setPage] = useState(1);
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const [page] = useState(1); // setPage 제거 (ESLint 해결)
   const shown = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const toggleAllCurrentPage = () => {
@@ -191,7 +189,7 @@ export default function AlarmLog() {
 
   return (
     <div className="w-full max-w-[1100px] mx-auto mt-[30px] mb-[40px]">
-      {/* 필터 */}
+      {/* ================= 필터 ================= */}
       <div className="flex justify-between items-center mb-4 text-[18px]">
         <div className="flex items-center gap-4">
           <button
@@ -230,7 +228,9 @@ export default function AlarmLog() {
             <div key={t} className="flex items-center gap-4">
               <button
                 onClick={() => setStatusFilter(t)}
-                className={statusFilter === t ? `${STATUS_COLOR[t]} font-bold` : ""}
+                className={`cursor-pointer ${
+                  statusFilter === t ? `${STATUS_COLOR[t]} font-bold` : ""
+                }`}
               >
                 {t}
               </button>
@@ -240,12 +240,35 @@ export default function AlarmLog() {
         </div>
       </div>
 
-      {/* 리스트 */}
+      {/* ================= 헤더 (파란바) ================= */}
+      <div className="grid grid-cols-[60px_60px_180px_1.2fr_180px_120px]
+        h-[48px] bg-[#054E76] text-white text-[20px] font-bold items-center">
+        <div className="text-center">No.</div>
+        <div className="flex justify-center">
+          {editMode && (
+            <div
+              className="w-[25px] h-[25px] bg-white/40 rounded flex items-center justify-center cursor-pointer"
+              onClick={toggleAllCurrentPage}
+            >
+              {shown.length > 0 &&
+                shown.every((r) => checkedRows[r.id]) && (
+                  <img src={choiceIcon} className="w-[14px] h-[14px]" />
+                )}
+            </div>
+          )}
+        </div>
+        <div className="text-center">아이디</div>
+        <div className="text-center">내용</div>
+        <div className="text-center">등록일</div>
+        <div className="text-center">상태</div>
+      </div>
+
+      {/* ================= 리스트 ================= */}
       {shown.map((row, idx) => (
         <AlarmL
           key={row.id}
           row={row}
-          index={(page - 1) * itemsPerPage + idx}
+          index={idx}
           editMode={editMode}
           checked={!!checkedRows[row.id]}
           toggleRow={() => toggleRow(row.id)}
@@ -259,7 +282,34 @@ export default function AlarmLog() {
         />
       ))}
 
-      {/* 모달 */}
+      {/* ================= 하단 버튼 ================= */}
+      <div className="flex justify-end mt-6 gap-3">
+        {!editMode && <Button onClick={() => setEditMode(true)}>수정</Button>}
+        {editMode && (
+          <>
+            <div className="relative w-[90px]">
+              <Button onClick={() => setDropdownOpen(!dropdownOpen)}>옵션 ▼</Button>
+              {dropdownOpen && (
+                <div className="absolute right-0 w-[90px] bg-white border shadow text-center">
+                  {["접수", "처리중", "완료"].map((s) => (
+                    <div
+                      key={s}
+                      onClick={() => changeStatus(s)}
+                      className={`py-2 cursor-pointer ${STATUS_COLOR[s]}`}
+                    >
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Button onClick={cancelEdit}>취소</Button>
+            <Button onClick={applyChanges}>완료</Button>
+          </>
+        )}
+      </div>
+
+      {/* ================= 모달 ================= */}
       {selectedRow && showRequest && (
         <RequestArrival
           data={selectedRow}
@@ -277,13 +327,20 @@ export default function AlarmLog() {
           mode="reply"
           onClose={() => setShowResponse(false)}
           onSend={async (payload) => {
-            if (!payload?.content?.trim()) return;
+            const replyContent =
+              typeof payload === "string" ? payload : payload?.content ?? "";
+            const replyTitle =
+              typeof payload === "string"
+                ? selectedRow.title ?? ""
+                : payload?.title ?? selectedRow.title ?? "";
+
+            if (!replyContent.trim()) return;
 
             await update(ref(rtdb, `requests/${selectedRow.id}`), {
               status: "완료",
               reply: {
-                title: payload.title ?? selectedRow.title,
-                content: payload.content,
+                title: replyTitle,
+                content: replyContent,
                 createdAt: Date.now(),
                 sender: "admin",
               },
@@ -295,8 +352,10 @@ export default function AlarmLog() {
         />
       )}
 
+      {/* ================= 토스트 ================= */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-black text-white px-5 py-3 rounded-xl">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2
+          bg-black text-white px-5 py-3 rounded-xl text-[16px] opacity-90">
           {toast}
         </div>
       )}
