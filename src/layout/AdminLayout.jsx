@@ -4,6 +4,7 @@ import Menu from "../components/adminskin/Menu";
 import TopMenu from "../components/adminskin/TopMenu";
 import AlarmDrawer from "../alarm/AlarmDrawer";
 
+
 export default function AdminLayout({ logoSize, floorGroups }) {
   const [alarmOpen, setAlarmOpen] = useState(false);
   const [alarmTab, setAlarmTab] = useState("problem"); // "problem" | "request"
