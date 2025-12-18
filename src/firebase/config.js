@@ -9,6 +9,7 @@ import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -29,6 +30,9 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app); // Firestore
 const rtdb = getDatabase(app); // Realtime Database
 const auth = getAuth(app); // 기본 Auth (실제 로그인/권한용)
+
+// Storage 인스턴스 생성
+const storage = getStorage(app);
 
 // ✅ 새 유저 생성 전용 보조 앱 (메인 auth.currentUser 안 바뀜)
 const secondaryApp =
@@ -52,5 +56,5 @@ if (typeof window !== "undefined") {
   });
 }
 
-// export
-export { app, db, rtdb, auth, secondaryAuth, analytics };
+// export 추가된 부분: storage
+export { app, db, rtdb, auth, secondaryAuth, analytics, storage };
