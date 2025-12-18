@@ -1,3 +1,4 @@
+// src/components/common/Menu.jsx
 import logoW from "../../assets/logos/logoW.png";
 import logo from "../../assets/logos/mainlogo.png";
 import { useEffect, useState } from "react";
@@ -7,6 +8,28 @@ import { rtdb, auth } from "../../firebase/config";
 import { Link, useNavigate } from "react-router-dom";
 
 const BUILDING_ID = "43c82c19-bf2a-4068-9776-dbb0edaa9cc0";
+
+// ✅ metric 매핑(문제현황 / data / requests type 등 혼용 대비)
+function normalizeMetric(m) {
+  const s = String(m || "")
+    .trim()
+    .toLowerCase();
+
+  if (
+    s === "전력" ||
+    s === "전기" ||
+    s === "elec" ||
+    s === "electric" ||
+    s === "electricity" ||
+    s === "power"
+  )
+    return "전력";
+  if (s === "온도" || s === "temp" || s === "temperature") return "온도";
+  if (s === "수도" || s === "water") return "수도";
+  if (s === "가스" || s === "gas") return "가스";
+
+  return "all";
+}
 
 export default function Menu({ logoSize }) {
   const [open, setOpen] = useState(false);
@@ -32,15 +55,15 @@ export default function Menu({ logoSize }) {
 
       if (snapshot.exists()) {
         const data = snapshot.val();
-        setUserId(data.userId);
-        setRole(data.role);
+        setUserId(data.userId || "");
+        setRole(data.role || "");
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  //마이페이지 이동
+  // 마이페이지 이동
   const goMyPage = () => {
     if (role === "master") {
       navigate("/master");
@@ -49,7 +72,7 @@ export default function Menu({ logoSize }) {
     }
   };
 
-  //토글메뉴
+  // 토글메뉴
   const toggleMenu = (key) => {
     setOpenMenu((prev) => ({
       ...prev,
@@ -57,7 +80,7 @@ export default function Menu({ logoSize }) {
     }));
   };
 
-  const show = () => setOpen(!open);
+  const show = () => setOpen((v) => !v);
 
   // ✅ 층 구간 클릭 -> Floors로 이동 (state로 floorTarget 전달)
   const goFloorsByGroup = (group) => {
@@ -85,8 +108,10 @@ export default function Menu({ logoSize }) {
 
   // ✅ 문제 현황 클릭 -> /problems 로 이동 + 탭(metric) 지정
   const goProblems = (metric) => {
+    const mapped = normalizeMetric(metric);
+
     navigate("/problems", {
-      state: { metric }, // "전력" | "온도" | "수도" | "가스"
+      state: { metric: mapped }, // ✅ Problems에서 selectedMetric으로 반영
     });
 
     setOpen(false);
@@ -117,7 +142,7 @@ export default function Menu({ logoSize }) {
         end: Math.min((i + 1) * 10, up),
       }));
 
-      // 위층부터 보이게
+      // ✅ 위층부터 보이게 (지상: 높은층 -> 낮은층) + 지하
       setFloorGroups([...groundGroups.reverse(), ...basementGroup]);
     };
 

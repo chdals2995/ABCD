@@ -1,17 +1,15 @@
 // src/problems/problems_log.jsx
 import { useState, useMemo, useRef, useEffect } from "react";
 
-// ✅ 여기 중요: 파일명/대소문자 실제랑 맞춰야 함
 import Report from "./Report.jsx";
 import ProblemsDetail from "./problems_detail.jsx";
 
 import PlusIcon from "../icons/plus_icon.png";
 
-// ✅ 토스트는 부모(ProblemsLog)에 두면 모달 닫혀도 유지됨
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 4;
 
 /* =========================
    status 정규화
@@ -20,16 +18,17 @@ function normalizeStatus(status) {
   if (!status) return "미완료";
   if (status === "완료") return "완료";
   if (status === "미완료") return "미완료";
-  if (status === "resolved" || status === "done" || status === true) return "완료";
-  if (status === "unresolved" || status === "pending" || status === false) return "미완료";
+  if (status === "resolved" || status === "done" || status === true)
+    return "완료";
+  if (status === "unresolved" || status === "pending" || status === false)
+    return "미완료";
   return status;
 }
 
-/* =========================
-   id 정규화
-========================= */
 function getProblemId(p, fallbackIndex) {
-  return p?.id ?? p?.problemId ?? p?.alertId ?? p?.key ?? `row-${fallbackIndex}`;
+  return (
+    p?.id ?? p?.problemId ?? p?.alertId ?? p?.key ?? `row-${fallbackIndex}`
+  );
 }
 
 export default function ProblemsLog({
@@ -37,12 +36,11 @@ export default function ProblemsLog({
   fromAlarm = false,
   alarmProblemId = null,
 }) {
-  /* =========================
-     알람 유입 계산
-  ========================= */
   const alarmIndex = useMemo(() => {
     if (!fromAlarm || !alarmProblemId) return -1;
-    return problems.findIndex((p, idx) => getProblemId(p, idx) === alarmProblemId);
+    return problems.findIndex(
+      (p, idx) => getProblemId(p, idx) === alarmProblemId
+    );
   }, [fromAlarm, alarmProblemId, problems]);
 
   const initialPage = useMemo(() => {
@@ -55,17 +53,13 @@ export default function ProblemsLog({
     return problems[alarmIndex];
   }, [alarmIndex, problems]);
 
-  /* =========================
-     state
-  ========================= */
   const [page, setPage] = useState(() => initialPage);
-  const [selectedProblem, setSelectedProblem] = useState(() => initialSelectedProblem);
+  const [selectedProblem, setSelectedProblem] = useState(
+    () => initialSelectedProblem
+  );
   const [openReport, setOpenReport] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  /* =========================
-     알람 유입 보정
-  ========================= */
   useEffect(() => {
     if (!fromAlarm) return;
     if (alarmIndex === -1) return;
@@ -76,17 +70,11 @@ export default function ProblemsLog({
     });
   }, [fromAlarm, alarmIndex, initialPage, initialSelectedProblem]);
 
-  /* =========================
-     상태 필터
-  ========================= */
   const filteredProblems = useMemo(() => {
     if (statusFilter === "all") return problems;
     return problems.filter((p) => normalizeStatus(p.status) === statusFilter);
   }, [problems, statusFilter]);
 
-  /* =========================
-     페이징
-  ========================= */
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(filteredProblems.length / ITEMS_PER_PAGE));
   }, [filteredProblems.length]);
@@ -100,9 +88,6 @@ export default function ProblemsLog({
     return filteredProblems.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProblems, currentPage]);
 
-  /* =========================
-     자동 스크롤
-  ========================= */
   const targetRowRef = useRef(null);
 
   useEffect(() => {
@@ -121,25 +106,27 @@ export default function ProblemsLog({
         newestOnTop
         pauseOnHover={false}
         position="top-center"
-        autoClose={500}
+        autoClose={700}
         hideProgressBar={false}
         closeOnClick
         style={{ zIndex: 999999 }}
       />
 
-      <div className="mt-10 border rounded p-5 w-[1020px] ml-15">
+      <div className="border rounded-lg p-4 w-full mb-[10px] bg-white">
         {/* 제목 + 필터 */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[25px] font-semibold px-1 pt-5">원인내역(타입별)</h3>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-[18px] font-semibold">원인내역(타입별)</h3>
 
-          <div className="flex items-center gap-4 mt-5">
-            <div className="flex gap-2 text-[20px]">
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2 text-[14px]">
               <button
                 onClick={() => {
                   setStatusFilter("all");
                   setPage(1);
                 }}
-                className={`${statusFilter === "all" ? "font-bold" : "text-gray-400"} cursor-pointer`}
+                className={`${
+                  statusFilter === "all" ? "font-bold" : "text-gray-400"
+                } cursor-pointer`}
               >
                 전체
               </button>
@@ -149,7 +136,11 @@ export default function ProblemsLog({
                   setStatusFilter("완료");
                   setPage(1);
                 }}
-                className={`${statusFilter === "완료" ? "text-[#0E5F90] font-bold" : "text-gray-400"} cursor-pointer`}
+                className={`${
+                  statusFilter === "완료"
+                    ? "text-[#0E5F90] font-bold"
+                    : "text-gray-400"
+                } cursor-pointer`}
               >
                 완료
               </button>
@@ -159,7 +150,11 @@ export default function ProblemsLog({
                   setStatusFilter("미완료");
                   setPage(1);
                 }}
-                className={`${statusFilter === "미완료" ? "text-[#CA3535] font-bold" : "text-gray-400"} cursor-pointer`}
+                className={`${
+                  statusFilter === "미완료"
+                    ? "text-[#CA3535] font-bold"
+                    : "text-gray-400"
+                } cursor-pointer`}
               >
                 미완료
               </button>
@@ -167,24 +162,24 @@ export default function ProblemsLog({
 
             <button
               onClick={() => setOpenReport(true)}
-              className="w-8 h-8 rounded-full shadow-md flex items-center justify-center bg-white cursor-pointer"
+              className="w-7 h-7 rounded-full shadow-sm flex items-center justify-center bg-white cursor-pointer"
             >
               <img src={PlusIcon} alt="add" className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="w-full border-t border-gray-400 mb-4" />
+        <div className="w-full border-t border-gray-200 mb-3" />
 
         {/* 테이블 */}
         <table className="w-full border-collapse table-fixed">
           <thead>
-            <tr className="border-b text-center text-[17px]">
-              <th className="pb-3 w-[110px]">타입</th>
-              <th className="pb-3 w-[170px]">위치</th>
-              <th className="pb-3">내용</th>
-              <th className="pb-3 w-[170px]">발생일시</th>
-              <th className="pb-3 w-[90px]">상태</th>
+            <tr className="border-b text-center text-[13px] text-gray-700">
+              <th className="pb-2 w-[90px]">타입</th>
+              <th className="pb-2 w-[140px]">위치</th>
+              <th className="pb-2">내용</th>
+              <th className="pb-2 w-[140px]">발생일시</th>
+              <th className="pb-2 w-[80px]">상태</th>
             </tr>
           </thead>
 
@@ -195,11 +190,10 @@ export default function ProblemsLog({
               const normalized = normalizeStatus(p.status);
               const isDone = normalized === "완료";
 
-              // ✅ 핵심 수정: 입력한 날짜 우선
               const displayDate = p.problemDate
-                ? new Date(p.problemDate).toLocaleDateString()
+                ? new Date(p.problemDate).toLocaleDateString("ko-KR")
                 : p.createdAt
-                ? new Date(p.createdAt).toLocaleDateString()
+                ? new Date(p.createdAt).toLocaleDateString("ko-KR")
                 : "-";
 
               return (
@@ -207,15 +201,21 @@ export default function ProblemsLog({
                   key={pid}
                   ref={isTarget ? targetRowRef : null}
                   onClick={() => setSelectedProblem(p)}
-                  className={`border-b text-center cursor-pointer text-[20px] ${isTarget ? "bg-[#E6EEF2]" : ""}`}
+                  className={`border-b text-center cursor-pointer text-[14px] ${
+                    isTarget ? "bg-[#E6EEF2]" : ""
+                  }`}
                 >
-                  <td className="p-4 font-medium text-[20px]">{p.type}</td>
-                  <td className="p-2 text-[20px]">
+                  <td className="py-2 px-2 font-medium">{p.type}</td>
+                  <td className="py-2 px-2">
                     {p.buildingType} {p.floor}
                   </td>
-                  <td className="p-2 text-[20px] ">{p.content}</td>
-                  <td className="p-2 text-[20px]">{displayDate}</td>
-                  <td className={`p-2 font-semibold text-[20px] ${isDone ? "text-[#0E5F90]" : "text-[#CA3535]"}`}>
+                  <td className="py-2 px-2 truncate">{p.content}</td>
+                  <td className="py-2 px-2">{displayDate}</td>
+                  <td
+                    className={`py-2 px-2 font-semibold ${
+                      isDone ? "text-[#0E5F90]" : "text-[#CA3535]"
+                    }`}
+                  >
                     {isDone ? "완료" : "미완료"}
                   </td>
                 </tr>
@@ -225,17 +225,27 @@ export default function ProblemsLog({
         </table>
 
         {/* 페이징 */}
-        <div className="flex justify-center items-center gap-3 mt-5 text-[20px] select-none">
+        <div className="flex justify-center items-center gap-2 mt-3 text-[14px] select-none">
           <span
-            className={`${currentPage === 1 ? "text-gray-300 cursor-default" : "text-gray-500 cursor-pointer"}`}
+            className={`${
+              currentPage === 1
+                ? "text-gray-300 cursor-default"
+                : "text-gray-500 cursor-pointer"
+            }`}
             onClick={() => currentPage !== 1 && setPage(1)}
           >
             {"<<"}
           </span>
 
           <span
-            className={`${currentPage === 1 ? "text-gray-300 cursor-default" : "text-gray-500 cursor-pointer"}`}
-            onClick={() => currentPage !== 1 && setPage((prev) => Math.max(1, prev - 1))}
+            className={`${
+              currentPage === 1
+                ? "text-gray-300 cursor-default"
+                : "text-gray-500 cursor-pointer"
+            }`}
+            onClick={() =>
+              currentPage !== 1 && setPage((prev) => Math.max(1, prev - 1))
+            }
           >
             {"<"}
           </span>
@@ -244,28 +254,43 @@ export default function ProblemsLog({
             <span
               key={n}
               onClick={() => setPage(n)}
-              className={`cursor-pointer ${n === currentPage ? "text-[#0E5F90] font-semibold" : "text-gray-500"}`}
+              className={`cursor-pointer px-1 ${
+                n === currentPage
+                  ? "text-[#0E5F90] font-semibold"
+                  : "text-gray-500"
+              }`}
             >
               {n}
             </span>
           ))}
 
           <span
-            className={`${currentPage === totalPages ? "text-gray-300 cursor-default" : "text-gray-500 cursor-pointer"}`}
-            onClick={() => currentPage !== totalPages && setPage((prev) => Math.min(totalPages, prev + 1))}
+            className={`${
+              currentPage === totalPages
+                ? "text-gray-300 cursor-default"
+                : "text-gray-500 cursor-pointer"
+            }`}
+            onClick={() =>
+              currentPage !== totalPages &&
+              setPage((prev) => Math.min(totalPages, prev + 1))
+            }
           >
             {">"}
           </span>
 
           <span
-            className={`${currentPage === totalPages ? "text-gray-300 cursor-default" : "text-gray-500 cursor-pointer"}`}
+            className={`${
+              currentPage === totalPages
+                ? "text-gray-300 cursor-default"
+                : "text-gray-500 cursor-pointer"
+            }`}
             onClick={() => currentPage !== totalPages && setPage(totalPages)}
           >
             {">>"}
           </span>
         </div>
 
-        {/* 문제 상세 */}
+        {/* 상세 */}
         {selectedProblem && (
           <ProblemsDetail
             problem={{
