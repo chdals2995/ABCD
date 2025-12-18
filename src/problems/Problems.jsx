@@ -215,9 +215,9 @@ export default function Problems() {
     <div className="w-full h-full">
       <AdminLayout />
 
-      <div className="ml-[330px] mt-10">
+      <div className="ml-[330px] mt-10 ">
         {/* ===== 상단 필터 ===== */}
-        <div className="grid grid-cols-5 mb-10 w-[1150px]">
+        <div className="grid grid-cols-5 mb-10 w-[1150px] ">
           {["전체", "전력", "온도", "수도", "가스"].map((label) => {
             const value = label === "전체" ? "all" : label;
             const active = selectedMetric === value;
@@ -231,7 +231,7 @@ export default function Problems() {
                     flex items-center justify-center gap-2
                     text-[34px] font-bold
                     rounded-[20px]
-                    transition
+                    transition cursor-pointer
                     ${active ? "bg-white shadow-md text-[#054E76]" : "text-[#999]"}
                   `}
                 >

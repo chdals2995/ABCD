@@ -122,7 +122,7 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
   const goLast = () => setPage(totalPages);
 
   return (
-    <div className="w-[450px] h-[1076px] mr-[40px] mt-6 bg-white border rounded-xl p-6">
+    <div className="w-[450px] h-[1047px] mr-[40px] mt-6 bg-white border rounded-xl p-6">
       <div className="text-[22px] font-bold text-center mt-5 mb-8">
         미해결 항목
       </div>
