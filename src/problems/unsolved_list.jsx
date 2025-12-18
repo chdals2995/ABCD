@@ -1,21 +1,19 @@
-// src/Problems/unsolved_list.jsx
+// src/problems/unsolved_list.jsx
 import { useMemo, useState } from "react";
 
-import AlertIcon from "../assets/icons/alert.png"; // ⚠️
-import AlarmIcon from "../assets/icons/alarm.png"; // 🔔
+import AlertIcon from "../assets/icons/alert.png";
+import AlarmIcon from "../assets/icons/alarm.png";
 
 const PAGE_SIZE = 5;
 const PAGE_WINDOW = 5;
 
-/* =========================
-   metric 한글 매핑
-========================= */
 const METRIC_NORMALIZE = {
-  elec: "전기",
-  electric: "전기",
-  power: "전기",
-  전력: "전기",
-  전기: "전기",
+  elec: "전력",
+  electric: "전력",
+  electricity: "전력",
+  power: "전력",
+  전력: "전력",
+  전기: "전력",
 
   water: "수도",
   수도: "수도",
@@ -29,32 +27,26 @@ const METRIC_NORMALIZE = {
 };
 
 function getMetricKorean(metric) {
-  return METRIC_NORMALIZE[metric] || metric || "기타";
+  const key = String(metric || "").trim();
+  return (
+    METRIC_NORMALIZE[key] ||
+    METRIC_NORMALIZE[key.toLowerCase()] ||
+    metric ||
+    "기타"
+  );
 }
 
-/* =========================
-   ✅ 문장 단위 줄바꿈
-   - "… 돌아와 주의 상태가 해제되었습니다."
-   → 두 문단으로 분리
-========================= */
 function wrapText(text) {
   if (!text) return "";
-
   let s = String(text).trim();
-
-  // 대표적인 종결 패턴 기준으로 문단 분리
   s = s
     .replace(/돌아와\s+/g, "돌아와\n")
     .replace(/되었습니다\./g, "되었습니다.\n")
     .replace(/됩니다\./g, "됩니다.\n")
     .replace(/감지되었습니다\./g, "감지되었습니다.\n");
-
   return s.trim();
 }
 
-/* =========================
-   reason 코드 → 문장
-========================= */
 function getReasonText(reason, metric, level) {
   if (!reason) return "";
 
@@ -99,7 +91,6 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
     if (totalPages <= PAGE_WINDOW) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-
     const half = Math.floor(PAGE_WINDOW / 2);
     let start = safePage - half;
     let end = safePage + half;
@@ -112,7 +103,6 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
       end = totalPages;
       start = totalPages - PAGE_WINDOW + 1;
     }
-
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [safePage, totalPages]);
 
@@ -122,14 +112,14 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
   const goLast = () => setPage(totalPages);
 
   return (
-    <div className="w-[450px] h-[1047px] mr-[40px] mt-6 bg-white border rounded-xl p-6">
-      <div className="text-[22px] font-bold text-center mt-5 mb-8">
+    <div className="w-[380px] bg-white border rounded-xl p-4 mt-0">
+      <div className="text-[18px] font-bold text-center mt-2 mb-5">
         미해결 항목
       </div>
 
-      <div className="mt-2 mb-5 border-b border-gray-200" />
+      <div className="mb-4 border-b border-gray-200" />
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {visibleItems.map((item) => {
           const kind = item.kind || "alert";
           const iconSrc = kind === "request" ? AlarmIcon : AlertIcon;
@@ -141,27 +131,24 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
             <div
               key={item.uid || item.id}
               onClick={() => onSelectProblem?.(item.id)}
-              className="cursor-pointer border-b pb-6 hover:bg-gray-50 transition"
+              className="cursor-pointer border-b pb-4 hover:bg-gray-50 transition"
             >
-              <div className="flex gap-4">
-                <div className="w-[32px] shrink-0 flex justify-center">
-                  <img
-                    src={iconSrc}
-                    className="w-[22px] h-[22px] mt-[10px]"
-                  />
+              <div className="flex gap-3">
+                <div className="w-[26px] shrink-0 flex justify-center">
+                  <img src={iconSrc} className="w-[18px] h-[18px] mt-[6px]" />
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-[20px] font-bold mb-2">
+                  <div className="text-[16px] font-bold mb-1">
                     {getMetricKorean(item.metric)}
                   </div>
 
-                  <div className="text-[18px] text-gray-600 mb-2">
+                  <div className="text-[13px] text-gray-600 mb-1">
                     {item.floor} ·{" "}
                     {new Date(item.createdAt).toLocaleString("ko-KR")}
                   </div>
 
-                  <div className="text-[18px] text-gray-800 whitespace-pre-line leading-snug">
+                  <div className="text-[13px] text-gray-800 whitespace-pre-line leading-snug">
                     {reasonWrapped}
                   </div>
                 </div>
@@ -172,7 +159,7 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-13 flex justify-center items-center gap-2 text-[22px] select-none cursor-pointer">
+        <div className="mt-4 flex justify-center items-center gap-2 text-[14px] select-none cursor-pointer">
           <span onClick={goFirst}>&lt;&lt;</span>
           <span onClick={goPrev}>&lt;</span>
           {pageNumbers.map((n) => (
