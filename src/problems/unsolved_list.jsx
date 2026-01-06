@@ -12,7 +12,7 @@ const METRIC_NORMALIZE = {
   electric: "전력",
   electricity: "전력",
   power: "전력",
-  전력: "전력",
+  전력: "전력",   
   전기: "전력",
 
   water: "수도",
@@ -69,10 +69,23 @@ function getReasonText(reason, metric, level) {
 
 export default function UnsolvedList({ items = [], onSelectProblem }) {
   const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState("all"); // all | request | problem
+
+  /* =========================
+     🔎 요청 / 문제 필터
+  ========================= */
+  const filteredItems = useMemo(() => {
+    if (filter === "all") return items;
+    if (filter === "request")
+      return items.filter((i) => i.kind === "request");
+    if (filter === "problem")
+      return items.filter((i) => i.kind !== "request");
+    return items;
+  }, [items, filter]);
 
   const totalPages = useMemo(
-    () => Math.ceil(items.length / PAGE_SIZE),
-    [items.length]
+    () => Math.ceil(filteredItems.length / PAGE_SIZE),
+    [filteredItems.length]
   );
 
   const safePage = useMemo(() => {
@@ -84,8 +97,8 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
 
   const visibleItems = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
-    return items.slice(start, start + PAGE_SIZE);
-  }, [items, safePage]);
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, safePage]);
 
   const pageNumbers = useMemo(() => {
     if (totalPages <= PAGE_WINDOW) {
@@ -116,6 +129,49 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
       <div className="text-[18px] font-bold text-center mt-2 mb-5">
         미해결 항목
       </div>
+
+      <div className="flex gap-2 text-[13px]">
+    <button
+      onClick={() => setFilter("all")}
+      className={`px-2 py-1 rounded-md border ${
+        filter === "all"
+          ? "bg-[#054E76] text-white border-[#054E76]"
+          : "text-gray-500 border-gray-300 hover:bg-gray-100"
+      }`}
+    >
+      전체
+    </button>
+
+    <button
+      onClick={() =>  {
+        setFilter("request");
+        setPage(1);
+      }}
+      className={`px-2 py-1 rounded-md border ${
+        filter === "request"
+          ? "bg-[#054E76] text-white border-[#054E76]"
+          : "text-gray-500 border-gray-300 hover:bg-gray-100"
+      }`}
+    >
+      민원
+    </button>
+
+    <button
+      onClick={() => {
+        setFilter("problem");
+        setPage(1);
+      }}
+      className={`px-2 py-1 rounded-md border ${
+        filter === "problem"
+          ? "bg-[#054E76] text-white border-[#054E76]"
+          : "text-gray-500 border-gray-300 hover:bg-gray-100"
+      }`}
+    >
+      문제
+    </button>
+  </div>
+
+      
 
       <div className="mb-4 border-b border-gray-200" />
 
