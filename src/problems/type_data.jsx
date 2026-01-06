@@ -13,9 +13,14 @@ const pieInnerTextPlugin = {
     const dataset = data?.datasets?.[0];
     if (!dataset) return;
 
-    const values = (dataset.data || []).map((v) => Number(v || 0));
-    const total = values.reduce((a, b) => a + b, 0);
-    if (!total) return;
+   const values = (dataset.data || []).map((v) => Number(v || 0));
+
+const total = values.reduce((sum, v, i) => {
+  if (!chart.getDataVisibility(i)) return sum; // ✅ 숨겨진 조각 제외
+  return sum + v;
+}, 0);
+
+if (!total) return;
 
     const meta = chart.getDatasetMeta(0);
     const minPct = pluginOptions?.minPercentage ?? 5;
@@ -34,20 +39,23 @@ const pieInnerTextPlugin = {
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
 
     meta.data.forEach((arc, i) => {
-      const v = values[i];
-      if (!v) return;
+  // ✅ 라벨 클릭으로 숨겨진 타입이면 아예 스킵
+  if (!chart.getDataVisibility(i)) return;
 
-      const pct = (v / total) * 100;
-      if (pct < minPct) return; // 너무 작은 조각은 숨김(겹침 방지)
+  const v = values[i];
+  if (!v) return;
 
-      // Arc 내부 중심 좌표(Chart.js 기본 제공)
-      const { x, y } = arc.getCenterPoint
-        ? arc.getCenterPoint()
-        : arc.tooltipPosition();
+  const pct = (v / total) * 100;
+  if (pct < minPct) return;
 
-      ctx.fillText(`${v}건`, x, y - lineH / 2);
-      ctx.fillText(`${pct.toFixed(0)}%`, x, y + lineH / 2);
-    });
+  const { x, y } = arc.getCenterPoint
+    ? arc.getCenterPoint()
+    : arc.tooltipPosition();
+
+  ctx.fillText(`${v}건`, x, y - lineH / 2);
+  ctx.fillText(`${pct.toFixed(0)}%`, x, y + lineH / 2);
+});
+
 
     ctx.restore();
   },
