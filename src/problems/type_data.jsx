@@ -516,7 +516,7 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
 
   return (
     <div className="w-full flex select-none">
-      <div className="w-[480px] h-[420px] mt-[-20px] ml-[-30px]">
+      <div className="w-[480px] h-[420px] mt-[-20px]">
         <Pie
           data={chartData}
           options={options}

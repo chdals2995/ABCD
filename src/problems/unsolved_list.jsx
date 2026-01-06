@@ -125,8 +125,8 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
   const goLast = () => setPage(totalPages);
 
   return (
-    <div className="w-[380px] bg-white border rounded-xl p-4 mt-0">
-      <div className="text-[18px] font-bold text-center mt-2 mb-5">
+    <div className="w-[500px] bg-white border rounded-xl py-[10px] px-[50px] mt-0">
+      <div className="text-[28px] font-bold text-center mt-2 mb-5">
         미해결 항목
       </div>
 
@@ -137,7 +137,7 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
         filter === "all"
           ? "bg-[#054E76] text-white border-[#054E76]"
           : "text-gray-500 border-gray-300 hover:bg-gray-100"
-      }`}
+      } cursor-pointer text-[20px]`}
     >
       전체
     </button>
@@ -151,7 +151,7 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
         filter === "request"
           ? "bg-[#054E76] text-white border-[#054E76]"
           : "text-gray-500 border-gray-300 hover:bg-gray-100"
-      }`}
+      } cursor-pointer text-[20px]`}
     >
       민원
     </button>
@@ -165,7 +165,7 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
         filter === "problem"
           ? "bg-[#054E76] text-white border-[#054E76]"
           : "text-gray-500 border-gray-300 hover:bg-gray-100"
-      }`}
+      } cursor-pointer text-[20px]`}
     >
       문제
     </button>
@@ -191,20 +191,20 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
             >
               <div className="flex gap-3">
                 <div className="w-[26px] shrink-0 flex justify-center">
-                  <img src={iconSrc} className="w-[18px] h-[18px] mt-[6px]" />
+                  <img src={iconSrc} className="w-[22px] h-[22px] mt-[4px]" />
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-[16px] font-bold mb-1">
+                  <div className="text-[20px] font-bold mb-1">
                     {getMetricKorean(item.metric)}
                   </div>
 
-                  <div className="text-[13px] text-gray-600 mb-1">
+                  <div className="text-[16px] text-gray-600 mb-1">
                     {item.floor} ·{" "}
                     {new Date(item.createdAt).toLocaleString("ko-KR")}
                   </div>
 
-                  <div className="text-[13px] text-gray-800 whitespace-pre-line leading-snug">
+                  <div className="text-[16px] text-gray-800 whitespace-pre-line leading-snug">
                     {reasonWrapped}
                   </div>
                 </div>

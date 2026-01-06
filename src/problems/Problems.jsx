@@ -269,10 +269,10 @@ export default function Problems() {
     <div className="w-full h-full">
       <AdminLayout />
 
-      <div className="ml-[330px] mt-[-10px] px-6">
+      <div className="ml-[230px] mt-[-60px] px-6">
         <div className="w-full max-w-[1500px]">
           {/* ===== 상단 필터 ===== */}
-          <div className="mb-6 flex">
+          <div className="mb-[50px] flex">
             {["전체", "전력", "온도", "수도", "가스"].map((label) => {
               const value = label === "전체" ? "all" : label;
               const active = selectedMetric === value;
