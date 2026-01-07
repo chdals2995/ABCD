@@ -73,12 +73,12 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
   // ✅ 타입(전력/온도/수도/가스)마다 팔레트를 “확 다르게”
   const CAUSE_COLORS = {
     전력: {
-      "운영/사용 패턴": "#FFF3B0",
-      "설정/제어 문제": "#FFD166",
-      "설비 고장/성능 저하": "#F4A261",
-      "안전/누수·누출": "#E76F51",
-      "계측/데이터 이상": "#BDB2FF",
-      기타: "#E5E7EB",
+      "운영/사용 패턴": "#EFEF00",
+      "설정/제어 문제": "#EBD44D",
+      "설비 고장/성능 저하": "#E54138",
+      "안전/누수·누출": "#F39E00",
+      "계측/데이터 이상": "#FDC866",
+      기타: "#CECECE",
     },
     온도: {
       "설정/제어 문제": "#FFCAD4",
@@ -505,7 +505,7 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
       // ✅ 커스텀 플러그인 옵션(원하면 조절)
       pieInnerTextPlugin: {
         minPercentage: 5,
-        color: "#054E76",
+        color: "#222222",
         fontSize: 16,
         fontWeight: "bold",
         // fontFamily: "sans-serif",
