@@ -8,7 +8,7 @@ import EmData from "./allData/EmData";
 
 export default function ElecData() {
   return (
-    <div className="min-h-screen flex flex-col overflow-auto bg-[rgba(5,78,118,0.1)]">
+    <div className="min-h-screen flex flex-col overflow-hidden bg-[rgba(5,78,118,0.1)]">
       {/* 상단 네비 */}
     
       {/* 나머지 영역 전체에 카드들 가운데 배치 */}
