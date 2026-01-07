@@ -12,12 +12,12 @@ export default function Data() {
   const inactiveClass = "text-gray-500";              // ✅ 비활성일 때 색
 
   return (
-    <div className="bg-[rgba(5,78,118,0.1)] bg-center">
+    <div className="min-h-screen flex flex-col bg-[rgba(5,78,118,0.1)]">
       <div className="mb-[-120px]">
         <AdminLayout />
       </div>
 
-      <nav className="absolute left-[50%] top-[30px] z-99 translate-x-[-50%]">
+      <nav className="absolute left-1/2 top-[30px] z-50 -translate-x-1/2">
         <NavLink
           to="/data/elecData"
           className={({ isActive }) =>
@@ -55,7 +55,7 @@ export default function Data() {
         </NavLink>
       </nav>
 
-      <div className="w-full h-full">
+      <div className="flex-1">
         <Routes>
           <Route path="elecData" element={<ElecData />} />
           <Route path="waterData" element={<WaterData />} />
