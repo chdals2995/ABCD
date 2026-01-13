@@ -82,8 +82,7 @@ export default function AlarmDrawer({ open, tab, onClose, onTabChange }) {
             className={`flex flex-1 justify-center items-center text-[20px] cursor-pointer
               ${
                 tab === "problem"
-                  ? "bg-white text-black font-bold"
-                  : "text-white"
+                  ? "text-white" : "bg-white text-black font-bold"                  
               }
             `}
             onClick={() => onTabChange?.("problem")}
@@ -95,8 +94,7 @@ export default function AlarmDrawer({ open, tab, onClose, onTabChange }) {
             className={`flex flex-1 justify-center items-center text-[20px] cursor-pointer
               ${
                 tab === "request"
-                  ? "bg-white text-black font-bold"
-                  : "text-white"
+                  ? "text-white" : "bg-white text-black font-bold"                  
               }
             `}
             onClick={() => onTabChange?.("request")}

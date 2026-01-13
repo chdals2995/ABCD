@@ -91,6 +91,7 @@ export default function UserRequest() {
           id,
           userUid: r.userUid || null,
           userId: r.userId || "",
+          userEmail: r.userEmail || "",
           title: r.title || "",
           content: r.content || "",
           status: r.status || "접수",

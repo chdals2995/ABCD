@@ -1,8 +1,9 @@
 // src/problems/unsolved_list.jsx
 import { useMemo, useState } from "react";
 
+import login from "../assets/icons/login.png"
 import AlertIcon from "../assets/icons/alert.png";
-import AlarmIcon from "../assets/icons/alarm.png";
+// import AlarmIcon from "../assets/icons/alarm.png";
 
 const PAGE_SIZE = 5;
 const PAGE_WINDOW = 5;
@@ -178,7 +179,7 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
       <div className="flex flex-col gap-4">
         {visibleItems.map((item) => {
           const kind = item.kind || "alert";
-          const iconSrc = kind === "request" ? AlarmIcon : AlertIcon;
+          const iconSrc = kind === "request" ? login : AlertIcon;
 
           const reasonKo = getReasonText(item.reason, item.metric, item.level);
           const reasonWrapped = wrapText(reasonKo);
