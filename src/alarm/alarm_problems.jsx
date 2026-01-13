@@ -12,6 +12,7 @@ import warningIcon from "../assets/icons/iconRed.png";
 import cautionIcon from "../assets/icons/alert.png";
 
 import "./hide_scrollbar.css";
+import { useNavigate } from "react-router-dom";
 
 /* =========================
    metric 정규화
@@ -165,8 +166,10 @@ export default function AlarmProblems() {
     showDetailToast(item);
   };
 
+  const navigate = useNavigate();
+
   const handleMoreClick = () => {
-    // TODO: navigate("/log") 같은거 연결 예정
+    navigate("/problems") 
   };
 
   return (
@@ -181,7 +184,7 @@ export default function AlarmProblems() {
             onClick={handleMoreClick}
             className="text-[15px] text-gray-400 hover:underline"
           >
-            더보기...
+            더보기
           </button>
 
           <div className="text-[17px] text-gray-400">안 읽은 알림</div>
