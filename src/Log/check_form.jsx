@@ -34,18 +34,9 @@ export default function CheckForm({
   const [writerName, setWriterName] = useState("");
 
 useEffect(() => {
-  if (!row?.userUid) return;
-
-  const fetchWriter = async () => {
-    const snap = await get(ref(rtdb, `users/${row.userUid}`));
-    const user = snap.val();
-    if (user?.email) {
-      setWriterName(user.email.split("@")[0]);
-    }
-  };
-
-  fetchWriter();
-}, [row?.userUid]);
+  if (!row?.userEmail) return;
+  setWriterName(row.userEmail.split("@")[0]);
+}, [row?.userEmail]);
 
   /* =========================
      실제 표시 값
@@ -78,14 +69,16 @@ useEffect(() => {
       return;
     }
 
-    const payload = {
-      id: row?.id || null,
-      title: editTitle,
-      content,
-      date: checkDate,
-      status: isEdit ? row?.status : "미완료",
-      checkType,
-    };
+   const payload = {
+  title: editTitle,
+  content,
+  date: checkDate,
+  checkType,
+  status: "미완료",
+  userUid: row?.userUid,
+  userEmail: row?.userEmail,
+};
+
 
     onSave?.(payload);
     onClose();

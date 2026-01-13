@@ -100,14 +100,7 @@ export default function AlarmRequest({ items = [] }) {
       {openDetail && selectedRow && (
         <CheckForm
           mode="view"
-          row={{
-            id: selectedRow.id,
-            title: selectedRow.title,
-            content: selectedRow.content,
-            date: "",
-            status: selectedRow.status,
-            checkType: "상시",
-          }}
+          row={selectedRow}   // ✅ 그대로 전달
           onClose={() => setOpenDetail(false)}
         />
       )}

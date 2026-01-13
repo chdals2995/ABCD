@@ -21,15 +21,19 @@ export default function AlarmDrawer({ open, tab, onClose, onTabChange }) {
       if (!data) return setRequestList([]);
 
       const list = Object.entries(data).map(([id, r]) => ({
-        id,
-        title: r.title || "",
-        content: r.content || "",
-        status: r.status || "접수",
-        floor: r.floor || "",
-        room: r.room || "",
-        type: r.type || "",
-        createdAt: Number(r.createdAt) || 0,
-      }));
+  id,
+  title: r.title || "",
+  content: r.content || "",
+  date: r.date || "",              // ✅ 추가
+  userEmail: r.userEmail || "",    // ✅ 추가
+  status: r.status || "접수",
+  floor: r.floor || "",
+  room: r.room || "",
+  type: r.type || "",
+  createdAt: Number(r.createdAt) || 0,
+}));
+
+
 
       list.sort((a, b) => b.createdAt - a.createdAt);
       setRequestList(list);
