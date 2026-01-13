@@ -20,7 +20,8 @@ import AdminPage from "./pages/AdminPage";
 import Master from "./pages/Master";
 import ParkingStatus from "./pages/ParkingStatus";
 import UserMain from "./pages/UserMain"
-import ProblemsLog from "./problems/problems_log";
+import Log from "./Log/Log";
+// import ProblemsLog from "./problems/problems_log";
 // import Data from "./pages/Data";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -215,7 +216,7 @@ export default function App() {
               path="/log"
               element={
                 <RequireRole allowRoles={["admin", "master"]}>
-                  <ProblemsLog />
+                  <Log />
                 </RequireRole>
               }
             />
