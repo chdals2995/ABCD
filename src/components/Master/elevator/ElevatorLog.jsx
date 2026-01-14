@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, remove } from "firebase/database";
 import ElevatorEdit from "./ElevatorEdit";
+import redtrash from "../../../assets/icons/redtrash.png";
 
 export default function ElevatorLog(){
 
@@ -18,6 +19,17 @@ export default function ElevatorLog(){
     setOpen(false);
     setSelectedElev(null);
   };
+
+//  삭제
+  const handleDeleteElevator = (e, id) => {
+  e.stopPropagation(); // li 클릭 → 수정 모달 열리는 것 방지
+
+  if (!confirm("해당 승강기를 삭제하시겠습니까?")) return;
+
+  const elevatorRef = ref(rtdb, `elevators/${id}`);
+  remove(elevatorRef);
+};
+
 
   useEffect(() => {
     const elevatorsRef = ref(rtdb,"elevators");
@@ -45,10 +57,15 @@ export default function ElevatorLog(){
                         <li
                             key={elevator.id}
                             onClick={() => openElevatorModal(elevator)}
-                            className="text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
-                            hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
+                            className="group text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
+                            hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold flex justify-between"
                         >
                             {elevator.name}
+                            <button
+                            onClick={(e)=>handleDeleteElevator(e, elevator.id)}
+                            className="opacity-0 group-hover:opacity-100 cursor-pointer">
+                                <img src={redtrash} alt="삭제" />
+                            </button>
                         </li>
                         ))}
                     </ul>

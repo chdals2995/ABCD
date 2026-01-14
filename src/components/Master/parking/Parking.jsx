@@ -253,8 +253,9 @@ export default function Parking() {
 
   return (
     <div>
-      <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px] overflow-y-auto">
-        <div className="px-[24px] py-[20px]">
+      <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px] 
+      overflow-y-auto mx-auto">
+        <div className="px-[24px] py-5 w-143 mx-auto">
           <div className="flex justify-between w-[520px] mb-[10px]">
             <label className="text-[20px]">주차장 명</label>
             <input

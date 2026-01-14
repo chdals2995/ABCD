@@ -26,7 +26,7 @@ export default function Management() {
         <ul className="flex items-center justify-center">
           <li
             className={`w-[249px] h-[82px] border-3 border-[#054E76] text-white
-              text-[32px] font-pyeojin text-center pt-[15px]
+              text-[32px] font-pyeojin text-center pt-[15px] cursor-pointer
               ${tab === "A" ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("A")}
           >
@@ -36,7 +36,7 @@ export default function Management() {
           <li
             className={`w-[249px] h-[82px] text-white
               text-[32px] font-pyeojin text-center pt-[15px]
-              border-3 border-l-transparent border-[#054E76]
+              border-3 border-l-transparent border-[#054E76] cursor-pointer
               ${tab === "B" ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("B")}
           >
@@ -46,7 +46,7 @@ export default function Management() {
           <li
             className={`w-[249px] h-[82px] text-white
               text-[32px] font-pyeojin text-center pt-[15px]
-              border-3 border-l-transparent border-[#054E76]
+              border-3 border-l-transparent border-[#054E76] cursor-pointer
               ${tab === "D" ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("D")}
           >
@@ -55,7 +55,7 @@ export default function Management() {
 
           <li
             className={`w-[249px] h-[82px] border-3 border-l-transparent border-[#054E76] text-white
-              text-[32px] font-pyeojin text-center pt-[15px]
+              text-[32px] font-pyeojin text-center pt-[15px] cursor-pointer
               ${tab === "C" ? "bg-[#054E76]" : "bg-[#0888D4]"}`}
             onClick={() => setTab("C")}
           >

@@ -72,8 +72,9 @@ export default function Building() {
 
   return (
     <div>
-      <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px]">
-        <div className="flex flex-col w-[75px]">
+      <div className="w-[649px] h-[308px] bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.25)] rounded-[10px]
+        mx-auto">
+        <div className="flex flex-col w-86 mx-auto transform translate-y-20">
           <div className="flex justify-between w-[342px]">
             <label htmlFor="name" className="text-[20px] mb-[10px]">
               건물명
@@ -98,10 +99,11 @@ export default function Building() {
               onChange={handleChange}
               min={1}
               step={1}
+              className="h-[30px]"
             />
           </div>
 
-          <div className="w-[100px]">
+          <div className="flex justify-between w-[342px]">
             <label htmlFor="down" className="text-[20px] mb-[10px]">
               지하
             </label>
@@ -112,7 +114,7 @@ export default function Building() {
               onChange={handleChange}
               min={0}
               step={1}
-              className="w-[60px]"
+              className="h-[30px]"
             />
           </div>
         </div>
