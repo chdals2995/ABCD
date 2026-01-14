@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, remove } from "firebase/database";
 import BuildingEdit from "./BuildingEdit";
+import redtrash from "../../../assets/icons/redtrash.png";
 
 export default function BuildingLog(){
 
@@ -18,6 +19,16 @@ export default function BuildingLog(){
     setOpen(false);
     setSelectedBuilding(null);
   };
+
+// 삭제
+  const handleDeleteBuilding = (e, id) => {
+    e.stopPropagation(); // li 클릭(모달 열기) 막기
+
+    if (!confirm("해당 건물을 삭제하시겠습니까?")) return;
+
+    const buildingRef = ref(rtdb, `buildings/${id}`);
+    remove(buildingRef);
+    };
 
   useEffect(() => {
     const buildingsRef = ref(rtdb,"buildings");
@@ -45,10 +56,15 @@ export default function BuildingLog(){
                         <li
                             key={building.id}
                             onClick={() => openBuildingModal(building)}
-                            className="text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
-                            hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
+                            className="group text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
+                            hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold flex justify-between"
                         >
                             {building.name}
+                            <button
+                            onClick={(e)=>handleDeleteBuilding(e,building.id)}
+                            className="opacity-0 group-hover:opacity-100 cursor-pointer">
+                                <img src={redtrash} alt="삭제" />
+                            </button>
                         </li>
                         ))}
                     </ul>

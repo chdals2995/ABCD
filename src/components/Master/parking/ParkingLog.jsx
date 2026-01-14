@@ -1,8 +1,9 @@
 // src/components/Master/parking/ParkingLog.jsx
 import { useEffect, useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, remove } from "firebase/database";
 import ParkingEdit from "./ParkingEdit";
+import redtrash from "../../../assets/icons/redtrash.png";
 
 function extractLastNumber(value) {
   const s = String(value ?? "");
@@ -30,6 +31,16 @@ export default function ParkingLog() {
     setOpen(false);
     setSelected(null);
   };
+
+  // 삭제
+  const handleDeleteParking = (e, id) => {
+  e.stopPropagation(); // li 클릭 → 모달 열리는 거 방지
+
+  if (!confirm("해당 주차장을 삭제하시겠습니까?")) return;
+
+  const parkingRef = ref(rtdb, `parkingSimConfig/${id}`);
+  remove(parkingRef);
+};
 
   useEffect(() => {
     const cfgRef = ref(rtdb, "parkingSimConfig");
@@ -71,10 +82,17 @@ export default function ParkingLog() {
               <li
                 key={p.id}
                 onClick={() => openModal(p)}
-                className="text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
-                  hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
+                className="group text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
+                  hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold "
               >
-                {p.name} ({p.id})
+                <div className="flex justify-between">
+                  {p.name} ({p.id})
+                <button
+                  onClick={(e)=>handleDeleteParking(e, p.id)}
+                  className="opacity-0 group-hover:opacity-100 cursor-pointer">
+                  <img src={redtrash} alt="삭제" />
+                </button>
+                </div>
                 <div className="flex justify-between">
                   <div className="text-[14px] text-gray-500">
                     소속 건물 명: {p.belongsto || "-"}

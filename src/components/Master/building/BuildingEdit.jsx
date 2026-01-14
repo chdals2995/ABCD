@@ -120,35 +120,6 @@ export default function BuildingEdit({ building, open, close }) {
               />
             </div>
 
-            <div className="flex items-center">
-              <label htmlFor="park" className="text-[20px] mb-[10px]">
-                주차타워
-              </label>
-              <div className="flex justify-between w-40 ml-8">
-                <div className="flex justify-between w-10">
-                  <input
-                    type="radio"
-                    name="park"
-                    value="yes"
-                    checked={form.park === "yes"}
-                    onChange={handleChange}
-                    className="h-[30px]"
-                  />
-                  <span>유</span>
-                </div>
-                <div className="flex justify-between w-10">
-                  <input
-                    type="radio"
-                    name="park"
-                    value="no"
-                    checked={form.park === "no"}
-                    onChange={handleChange}
-                    className="h-[30px]"
-                  />
-                  <span>무</span>
-                </div>
-              </div>
-            </div>
             {form.park === "yes" && (
               <div className="flex justify-between">
                 <label htmlFor="parkf" className="text-[20px] mb-[10px]">
