@@ -72,10 +72,10 @@ export default function ElevatorManagement({elevator, open, close}){
                 </div>
                 {/* 승강기 정보 */}
                 <div className="w-[422px] h-[224px] bg-white 
-                  ml-[66px] mt-[19px] pt-[38px] px-[66px] rounded-[10px]
+                  ml-[66px] mt-[19px] pt-4 rounded-[10px]
                   shadow-[0px_4px_4px_rgba(0,0,0,0.25)]
                   flex justify-between">
-                    <div className='flex flex-col w-[75px]'>
+                    <div className='flex flex-col mx-auto'>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="name" className='text-[20px] mb-[10px]'>승강기 명</label>
                             <input type="text" name="name" value={form.name} onChange={handleChange} 
@@ -84,19 +84,19 @@ export default function ElevatorManagement({elevator, open, close}){
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="num" className='text-[20px] mb-[10px]'>고유 번호</label>
                             <input type="text" id="num" value={form.num} onChange={handleChange} 
-                            pattern="\d{4}-\d{3}" placeholder="'-'를 포함해서 입력해주세요" className="px-[10px] w-[226px]"/>
+                            pattern="\d{4}-\d{3}" placeholder="  '-'를 포함해서 입력해주세요" className="h-[30px]"/>
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="all" className='text-[20px] mb-[10px]'>총 운행 층수</label>
-                            <input type="number" id="all" value={form.all} onChange={handleChange} className="w-[226px]"/>
+                            <input type="number" id="all" value={form.all} onChange={handleChange} className="h-[30px]"/>
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="down" className='text-[20px] mb-[10px]'>지하 층수</label>
-                            <input type="number" name="down" value={form.down} onChange={handleChange}/>
+                            <input type="number" name="down" value={form.down} onChange={handleChange} className="h-[30px]"/>
                         </div>
                         <div className="flex justify-between w-[342px]">
                             <label htmlFor="belongTo" className='text-[20px] mb-[10px]'>소속 건물명</label>
-                            <input type="text" id="belongTo" value={form.belongTo} onChange={handleChange}/>
+                            <input type="text" id="belongTo" value={form.belongTo} onChange={handleChange} className="h-[30px]"/>
                         </div>
                     </div>
                     {/* 에러 메시지 */}
