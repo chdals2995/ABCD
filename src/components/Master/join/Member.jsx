@@ -50,7 +50,7 @@ export default function Member(){
                             <span className="w-[280px] block">{user.userId}</span>
                             <span className="mr-[130px]">관리인</span>
                             <button onClick={()=>handleEdit(user)}
-                                className="hidden group-hover:block w-[79px] h-[52px] bg-[#054E76] text-white rounded-[10px]">수정</button>
+                                className="opacity-0 group-hover:opacity-100 w-[79px] h-[52px] bg-[#054E76] text-white rounded-[10px]">수정</button>
                         </li>
                     ))}
                 </ul>
