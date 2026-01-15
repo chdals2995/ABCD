@@ -3,6 +3,7 @@ import { useState } from "react";
 import CheckForm from "../Log/check_form";
 import { useNavigate } from "react-router-dom";
 
+
 export default function AlarmRequest({ items = [] }) {
   const [statusFilter, setStatusFilter] = useState("전체");
 
@@ -14,11 +15,10 @@ export default function AlarmRequest({ items = [] }) {
     return item.status === statusFilter;
   });
 
-  const navigate = useNavigate()
-  
+  const navigate = useNavigate();
+
   const handleMoreClick = () => {
-    
-    navigate("/log")
+  navigate("/log")
   };
 
   return (
@@ -104,7 +104,7 @@ export default function AlarmRequest({ items = [] }) {
       {openDetail && selectedRow && (
         <CheckForm
           mode="view"
-          row={selectedRow}   // ✅ 그대로 전달
+          row={selectedRow}
           onClose={() => setOpenDetail(false)}
         />
       )}
