@@ -1,14 +1,25 @@
 import { useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { ref, get } from "firebase/database";
-import { rtdb } from "../firebase/config"; // 경로는 프로젝트에 맞게 조정
+import { rtdb, auth } from "../firebase/config";
+import { useNavigate } from "react-router-dom";
 
 export default function UserLayout() {
   const [userId, setUserId] = useState("");
+  const navigate = useNavigate();
+
+  // 로그아웃
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("로그아웃 실패:", err);
+    } finally {
+      navigate("/", { replace: true });
+    }
+  };
 
   useEffect(() => {
-    const auth = getAuth();
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setUserId("");
@@ -35,7 +46,19 @@ export default function UserLayout() {
   }, []);
 
   return (
-    <div className="TopMenu w-[372px] h-[68px] px-[74px] bg-[#0888D4] 
-                absolute top-0 right-0 flex items-center justify-betwee text-white size-[10px]"> 안녕하세요! “{userId}”님 </div>
+    <div
+      className="TopMenu w-[372px] h-[68px] px-[24px] bg-[#0888D4]
+                 absolute top-0 right-0 flex items-center justify-between
+                 text-white text-[14px] z-50"
+    >
+      <span>안녕하세요! “{userId}”님</span>
+
+      <button
+        onClick={handleLogout}
+        className="cursor-pointer hover:underline"
+      >
+        로그아웃
+      </button>
+    </div>
   );
 }

@@ -2,9 +2,10 @@
 import GasData from "../components/data/GasData";
 import TempData from "../components/data/TempData";
 import WaterData from "../components/data/WaterData";
-import { Routes, Route, NavLink } from "react-router-dom";
+import { Routes, Route, NavLink } from "react-router-dom"; // useLocation 좌측 상단 로고의 네비용(임시)
 import AdminLayout from "../layout/AdminLayout";
 import ElecData from "../components/data/ElecData";
+
 
 export default function Data() {
   const baseClass = "mr-10 text-[32px]";
@@ -12,9 +13,9 @@ export default function Data() {
   const inactiveClass = "text-gray-500";              // ✅ 비활성일 때 색
 
   return (
-    <div className="min-h-screen flex flex-col bg-[rgba(5,78,118,0.1)]">
-      <div className="mb-[-120px]">
-        <AdminLayout />
+    <div className="min-h-screen flex flex-col bg-[rgba(5,78,118,0.1)] relative z-[9999]">
+      <div className="mb-[-120px]">          
+            <AdminLayout/>
       </div>
 
       <nav className="absolute left-1/2 top-[30px] z-50 -translate-x-1/2">
