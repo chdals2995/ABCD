@@ -1,8 +1,9 @@
 // joinRequestList.jsx
 import { useEffect, useState } from "react";
 import { rtdb } from "../../../firebase/config";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, remove } from "firebase/database";
 import JoinRequest from "./JoinRequest";
+import redtrash from "../../../assets/icons/redtrash.png"
 
 export default function JoinRequestList() {
   const [pendingList, setPendingList] = useState([]);
@@ -17,6 +18,15 @@ export default function JoinRequestList() {
   const closeUserModal = () => {
     setOpen(false);
     setSelectedUser(null);
+  };
+
+  // 삭제
+  const handleDeleteUser = (e, uid) => {
+    e.stopPropagation();
+
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
+    remove(ref(rtdb, `users/${uid}`));
   };
 
   useEffect(() => {
@@ -47,10 +57,15 @@ export default function JoinRequestList() {
               <li
                 key={user.uid}
                 onClick={() => openUserModal(user)}
-                className="text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
-                  hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold"
+                className="group text-[18px] mt-[10px] cursor-pointer border-b-[2px] border-transparent 
+                  hover:border-b-[2px] hover:border-b-[#054E76] hover:font-bold
+                  flex justify-between"
               >
                 {user.name} / 관리자 가입 신청
+                <button onClick={(e) => handleDeleteUser(e, user.uid)}
+                  className="opacity-0 group-hover:opacity-100 cursor-pointer">
+                  <img src={redtrash} alt="삭제" />
+                </button>
               </li>
             ))}
           </ul>

@@ -274,29 +274,29 @@ export default function ParkingEdit({ parking, open, close }) {
       </div>
 
       <div
-        className="w-[520px] bg-white 
-          ml-[66px] mt-[19px] pt-[20px] px-[28px] rounded-[10px]
+        className="w-[422px] bg-white 
+          ml-[66px] mt-[19px] pt-4 pb-4 px-[28px] rounded-[10px]
           shadow-[0px_4px_4px_rgba(0,0,0,0.25)]
           overflow-y-auto max-h-[420px]"
       >
-        <div className="flex justify-between w-[460px] mb-[10px]">
+        <div className="flex justify-between mb-[10px]">
           <label className="text-[20px]">주차장 명</label>
           <input
             type="text"
             name="name"
             value={form.name}
             onChange={handleChange}
-            className="h-[30px] w-[260px]"
+            className="h-[30px] w-50 box-border pl-2"
           />
         </div>
 
-        <div className="flex justify-between w-[460px] mb-[10px]">
+        <div className="flex justify-between mb-[10px]">
           <label className="text-[20px]">소속 건물 명</label>
           <select
             name="belongsto"
             value={form.belongsto}
             onChange={handleChange}
-            className="h-[30px] w-[260px]"
+            className="h-[30px] w-50 box-border pl-2"
           >
             <option value="">선택</option>
             {buildings.map((b) => (
@@ -307,20 +307,20 @@ export default function ParkingEdit({ parking, open, close }) {
           </select>
         </div>
 
-        <div className="flex justify-between w-[460px] mb-[10px]">
+        <div className="flex justify-between mb-[10px]">
           <label className="text-[20px]">타입</label>
           <select
             name="type"
             value={form.type}
             onChange={handleChange}
-            className="h-[30px] w-[260px]"
+            className="h-[30px] w-50 box-border pl-2"
           >
             <option value="flat">flat (주차장)</option>
             <option value="tower">tower (주차타워)</option>
           </select>
         </div>
 
-        <div className="flex justify-between w-[460px] mb-[10px]">
+        <div className="flex justify-between mb-[10px]">
           <label className="text-[20px]">층 수</label>
           <input
             type="number"
@@ -329,12 +329,12 @@ export default function ParkingEdit({ parking, open, close }) {
             onChange={handleChange}
             min={1}
             step={1}
-            className="h-[30px] w-[260px]"
+            className="h-[30px] w-50 box-border pl-2"
           />
         </div>
 
         {form.type === "tower" ? (
-          <div className="flex justify-between w-[460px] mb-[10px]">
+          <div className="flex justify-between mb-[10px]">
             <label className="text-[20px]">층당 주차 가능 대수</label>
             <input
               type="number"
@@ -343,15 +343,15 @@ export default function ParkingEdit({ parking, open, close }) {
               onChange={handleChange}
               min={1}
               step={1}
-              className="h-[30px] w-[260px]"
+              className="h-[30px] w-50 box-border pl-2"
             />
           </div>
         ) : (
-          <div className="w-[460px] mb-[10px]">
+          <div className="mb-[10px]">
             <div className="text-[20px] mb-[6px]">층별 주차 가능 대수</div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <div className="grid grid-cols-2 gap-y-2 w-90">
               {(form.perFloorSlots || []).map((v, i) => (
-                <div key={i} className="flex justify-between items-center">
+                <div key={i} className="flex justify-between items-center w-40">
                   <span className="text-[18px] w-[70px]">{i + 1}층</span>
                   <input
                     type="number"
@@ -361,7 +361,7 @@ export default function ParkingEdit({ parking, open, close }) {
                     }
                     min={0}
                     step={1}
-                    className="h-[28px] w-[140px]"
+                    className="h-[28px] w-30 box-border pl-2"
                   />
                 </div>
               ))}
@@ -369,13 +369,13 @@ export default function ParkingEdit({ parking, open, close }) {
           </div>
         )}
 
-        <div className="flex justify-between w-[460px]">
+        <div className="flex justify-between">
           <label className="text-[20px]">전체 주차 가능 대수</label>
           <input
             type="number"
             value={totalSlots}
             readOnly
-            className="h-[30px] w-[260px] bg-gray-100"
+            className="h-[30px] bg-gray-100 w-50 box-border pl-2"
           />
         </div>
 
@@ -386,7 +386,6 @@ export default function ParkingEdit({ parking, open, close }) {
         <div className="w-[79px]">
           <Button onClick={SaveEdit}>저장</Button>
         </div>
-
         <button
           type="button"
           onClick={DeleteParking}
