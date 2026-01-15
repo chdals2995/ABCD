@@ -161,7 +161,7 @@ export default function Menu({ logoSize }) {
 
   return (
     <div>
-      <div className="pt-[13px]">
+      <div className="pt-[13px] relative">
         <Link to="/" className="inline-flex w-fit shrink-0">
           <img
             src={logo}

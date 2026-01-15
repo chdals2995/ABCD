@@ -6,7 +6,7 @@ import MaxData from "./allData/MaxData";
 
 export default function TempData() {
   return (
-    <div className="min-h-screen flex flex-col overflow-auto bg-[rgba(5,78,118,0.1)]">
+    <div className="min-h-screen flex flex-col overflow-auto bg-transparent">
       <div className="flex-1 flex justify-center items-center mt-[70px]">
         <div className="relative w-[1619px] h-[810px] bg-transparent">
           {/* 위쪽 3개 카드 */}

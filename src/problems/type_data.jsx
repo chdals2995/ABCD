@@ -13,9 +13,14 @@ const pieInnerTextPlugin = {
     const dataset = data?.datasets?.[0];
     if (!dataset) return;
 
-    const values = (dataset.data || []).map((v) => Number(v || 0));
-    const total = values.reduce((a, b) => a + b, 0);
-    if (!total) return;
+   const values = (dataset.data || []).map((v) => Number(v || 0));
+
+const total = values.reduce((sum, v, i) => {
+  if (!chart.getDataVisibility(i)) return sum; // ✅ 숨겨진 조각 제외
+  return sum + v;
+}, 0);
+
+if (!total) return;
 
     const meta = chart.getDatasetMeta(0);
     const minPct = pluginOptions?.minPercentage ?? 5;
@@ -34,20 +39,23 @@ const pieInnerTextPlugin = {
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
 
     meta.data.forEach((arc, i) => {
-      const v = values[i];
-      if (!v) return;
+  // ✅ 라벨 클릭으로 숨겨진 타입이면 아예 스킵
+  if (!chart.getDataVisibility(i)) return;
 
-      const pct = (v / total) * 100;
-      if (pct < minPct) return; // 너무 작은 조각은 숨김(겹침 방지)
+  const v = values[i];
+  if (!v) return;
 
-      // Arc 내부 중심 좌표(Chart.js 기본 제공)
-      const { x, y } = arc.getCenterPoint
-        ? arc.getCenterPoint()
-        : arc.tooltipPosition();
+  const pct = (v / total) * 100;
+  if (pct < minPct) return;
 
-      ctx.fillText(`${v}건`, x, y - lineH / 2);
-      ctx.fillText(`${pct.toFixed(0)}%`, x, y + lineH / 2);
-    });
+  const { x, y } = arc.getCenterPoint
+    ? arc.getCenterPoint()
+    : arc.tooltipPosition();
+
+  ctx.fillText(`${v}건`, x, y - lineH / 2);
+  ctx.fillText(`${pct.toFixed(0)}%`, x, y + lineH / 2);
+});
+
 
     ctx.restore();
   },
@@ -65,12 +73,12 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
   // ✅ 타입(전력/온도/수도/가스)마다 팔레트를 “확 다르게”
   const CAUSE_COLORS = {
     전력: {
-      "운영/사용 패턴": "#FFF3B0",
-      "설정/제어 문제": "#FFD166",
-      "설비 고장/성능 저하": "#F4A261",
-      "안전/누수·누출": "#E76F51",
-      "계측/데이터 이상": "#BDB2FF",
-      기타: "#E5E7EB",
+      "운영/사용 패턴": "#EFEF00",
+      "설정/제어 문제": "#EBD44D",
+      "설비 고장/성능 저하": "#E54138",
+      "안전/누수·누출": "#F39E00",
+      "계측/데이터 이상": "#FDC866",
+      기타: "#CECECE",
     },
     온도: {
       "설정/제어 문제": "#FFCAD4",
@@ -497,7 +505,7 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
       // ✅ 커스텀 플러그인 옵션(원하면 조절)
       pieInnerTextPlugin: {
         minPercentage: 5,
-        color: "#054E76",
+        color: "#222222",
         fontSize: 16,
         fontWeight: "bold",
         // fontFamily: "sans-serif",
@@ -508,7 +516,7 @@ export default function TypeData({ data, selectedMetric, items = [] }) {
 
   return (
     <div className="w-full flex select-none">
-      <div className="w-[480px] h-[420px] mt-[-20px] ml-[-30px]">
+      <div className="w-[480px] h-[420px] mt-[-20px]">
         <Pie
           data={chartData}
           options={options}

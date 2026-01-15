@@ -1,6 +1,8 @@
 // AlarmRequest.jsx
 import { useState } from "react";
 import CheckForm from "../Log/check_form";
+import { useNavigate } from "react-router-dom";
+
 
 export default function AlarmRequest({ items = [] }) {
   const [statusFilter, setStatusFilter] = useState("전체");
@@ -13,8 +15,10 @@ export default function AlarmRequest({ items = [] }) {
     return item.status === statusFilter;
   });
 
+  const navigate = useNavigate();
+
   const handleMoreClick = () => {
-    // TODO: navigate("/log") 같은거 연결 예정
+  navigate("/log")
   };
 
   return (
@@ -33,7 +37,7 @@ export default function AlarmRequest({ items = [] }) {
             onClick={handleMoreClick}
             className="text-[15px] text-gray-400 hover:underline"
           >
-            더보기...
+            더보기
           </button>
 
           <div className="flex gap-[8px]">
@@ -100,14 +104,7 @@ export default function AlarmRequest({ items = [] }) {
       {openDetail && selectedRow && (
         <CheckForm
           mode="view"
-          row={{
-            id: selectedRow.id,
-            title: selectedRow.title,
-            content: selectedRow.content,
-            date: "",
-            status: selectedRow.status,
-            checkType: "상시",
-          }}
+          row={selectedRow}
           onClose={() => setOpenDetail(false)}
         />
       )}

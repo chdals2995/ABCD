@@ -1,5 +1,7 @@
 // CheckForm.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ref, get } from "firebase/database";
+import { rtdb } from "../firebase/config";
 import AttachmentIcon from "../assets/icons/attachment_icon.png";
 import CloseIcon from "../assets/icons/close.png";
 import Button from "../assets/Button";
@@ -11,12 +13,12 @@ export default function CheckForm({
   row,
   onSave,
 }) {
+  console.log("CheckForm row:", row);
   const isView = mode === "view";
   const isEdit = mode === "edit";
 
   /* =========================
      edit / create 전용 state
-     (🔥 view 모드에서는 사용 안 함)
   ========================= */
   const [editTitle, setEditTitle] = useState(row?.title || title || "");
   const [checkDate, setCheckDate] = useState(row?.date ?? "");
@@ -27,7 +29,26 @@ export default function CheckForm({
   const [isEditing, setIsEditing] = useState(mode === "create");
 
   /* =========================
-     실제 표시 값 (view / edit 분리)
+     작성자 표시 (userEmail → @앞부분)
+  ========================= */
+  const [writerName, setWriterName] = useState("");
+
+useEffect(() => {
+  if (!row?.userUid) return;
+
+  const fetchWriter = async () => {
+    const snap = await get(ref(rtdb, `users/${row.userUid}`));
+    const user = snap.val();
+    if (user?.email) {
+      setWriterName(user.email.split("@")[0]);
+    }
+  };
+
+  fetchWriter();
+}, [row?.userUid]);
+
+  /* =========================
+     실제 표시 값
   ========================= */
   const displayTitle = isView ? row?.title || "" : editTitle;
   const displayDate = isView ? row?.date || "" : checkDate;
@@ -47,26 +68,25 @@ export default function CheckForm({
      버튼 동작
   ========================= */
   const handleSave = () => {
-    // view 모드 → 닫기만
     if (isView) {
       onClose();
       return;
     }
 
-    // edit 모드 첫 클릭 → 수정 활성화
     if (isEdit && !isEditing) {
       setIsEditing(true);
       return;
     }
 
     const payload = {
-      id: row?.id || null,
-      title: editTitle,
-      content,
-      date: checkDate,
-      status: isEdit ? row?.status : "미완료",
-      checkType,
-    };
+  title,
+  content,
+  date,
+  checkType,
+  status: "미완료",
+  userUid: currentUser.uid,   // ⭐ 핵심
+};
+
 
     onSave?.(payload);
     onClose();
@@ -115,7 +135,9 @@ export default function CheckForm({
 
         {/* 내용 영역 */}
         <div className="bg-[#E6EEF2] w-full h-[440px] p-6 rounded-lg flex flex-col mt-4">
-          <p className="text-[18px] ml-1">담당자: 홍길동</p>
+          <p className="text-[18px] ml-1">
+            작성자: {writerName}
+          </p>
 
           {/* 첨부파일 */}
           <div className="flex items-center gap-2 mt-4 ml-1">

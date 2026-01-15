@@ -1,8 +1,9 @@
 // src/problems/unsolved_list.jsx
 import { useMemo, useState } from "react";
 
+import login from "../assets/icons/login.png"
 import AlertIcon from "../assets/icons/alert.png";
-import AlarmIcon from "../assets/icons/alarm.png";
+// import AlarmIcon from "../assets/icons/alarm.png";
 
 const PAGE_SIZE = 5;
 const PAGE_WINDOW = 5;
@@ -12,7 +13,7 @@ const METRIC_NORMALIZE = {
   electric: "전력",
   electricity: "전력",
   power: "전력",
-  전력: "전력",
+  전력: "전력",   
   전기: "전력",
 
   water: "수도",
@@ -69,10 +70,23 @@ function getReasonText(reason, metric, level) {
 
 export default function UnsolvedList({ items = [], onSelectProblem }) {
   const [page, setPage] = useState(1);
+  const [filter, setFilter] = useState("all"); // all | request | problem
+
+  /* =========================
+     🔎 요청 / 문제 필터
+  ========================= */
+  const filteredItems = useMemo(() => {
+    if (filter === "all") return items;
+    if (filter === "request")
+      return items.filter((i) => i.kind === "request");
+    if (filter === "problem")
+      return items.filter((i) => i.kind !== "request");
+    return items;
+  }, [items, filter]);
 
   const totalPages = useMemo(
-    () => Math.ceil(items.length / PAGE_SIZE),
-    [items.length]
+    () => Math.ceil(filteredItems.length / PAGE_SIZE),
+    [filteredItems.length]
   );
 
   const safePage = useMemo(() => {
@@ -84,8 +98,8 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
 
   const visibleItems = useMemo(() => {
     const start = (safePage - 1) * PAGE_SIZE;
-    return items.slice(start, start + PAGE_SIZE);
-  }, [items, safePage]);
+    return filteredItems.slice(start, start + PAGE_SIZE);
+  }, [filteredItems, safePage]);
 
   const pageNumbers = useMemo(() => {
     if (totalPages <= PAGE_WINDOW) {
@@ -112,17 +126,60 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
   const goLast = () => setPage(totalPages);
 
   return (
-    <div className="w-[380px] bg-white border rounded-xl p-4 mt-0">
-      <div className="text-[18px] font-bold text-center mt-2 mb-5">
+    <div className="w-[500px] bg-white border rounded-xl py-[10px] px-[50px] mt-0 ml-[-30px]">
+      <div className="text-[28px] font-bold text-center mt-2 mb-5">
         미해결 항목
       </div>
+
+      <div className="flex gap-2 text-[13px]">
+    <button
+      onClick={() => setFilter("all")}
+      className={`px-2 py-1 rounded-md border ${
+        filter === "all"
+          ? "bg-[#054E76] text-white border-[#054E76]"
+          : "text-gray-500 border-gray-300 hover:bg-gray-100"
+      } cursor-pointer text-[20px]`}
+    >
+      전체
+    </button>
+
+    <button
+      onClick={() =>  {
+        setFilter("request");
+        setPage(1);
+      }}
+      className={`px-2 py-1 rounded-md border ${
+        filter === "request"
+          ? "bg-[#054E76] text-white border-[#054E76]"
+          : "text-gray-500 border-gray-300 hover:bg-gray-100"
+      } cursor-pointer text-[20px]`}
+    >
+      민원
+    </button>
+
+    <button
+      onClick={() => {
+        setFilter("problem");
+        setPage(1);
+      }}
+      className={`px-2 py-1 rounded-md border ${
+        filter === "problem"
+          ? "bg-[#054E76] text-white border-[#054E76]"
+          : "text-gray-500 border-gray-300 hover:bg-gray-100"
+      } cursor-pointer text-[20px]`}
+    >
+      문제
+    </button>
+  </div>
+
+      
 
       <div className="mb-4 border-b border-gray-200" />
 
       <div className="flex flex-col gap-4">
         {visibleItems.map((item) => {
           const kind = item.kind || "alert";
-          const iconSrc = kind === "request" ? AlarmIcon : AlertIcon;
+          const iconSrc = kind === "request" ? login : AlertIcon;
 
           const reasonKo = getReasonText(item.reason, item.metric, item.level);
           const reasonWrapped = wrapText(reasonKo);
@@ -135,20 +192,20 @@ export default function UnsolvedList({ items = [], onSelectProblem }) {
             >
               <div className="flex gap-3">
                 <div className="w-[26px] shrink-0 flex justify-center">
-                  <img src={iconSrc} className="w-[18px] h-[18px] mt-[6px]" />
+                  <img src={iconSrc} className="w-[22px] h-[22px] mt-[4px]" />
                 </div>
 
                 <div className="flex-1">
-                  <div className="text-[16px] font-bold mb-1">
+                  <div className="text-[20px] font-bold mb-1">
                     {getMetricKorean(item.metric)}
                   </div>
 
-                  <div className="text-[13px] text-gray-600 mb-1">
+                  <div className="text-[16px] text-gray-600 mb-1">
                     {item.floor} ·{" "}
                     {new Date(item.createdAt).toLocaleString("ko-KR")}
                   </div>
 
-                  <div className="text-[13px] text-gray-800 whitespace-pre-line leading-snug">
+                  <div className="text-[16px] text-gray-800 whitespace-pre-line leading-snug">
                     {reasonWrapped}
                   </div>
                 </div>

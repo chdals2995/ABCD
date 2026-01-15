@@ -269,16 +269,16 @@ export default function Problems() {
     <div className="w-full h-full">
       <AdminLayout />
 
-      <div className="ml-[330px] pt-6 px-6">
+      <div className="ml-[230px] mt-[-60px] px-6">
         <div className="w-full max-w-[1500px]">
           {/* ===== 상단 필터 ===== */}
-          <div className="grid grid-cols-5 gap-3 mb-6">
+          <div className="flex relative mb-[60px] ml-[170px]">
             {["전체", "전력", "온도", "수도", "가스"].map((label) => {
               const value = label === "전체" ? "all" : label;
               const active = selectedMetric === value;
 
               return (
-                <div key={label} className="flex justify-center">
+                <div key={label} className="flex justify-center mr-[15px]">
                   <button
                     onClick={() => setSelectedMetric(value)}
                     className={`

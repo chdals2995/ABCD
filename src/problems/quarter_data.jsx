@@ -79,7 +79,7 @@ export default function QuarterData({
   }, [items, selectedMetric, localStart, localEnd]);
 
   return (
-    <div className="flex items-start">
+    <div className="flex items-start py-[20px] mt-[-20px]">
       {/* 날짜 */}
       <div className="w-[130px] flex flex-col items-center">
         <button
@@ -140,11 +140,11 @@ export default function QuarterData({
 
       {/* 카드 */}
       <div className="w-[360px] bg-white border rounded-xl p-4 text-center ml-3">
-        <div className="text-[18px] font-bold mb-1">
+        <div className="text-[20px] font-bold mb-1">
           분기별 발생 수 ({selectedMetric})
         </div>
 
-        <div className="text-[12px] text-gray-500 mb-3">
+        <div className="text-[15px] text-gray-500 mb-3">
           기간: {toDate(localStart)?.toLocaleDateString("ko-KR")} ~{" "}
           {toDate(localEnd)?.toLocaleDateString("ko-KR")}
         </div>
@@ -152,11 +152,11 @@ export default function QuarterData({
         <table className="w-full text-[13px] border-collapse">
           <thead>
             <tr className="bg-[#054E76] text-white h-[34px]">
-              <th className="px-3 text-center font-medium rounded-l-md">
+              <th className="px-3 text-center font-medium rounded-l-md text-[15px]">
                 분기
               </th>
-              <th className="px-3 text-right font-medium">발생 수</th>
-              <th className="px-3 text-right font-medium rounded-r-md">
+              <th className="px-3 text-right font-medium text-[15px]">발생 수</th>
+              <th className="px-3 text-right font-medium rounded-r-md text-[15px]">
                 평균(일)
               </th>
             </tr>
@@ -165,23 +165,23 @@ export default function QuarterData({
           <tbody className="border-b border-gray-200">
             {["1분기", "2분기", "3분기", "4분기"].map((q) => (
               <tr key={q} className="border-b border-gray-100">
-                <td className="px-3 py-2 text-center">{q}</td>
-                <td className="px-3 py-2 text-right">{stats[q].count}건</td>
-                <td className="px-3 py-2 text-right">{stats[q].avgPerDay}건</td>
+                <td className="px-3 py-2 text-center text-[15px]">{q}</td>
+                <td className="px-3 py-2 text-right text-[15px]">{stats[q].count}건</td>
+                <td className="px-3 py-2 text-right text-[15px]">{stats[q].avgPerDay}건</td>
               </tr>
             ))}
           </tbody>
         </table>
 
         <div className="mt-3 text-[13px] leading-7">
-          <div>
+          <div className="text-[15px]">
             전체 발생 수:{" "}
             <span className="font-bold text-[#0888D4] text-[18px]">
               {stats.total}건
             </span>
           </div>
 
-          <div>
+          <div className="text-[15px]">
             전체 평균(일):{" "}
             <span className="font-bold text-[#0888D4] text-[18px]">
               {stats.periodDays > 0

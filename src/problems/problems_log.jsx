@@ -112,13 +112,13 @@ export default function ProblemsLog({
         style={{ zIndex: 999999 }}
       />
 
-      <div className="border rounded-lg p-4 w-full mb-[10px] bg-white">
+      <div className="border rounded-lg py-[18px] px-[50px] w-full mb-[10px] bg-white">
         {/* 제목 + 필터 */}
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-[18px] font-semibold">원인내역(타입별)</h3>
+          <h3 className="text-[20px] font-semibold">원인내역(타입별)</h3>
 
           <div className="flex items-center gap-3">
-            <div className="flex gap-2 text-[14px]">
+            <div className="flex gap-2 text-[18px]">
               <button
                 onClick={() => {
                   setStatusFilter("all");
@@ -174,7 +174,7 @@ export default function ProblemsLog({
         {/* 테이블 */}
         <table className="w-full border-collapse table-fixed">
           <thead>
-            <tr className="border-b text-center text-[13px] text-gray-700">
+            <tr className="border-b text-center text-[16px] text-gray-700">
               <th className="pb-2 w-[90px]">타입</th>
               <th className="pb-2 w-[140px]">위치</th>
               <th className="pb-2">내용</th>
@@ -201,7 +201,7 @@ export default function ProblemsLog({
                   key={pid}
                   ref={isTarget ? targetRowRef : null}
                   onClick={() => setSelectedProblem(p)}
-                  className={`border-b text-center cursor-pointer text-[14px] ${
+                  className={`border-b text-center cursor-pointer text-[17px] ${
                     isTarget ? "bg-[#E6EEF2]" : ""
                   }`}
                 >

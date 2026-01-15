@@ -1,0 +1,15 @@
+/* 꼬리(삼각형) 제거 */
+.react-datepicker__triangle,
+.react-datepicker__triangle::before,
+.react-datepicker__triangle::after {
+  display: none !important;
+}
+
+/* 꼬리 자리 여백은 popper 자체에 붙는 경우가 있어서 popper를 직접 잡음 */
+.react-datepicker-popper[data-placement^="bottom"] {
+  margin-top: 0 !important;
+}
+
+.react-datepicker-popper[data-placement^="top"] {
+  margin-bottom: 0 !important;
+}
